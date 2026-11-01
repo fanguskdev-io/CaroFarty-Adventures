@@ -6,9 +6,10 @@
 #
 # Corre cada paso aunque falle el anterior y falla al final si alguno falló. Lo que comprueba, en orden:
 #   1. que ningún fichero de Kotlin use «!!» (null-safety sin atajos);
-#   2. ktlint, las pruebas comunes en la JVM y en el host de Android, el lint de Android y los APK de depuración y de
+#   2. que el arte que carga el juego está al día con arte/ (tools/arte.py --comprobar, TEC-11);
+#   3. ktlint, las pruebas comunes en la JVM y en el host de Android, el lint de Android y los APK de depuración y de
 #      lanzamiento (este, con R8); cualquier aviso del compilador rompe la construcción (build.gradle.kts raíz);
-#   3. en macOS: las pruebas comunes en el simulador de iOS y la app de iOS compilada con xcodebuild.
+#   4. en macOS: las pruebas comunes en el simulador de iOS y la app de iOS compilada con xcodebuild.
 set -uo pipefail
 
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
@@ -41,6 +42,8 @@ no_double_bang() {
 }
 
 step "Sin «!!» en el código" no_double_bang
+
+step "Arte al día con arte/" python3 tools/arte.py --comprobar
 
 step "Estilo, pruebas, lint y APK" ./gradlew --continue \
     ktlintCheck \

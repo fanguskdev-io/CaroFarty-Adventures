@@ -13,14 +13,21 @@ import com.fanguskdev.carofarty.game.GameConfig
 import com.fanguskdev.carofarty.game.GameRun
 import com.fanguskdev.carofarty.game.JumpLab
 import com.fanguskdev.carofarty.game.Pilot
+import com.fanguskdev.carofarty.game.Reaction
 import com.fanguskdev.carofarty.game.RunEvent
 import com.fanguskdev.carofarty.game.RunPhase
 import com.fanguskdev.carofarty.game.Scenario
+import com.fanguskdev.carofarty.storage.Choices
 import com.fanguskdev.carofarty.storage.Records
 import com.fanguskdev.carofarty.storage.RunResult
+import com.fanguskdev.carofarty.ui.render.Art
+import com.fanguskdev.carofarty.ui.render.CaroLook
+import com.fanguskdev.carofarty.ui.render.CaroPose
 import com.fanguskdev.carofarty.ui.render.GreyPalette
 import com.fanguskdev.carofarty.ui.render.PanelLine
 import com.fanguskdev.carofarty.ui.render.SafeInsets
+import com.fanguskdev.carofarty.ui.render.chooserHit
+import com.fanguskdev.carofarty.ui.render.chooserTop
 import com.fanguskdev.carofarty.ui.render.pauseButtonHit
 import kotlinx.coroutines.CoroutineScope
 import kotlin.math.roundToInt
@@ -30,20 +37,23 @@ import kotlin.time.TimeSource
 
 /**
  * What the game screen keeps between frames: the current run, the finger, the fixed step, the pause, the end of the run
- * against the records and the debugging numbers. The screen calls [onFrame] once per frame and [frame] makes it redraw;
- * nothing here allocates per frame except the debugging line, which only debug builds show (TEC-17). In debug builds
- * started with the autopilot, the [Pilot] plays instead of the finger and starts again on its own when a run ends.
+ * against the records, the choice of scenario, Caro's look and the debugging numbers. The screen calls [onFrame] once per
+ * frame and [frame] makes it redraw; nothing here allocates per frame except the debugging line, which only debug builds
+ * show (TEC-17). In debug builds started with the autopilot, the [Pilot] plays instead of the finger and starts again on
+ * its own when a run ends. [art] is null when there is none: then everything is drawn as the grey prototype.
  */
 internal class GameSession(
     private val config: GameConfig,
+    val art: Art?,
     private val scope: CoroutineScope,
     private val records: Records,
+    private val choices: Choices,
     private val debugBuild: Boolean,
     debugAtStart: Boolean = false,
     autopilot: Boolean = false,
     private val openedAt: TimeSource.Monotonic.ValueTimeMark = TimeSource.Monotonic.markNow(),
 ) {
-    var scenario = Scenario.Bosque
+    var scenario = choices.scenario
         private set
     var run: GameRun = createRun()
         private set
@@ -73,6 +83,21 @@ internal class GameSession(
     var pointsText = ""
         private set
 
+    /** Which of Caro's animations shows, stepped with the run (CHR-02 to CHR-07). */
+    val look = CaroLook(runFrames = framesOf(CaroPose.Corre), fastFrames = framesOf(CaroPose.CorreRapido))
+
+    /** The names of the scenarios, for the buttons of the choice (UI-20). */
+    val scenarioNames = Scenario.entries.map { Texts.scenario(it) }
+
+    /** Whether the choice of scenario shows: before a run and at its end. */
+    val choosing: Boolean get() = !paused && run.phase != RunPhase.Running
+
+    /** The row where the buttons of the choice go: over the panel. */
+    val chooserTop: Int get() = chooserTop(panel, viewport.height)
+
+    /** The time of the animations, in milliseconds: it stops in the pause. */
+    val millis: Long get() = (animationTime * MILLIS).toLong()
+
     /** Whether the points are running out, for the marker in red (guía 1, principio 8). */
     val lowPoints: Boolean get() = run.phase != RunPhase.Ready && run.points <= config.score.warnAtPoints
     var metersText = ""
@@ -89,6 +114,7 @@ internal class GameSession(
     private var shownPoints = -1
     private var shownMeters = -1
     private var time = 0.0
+    private var animationTime = 0.0
     private var overAt = 0.0
     private var lastNanos = -1L
     private val fps = FpsMeter()
@@ -104,7 +130,10 @@ internal class GameSession(
         fps.add(elapsed)
         if (startupMillis < 0) startupMillis = openedAt.elapsedNow().inWholeMilliseconds
         val started = TimeSource.Monotonic.markNow()
-        if (!paused) alpha = clock.advance(elapsed) { step() }
+        if (!paused) {
+            alpha = clock.advance(elapsed) { step() }
+            animationTime += elapsed
+        }
         if (showDebug) logic.add(started.elapsedNow())
         refreshTexts()
         frame.longValue = nanos
@@ -127,9 +156,12 @@ internal class GameSession(
             resume()
             return
         }
-        if (showDebug && run.phase == RunPhase.Ready && gameY > viewport.height - DEBUG_CORNER && gameX < DEBUG_CORNER * 3) {
-            changeScenario()
-            return
+        if (choosing && (run.phase == RunPhase.Ready || time - overAt >= RETRY_DELAY)) {
+            val chosen = chooserHit(scenarioNames, gameX, gameY, viewport.width, chooserTop)
+            if (chosen >= 0) {
+                choose(Scenario.entries[chosen])
+                return
+            }
         }
         // With the debugging tools open, a tap on the points takes some away, to see the end of a run without points.
         if (showDebug && run.phase == RunPhase.Running && gameY < insets.top + DEBUG_CORNER && gameX < insets.left + DEBUG_CORNER * 3) {
@@ -165,6 +197,7 @@ internal class GameSession(
         val touched = input.consumePress()
         val pilot = pilot
         if (run.phase == RunPhase.Over) {
+            look.step(JumpLab.STEP, run, result?.newRecord == true)
             if ((pilot != null && time - overAt >= PILOT_RETRY_DELAY) || (touched && time - overAt >= RETRY_DELAY)) restart()
             return
         }
@@ -178,6 +211,7 @@ internal class GameSession(
             running = true
         }
         handleEvents()
+        look.step(JumpLab.STEP, run, result?.newRecord == true)
     }
 
     private fun handleEvents() {
@@ -205,11 +239,21 @@ internal class GameSession(
         panel = emptyList()
     }
 
-    private fun changeScenario() {
-        scenario = Scenario.entries[(scenario.ordinal + 1) % Scenario.entries.size]
+    /**
+     * Another scenario, from the buttons before a run or at its end (UI-20): a new run there, waiting for the first tap, and
+     * remembered for the next time the game opens.
+     */
+    private fun choose(chosen: Scenario) {
+        if (chosen == scenario && run.phase == RunPhase.Ready) return
+        scenario = chosen
+        choices.scenario = chosen
         replaceRun()
+        result = null
+        running = false
         panel = readyPanel()
     }
+
+    private fun framesOf(pose: CaroPose): Int = art?.caro?.animation(pose, Reaction.None)?.size ?: DEFAULT_RUN_FRAMES
 
     private fun replaceRun() {
         run.close()
@@ -245,7 +289,6 @@ internal class GameSession(
 
     private fun readyPanel(): List<PanelLine> {
         val lines = mutableListOf(
-            PanelLine(Texts.scenario(scenario), GreyPalette.record),
             PanelLine(Texts.TAP_TO_START, size = 2),
             PanelLine(Texts.HOLD_HINT),
         )
@@ -277,6 +320,8 @@ internal class GameSession(
         const val MIN_SCREEN_WIDTH = 1280
         const val MIN_SCREEN_HEIGHT = 720
         const val DEBUG_CORNER = 24
+        const val MILLIS = 1000
+        const val DEFAULT_RUN_FRAMES = 6
         const val DEBUG_TAKE_AWAY = 5
         const val SEED_DIGITS = 100_000
         const val DEBUG_REFRESH_FRAMES = 15

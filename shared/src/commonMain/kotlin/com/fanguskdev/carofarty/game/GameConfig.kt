@@ -128,6 +128,8 @@ data class ItemConfig(
     val perritoWalkMax: Float = 3f,
     val perritoStopMin: Float = 0.5f,
     val perritoStopMax: Float = 1.5f,
+    /** How long Caro's face shows what she picked up (CHR-07): happy for a rescued animal, disgusted for food, in seconds. */
+    val reactionSeconds: Float = 0.4f,
 ) {
     fun box(kind: ItemKind): Int = if (kind.adds) positiveBox else negativeBox
 }

@@ -45,6 +45,9 @@ class Item(val kind: ItemKind, val x: Int, val y: Int) {
     /** For a gatito, which of its [COATS] coats it wears, drawn with the seed (ADR 0008). */
     var coat = 0
 
+    /** For a perrito, which of the [BREEDS] breeds it is, drawn with the seed: they differ in shape, not only in colour. */
+    var breed = 0
+
     /** For a perrito that walks along its ground (ADR 0008); null if it stays still. */
     var walk: Walk? = null
 
@@ -57,6 +60,12 @@ class Item(val kind: ItemKind, val x: Int, val y: Int) {
 
         /** The coats of the gatitos, in this order: naranja, gris azulado, calicó, crema, negro, blanco, chocolate, siamés. */
         const val COATS = 8
+
+        /**
+         * The breeds of the perritos, in this order (Fangusk): shiba, pastor alemán, carlino, dálmata, golden, beagle,
+         * yorkshire, bulldog francés y corgi.
+         */
+        const val BREEDS = 9
     }
 }
 

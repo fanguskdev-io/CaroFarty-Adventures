@@ -8,6 +8,8 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.use
 import com.fanguskdev.carofarty.App
 import com.fanguskdev.carofarty.engine.PixelViewport
+import com.fanguskdev.carofarty.game.Scenario
+import com.fanguskdev.carofarty.storage.Choices
 import com.fanguskdev.carofarty.storage.MemoryStore
 import org.jetbrains.skia.Bitmap
 import org.jetbrains.skia.EncodedImageFormat
@@ -36,10 +38,11 @@ class SnapshotsTest {
         width: Int,
         height: Int,
         script: Script,
+        store: MemoryStore = MemoryStore(),
     ): Image {
         var image: Image? = null
         ImageComposeScene(width, height, Density(3f)) {
-            if (script.debug) GameScreen(MemoryStore(), debugBuild = true, debugAtStart = true) else App()
+            if (script.debug) GameScreen(store, debugBuild = true, debugAtStart = true) else App(store)
         }.use { scene ->
             var time = 0L
             val centre = Offset(width * 0.6f, height * 0.6f)
@@ -108,5 +111,15 @@ class SnapshotsTest {
         val points = Offset(60f, 50f)
         val noPoints = start + mapOf(40 to Tap(hold = 2, at = points), 50 to Tap(hold = 2, at = points))
         render("fin-sin-puntos", 2400, 1080, Script(frames = 90, taps = noPoints, debug = true))
+    }
+
+    @Test
+    fun theThreeScenarios() {
+        for (scenario in Scenario.entries) {
+            val store = MemoryStore().also { Choices(it).scenario = scenario }
+            val name = scenario.name.lowercase()
+            render("escenario-$name", 2400, 1080, Script(frames = 240, taps = mapOf(10 to Tap(hold = 2))), store)
+            render("escenario-$name-listo", 1280, 720, Script(frames = 30), store)
+        }
     }
 }

@@ -88,6 +88,27 @@ class GameRunTest {
     }
 
     @Test
+    fun herFaceShowsWhatSheJustPickedUpForAMoment() {
+        val run = newRun()
+        run.step(step, pressed = true, held = false)
+        assertEquals(Reaction.None, run.reaction)
+        val y = run.caro.y.toInt() + 8
+        run.course.items.addFirst(Item(ItemKind.Gatito, run.caro.x.toInt() + 2, y))
+        run.step(step, pressed = false, held = false)
+        assertEquals(Reaction.Happy, run.reaction, "a rescued gatito makes her happy")
+
+        run.course.items.addFirst(Item(ItemKind.Huevo, run.caro.x.toInt() + 2, y))
+        run.step(step, pressed = false, held = false)
+        assertEquals(Reaction.Disgusted, run.reaction, "the last thing picked up is the one that shows")
+
+        val steps = (config.items.reactionSeconds / step).toInt()
+        repeat(steps - 1) { run.step(step, pressed = false, held = false) }
+        assertEquals(Reaction.Disgusted, run.reaction)
+        repeat(3) { run.step(step, pressed = false, held = false) }
+        assertEquals(Reaction.None, run.reaction, "and after ${config.items.reactionSeconds} s her face is back")
+    }
+
+    @Test
     fun withNoPointsLeftTheRunEndsAndSheStops() {
         val run = newRun()
         run.step(step, pressed = true, held = false)

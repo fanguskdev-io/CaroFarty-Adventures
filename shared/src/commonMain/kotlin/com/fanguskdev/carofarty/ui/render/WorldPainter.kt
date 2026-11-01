@@ -15,10 +15,11 @@ import kotlin.math.floor
 import kotlin.math.roundToLong
 
 /**
- * Draws the world of the grey prototype into the low resolution buffer, in game pixels: the sky, a far band that moves
- * slower to show the speed, the ground in tiles with its edges marked and the collectibles as squares with their letter.
- * [cameraLeft] is the integer world x of the buffer's left column and [cameraBottom] the world y of its bottom row; the
- * buffer's y grows downwards from its top, the world's upwards from the bottom.
+ * Draws the world into the low resolution buffer, in game pixels: the ground, the blocks and the collectibles, with the
+ * scenario's art (ArtPainter) or, where there is none in [art], as the grey prototype: the ground in tiles with its edges
+ * marked and the collectibles as squares with their letter. [cameraLeft] is the integer world x of the buffer's left
+ * column and [cameraBottom] the world y of its bottom row; the buffer's y grows downwards from its top, the world's upwards
+ * from the bottom. [millis] moves the animations.
  */
 internal fun DrawScope.paintWorld(
     run: GameRun,
@@ -27,25 +28,35 @@ internal fun DrawScope.paintWorld(
     width: Int,
     height: Int,
     palette: GreyPalette,
+    art: Art?,
+    millis: Long,
     debugBoxes: Boolean,
     caroX: Double,
     caroY: Float,
 ) {
     // The buffer row of the world's y = 0, which goes down out of the buffer when the camera goes up (PLY-13).
     val base = height + cameraBottom
-    // Clear: the sky and the far band are drawn behind it, each with its own offset (paintBackground).
+    // Clear: the sky and the background are drawn behind it, each with its own offset (paintBackground).
     drawRect(Color.Transparent, Offset.Zero, Size(width.toFloat(), height.toFloat()), blendMode = BlendMode.Clear)
-    paintGrounds(run, cameraLeft, width, base, palette)
-    paintBlocks(run, cameraLeft, width, base, palette)
-    paintItems(run, cameraLeft, width, base)
+    val scenery = art?.scenario(run.scenario)
+    if (scenery != null) {
+        paintGroundTiles(run, scenery, cameraLeft, cameraBottom, width, base)
+        paintBlockTiles(run, scenery, cameraLeft, width, base)
+    } else {
+        paintGrounds(run, cameraLeft, width, base, palette)
+        paintBlocks(run, cameraLeft, width, base, palette)
+    }
+    val items = art?.items
+    if (items != null) paintItemSprites(run, items, cameraLeft, width, base, millis) else paintItems(run, cameraLeft, width, base)
     if (debugBoxes) paintBoxes(run, cameraLeft, base, caroX, caroY)
 }
 
 /**
- * The sky and the far band, drawn straight on the screen behind the world (TEC-04). The band moves at [FAR_SPEED] of the
- * [camera] with its own offset rounded to a pixel of the phone, so it glides at its own pace instead of stepping a whole
- * game pixel at a time and taking the world's sub-pixel shift on top, which made it shake. At the start of a run, with
- * the camera at [restCamera], it sits on the game's pixel grid.
+ * The sky and the far band, drawn straight on the screen behind the world (TEC-04): the scenario's art if there is
+ * ([scenery], paintScenery), or else the grey ones. The band moves at [FAR_SPEED] of the [camera] with its own offset
+ * rounded to a pixel of the phone, so it glides at its own pace instead of stepping a whole game pixel at a time and
+ * taking the world's sub-pixel shift on top, which made it shake. At the start of a run, with the camera at
+ * [restCamera], it sits on the game's pixel grid.
  */
 internal fun DrawScope.paintBackground(
     camera: Double,
@@ -53,11 +64,17 @@ internal fun DrawScope.paintBackground(
     cameraBottom: Int,
     viewport: PixelViewport,
     palette: GreyPalette,
+    scenery: ScenarioArt?,
+    groundLine: Int,
 ) {
     val scale = viewport.scale
     val left = viewport.offsetX.toFloat()
     val top = viewport.offsetY.toFloat()
     drawRect(palette.sky, Offset(left, top), Size((viewport.width * scale).toFloat(), (viewport.height * scale).toFloat()))
+    if (scenery != null) {
+        paintScenery(scenery, camera, restCamera, cameraBottom, viewport, groundLine)
+        return
+    }
     val far = (camera - restCamera) * FAR_SPEED + floor(restCamera * FAR_SPEED)
     val farPixels = (far * scale).roundToLong()
     val base = viewport.height + floor(cameraBottom * FAR_SPEED).toInt()
@@ -146,14 +163,20 @@ private fun DrawScope.paintItems(
         val item = items[i]
         if (item.taken) continue
         // Where it is now: the perritos walk (ADR 0008).
-        val left = item.currentX.roundToLong() - half - cameraLeft
-        if (left > width || left + Item.SIZE < 0) continue
-        val top = (base - item.y - half).toFloat()
-        val outline = if (item.kind.adds) GreyPalette.good else GreyPalette.bad
-        drawRect(outline, Offset(left.toFloat(), top), Size(Item.SIZE.toFloat(), Item.SIZE.toFloat()))
-        drawRect(GreyPalette.itemFill(item), Offset(left + 1f, top + 1), Size(Item.SIZE - 2f, Item.SIZE - 2f))
-        drawText(GreyPalette.itemLetter(item.kind), (left + 4).toInt(), (top + 3).toInt(), GreyPalette.itemInk(item))
+        val x = item.currentX.roundToLong() - cameraLeft
+        if (x - half > width || x + half < 0) continue
+        paintGreyItem(item, x.toInt(), base - item.y)
     }
+}
+
+/** A collectible of the grey prototype: a square with its letter, centred on ([x], [y]) of the buffer. */
+internal fun DrawScope.paintGreyItem(item: Item, x: Int, y: Int) {
+    val left = (x - Item.SIZE / 2).toFloat()
+    val top = (y - Item.SIZE / 2).toFloat()
+    val outline = if (item.kind.adds) GreyPalette.good else GreyPalette.bad
+    drawRect(outline, Offset(left, top), Size(Item.SIZE.toFloat(), Item.SIZE.toFloat()))
+    drawRect(GreyPalette.itemFill(item), Offset(left + 1f, top + 1), Size(Item.SIZE - 2f, Item.SIZE - 2f))
+    drawText(GreyPalette.itemLetter(item.kind), (left + 4).toInt(), (top + 3).toInt(), GreyPalette.itemInk(item))
 }
 
 private fun DrawScope.paintBoxes(

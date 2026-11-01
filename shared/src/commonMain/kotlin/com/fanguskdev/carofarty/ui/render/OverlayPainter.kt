@@ -27,7 +27,7 @@ internal fun DrawScope.paintCaro(
             stride -> CARO_RUN_A
             else -> CARO_RUN_B
         }
-    frame.draw(this, x - CARO_WIDTH / 2, feet - CARO_HEIGHT, size = 1, ::caroColor)
+    frame.draw(this, x - CARO_WIDTH / 2, feet - PLACEHOLDER_HEIGHT, size = 1, ::caroColor)
 }
 
 /**
@@ -78,6 +78,60 @@ internal fun DrawScope.paintPanel(lines: List<PanelLine>, width: Int, height: In
 
 internal class PanelLine(val text: String, val color: Color = GreyPalette.text, val size: Int = 1)
 
+/**
+ * The top row of the choice of scenario over the panel of [lines] that [paintPanel] draws on a screen [height] tall: in
+ * the sky, clear of Caro and of what is on the ground.
+ */
+internal fun chooserTop(lines: List<PanelLine>, height: Int): Int {
+    val tall = lines.sumOf { PixelFont.LINE * it.size + 2 } + 12
+    return (height - tall) / 2 - CHOOSER_GAP - PixelFont.HEIGHT - 2 * BUTTON_PAD_Y
+}
+
+/**
+ * The choice of scenario (UI-20, ADR 0006): its [names] in a row of buttons from [top], centred, the [chosen] one lit. The
+ * world behind already shows the chosen one.
+ */
+internal fun DrawScope.paintChooser(
+    names: List<String>,
+    chosen: Int,
+    width: Int,
+    top: Int,
+) {
+    var left = chooserLeft(names, width)
+    val tall = PixelFont.HEIGHT + 2 * BUTTON_PAD_Y
+    for (i in names.indices) {
+        val across = PixelFont.width(names[i]) + 2 * BUTTON_PAD_X
+        val lit = i == chosen
+        if (lit) drawRect(GreyPalette.record, Offset(left - 1f, top - 1f), Size(across + 2f, tall + 2f))
+        drawRect(GreyPalette.panel, Offset(left.toFloat(), top.toFloat()), Size(across.toFloat(), tall.toFloat()))
+        drawText(names[i], left + BUTTON_PAD_X, top + BUTTON_PAD_Y, if (lit) GreyPalette.record else GreyPalette.text, GreyPalette.shadow)
+        left += across + BUTTON_GAP
+    }
+}
+
+/** Which of the buttons of [paintChooser] is at ([x], [y]), with some slack around them, or -1. */
+internal fun chooserHit(
+    names: List<String>,
+    x: Float,
+    y: Float,
+    width: Int,
+    top: Int,
+): Int {
+    if (y < top - BUTTON_SLACK || y > top + PixelFont.HEIGHT + 2 * BUTTON_PAD_Y + BUTTON_SLACK) return -1
+    var left = chooserLeft(names, width)
+    for (i in names.indices) {
+        val across = PixelFont.width(names[i]) + 2 * BUTTON_PAD_X
+        if (x >= left - BUTTON_GAP / 2f && x < left + across + BUTTON_GAP / 2f) return i
+        left += across + BUTTON_GAP
+    }
+    return -1
+}
+
+private fun chooserLeft(names: List<String>, width: Int): Int {
+    val across = names.sumOf { PixelFont.width(it) + 2 * BUTTON_PAD_X } + BUTTON_GAP * (names.size - 1)
+    return (width - across) / 2
+}
+
 /** One line of numbers for those who debug (TEC-10), at the bottom left. */
 internal fun DrawScope.paintDebug(lines: Array<String>, height: Int, insets: SafeInsets) {
     var top = height - MARGIN - lines.size * (PixelFont.HEIGHT + LINE_GAP) + LINE_GAP
@@ -97,11 +151,19 @@ private fun caroColor(code: Char): Color? = when (code) {
 }
 
 private const val MARGIN = 6
+private const val BUTTON_PAD_X = 8
+private const val BUTTON_PAD_Y = 5
+private const val BUTTON_GAP = 8
+private const val BUTTON_SLACK = 6
+private const val CHOOSER_GAP = 6
 private const val LINE_GAP = 3
 private const val PAUSE_SIZE = 14
 private const val PAUSE_SLACK = 8
 private const val CARO_WIDTH = 16
-internal const val CARO_HEIGHT = 24
+private const val PLACEHOLDER_HEIGHT = 24
+
+/** How tall Caro's drawing is (docs/arte.md): the camera keeps it on the screen (PLY-13). */
+internal const val CARO_HEIGHT = 32
 private val HAIR = Color(0xFF5A3825)
 private val SKIN = Color(0xFFF2C9A0)
 private val DRESS = Color(0xFFE8829B)

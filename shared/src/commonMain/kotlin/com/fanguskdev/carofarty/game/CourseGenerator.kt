@@ -356,10 +356,13 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
         }
     }
 
-    /** A perrito or a gatito; a gatito with one of its coats (ADR 0008). */
+    /** A perrito of one of its breeds or a gatito with one of its coats (ADR 0008). */
     private fun positive(x: Int, y: Int): Item {
         val item = Item(if (itemRandom.nextBoolean()) ItemKind.Perrito else ItemKind.Gatito, x, y)
-        if (item.kind == ItemKind.Gatito) item.coat = itemRandom.nextInt(Item.COATS)
+        when (item.kind) {
+            ItemKind.Gatito -> item.coat = itemRandom.nextInt(Item.COATS)
+            else -> item.breed = itemRandom.nextInt(Item.BREEDS)
+        }
         return item
     }
 

@@ -32,6 +32,14 @@ gris azulado, calicó, crema, negro, blanco, chocolate y siamés.
   partida sale con los mismos gatitos en cualquier teléfono. El arte los dibuja con una sola rejilla y una paleta por
   pelaje ([arte](../arte.md)); en el prototipo en gris, el color del cuadrado da una idea de cada uno.
 
+- **Nueve razas de perrito, el olor y las caras** (Fangusk, también a través de GameMaster, el mismo día):
+  - los perritos son de nueve razas al azar, shiba, pastor alemán, carlino, dálmata, golden, beagle, yorkshire, bulldog
+    francés y corgi, con los mismos movimientos; cambian de forma, así que cada raza tiene sus dibujos. Se sortean con la
+    semilla, como los pelajes;
+  - encima del huevo y del pescado salen unas ondas de «mal olor», 6 px por encima de su centro;
+  - Caro pone cara de contenta al «rescatar» un gatito o un perrito y de asco al coger un huevo o un pescado. Cuánto dura
+    es propuesta de GameMaster: 0,4 s (`reactionSeconds` en `files/ajustes.json`).
+
 ## Consecuencias
 
 - Tareas en el backlog: el paseo de los perritos (ITM-18) y los pelajes de los gatitos (ITM-19). Su arte (camina y

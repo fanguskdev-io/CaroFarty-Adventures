@@ -60,6 +60,7 @@
     "perritoWalkMin": 1.0,
     "perritoWalkMax": 3.0,
     "perritoStopMin": 0.5,
-    "perritoStopMax": 1.5
+    "perritoStopMax": 1.5,
+    "reactionSeconds": 0.4
   }
 }

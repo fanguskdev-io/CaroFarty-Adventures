@@ -90,13 +90,23 @@ Los nombres son los que busca el juego; las duraciones, una propuesta para ajust
 | `sin-puntos` | Al quedarse sin puntos | 3 o 4 | 150 ms, y se queda en el último |
 | `record` | En el panel de fin, con récord nuevo | 4, en bucle | 120 ms |
 
+Las caras: `corre`, `corre-rapido`, `salta`, `apice`, `cae` y `aterriza` tienen una variante `-contenta` (al rescatar un
+gatito o un perrito) y otra `-asco` (al coger un huevo o un pescado), con los mismos fotogramas y duraciones; el juego la
+pone 0,4 s después de recoger algo, sin cortar el paso (CHR-07).
+
 **Recolectables** (`arte/recolectables/recolectables.json`), cada uno un bucle de 2 a 4 fotogramas de 120 a 200 ms:
 
-- `perrito-camina`, de lado y mirando a la derecha (el juego lo voltea para la izquierda), y `perrito-quieto`: los
-  perritos del suelo pasean o se paran ([ADR 0008](adr/0008-perritos-que-caminan-y-gatitos-de-ocho-pelajes.md));
+- `perrito-<raza>-camina`, de lado y mirando a la derecha (el juego lo voltea para la izquierda), y
+  `perrito-<raza>-quieto`, para cada una de las nueve razas de la lista `razas` (shiba, pastor-aleman, carlino, dalmata,
+  golden, beagle, yorkshire, bulldog-frances y corgi): los perritos del suelo pasean o se paran
+  ([ADR 0008](adr/0008-perritos-que-caminan-y-gatitos-de-ocho-pelajes.md)) y cada raza tiene su paleta, la variante
+  `perrito` → `<raza>`;
 - `gatito-quieto`, sentado, con sus ocho pelajes como variantes de paleta;
 - `huevo` y `pescado` (el huevo que chisporrotea);
 - si se quiere, `recogido`, el efecto al tocarlo, de 3 fotogramas de 50 ms.
+
+**Efectos** (`arte/efectos/efectos.json`): `olor`, las ondas de mal olor sobre el huevo y el pescado, de 16 × 8 con el
+ancla abajo en el centro, `[8, 8]`.
 
 ## Las variantes de paleta
 
@@ -131,3 +141,39 @@ superficie y del relleno, los bordes izquierdo y derecho (los del barranco tiene
 esquinas; el `bloque` en el aire, de 16 × 16, que encaje en filas de 1 a 3 y no se confunda con el suelo ni con los
 recolectables (ART-25); los fondos lejano y medio; el cielo; y decoración opcional, que puede animarse con 2 a 4 fotogramas
 de 250 ms.
+
+## El script
+
+`tools/arte.py` (TEC-11) convierte lo de `arte/` en lo que carga el juego. Necesita Python 3 con Pillow.
+
+```bash
+python3 tools/arte.py                  # lee arte/ y escribe shared/src/commonMain/composeResources/files/arte/
+python3 tools/arte.py --comprobar      # no escribe: falla si lo generado no está al día (lo usa la puerta)
+python3 tools/arte.py --desde OTRA/arte --hacia /tmp/arte    # probar una entrega sin instalarla
+```
+
+Comprueba lo que promete el formato y dice qué y dónde si algo no lo cumple: cada fila mide el ancho del fotograma, cada
+carácter es un índice de su paleta, cada variante tiene tantos colores como su base y los PNG de los fondos no usan
+colores fuera de su paleta. Genera, por cada JSON de sprites, una hoja PNG con la paleta base y otra por variante, con
+los fotogramas en el mismo sitio en todas, y por cada escenario su cielo y sus fondos; y un `indice.json` con lo que el
+juego necesita de cada hoja: tamaño, ancla, columnas, animaciones (fotogramas, ms y las filas vacías bajo el dibujo),
+variantes y razas. La puerta de calidad (`scripts/verificar.sh`) falla si alguien cambia `arte/` y no lo ejecuta.
+
+## Cómo lo coloca el juego
+
+- **Lo que falte se dibuja en gris**: el juego arranca con todo, parte o nada del arte (TEC-18).
+- **Caro**: su ancla va en el centro de sus pies. La pose sale de lo que hace: `espera` antes del primer toque; `corre` y,
+  desde 240 px/s, `corre-rapido`, con la zancada al ritmo de la distancia; `salta` mientras sube a más de 80 px/s,
+  `apice` arriba y `cae` al bajar (al caerse de un borde sin saltar, `cae` directamente); `aterriza` los 0,1 s del
+  aterrizaje; `al-barranco` cuando ya no hay suelo que la recoja; `sin-puntos` al quedarse sin puntos y, si ha batido un
+  récord, `record` en cuanto acaba. La ropa es la variante del escenario.
+- **Los animales** se bajan las filas vacías que tengan bajo el dibujo, para que pisen el suelo o la plataforma. Los
+  perritos caminan o se paran según su paseo y miran hacia donde van; cada animal anima un poco a destiempo de los demás.
+- **El olor**: su ancla, 6 px por encima del centro del huevo o del pescado.
+- **El suelo**: `superficie` en la fila de arriba y `relleno` debajo, alternando la 1 y la 2 de forma fija por columna y
+  fila; `borde-izq`/`relleno-izq` y `borde-der`/`relleno-der` en la columna de un extremo, pero solo en la parte que queda
+  al aire: junto a un suelo más alto, el lado tapado lleva relleno normal. Los bloques, el tile `bloque`.
+- **Los fondos**: el cielo, quieto y apoyado abajo; el lejano al 30 % de la cámara y el medio al 60 %, repetidos de lado y
+  con su borde de abajo en la línea del suelo más bajo (32 px sobre el borde de la pantalla), menos las
+  `filas-bajo-el-suelo`, que se ven dentro de los barrancos.
+

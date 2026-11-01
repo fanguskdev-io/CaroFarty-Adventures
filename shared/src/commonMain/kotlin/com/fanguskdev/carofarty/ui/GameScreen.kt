@@ -31,14 +31,19 @@ import com.fanguskdev.carofarty.engine.PixelViewport
 import com.fanguskdev.carofarty.game.GameConfig
 import com.fanguskdev.carofarty.game.GameRun
 import com.fanguskdev.carofarty.game.RunPhase
+import com.fanguskdev.carofarty.game.TILE
+import com.fanguskdev.carofarty.storage.Choices
 import com.fanguskdev.carofarty.storage.KeyValueStore
 import com.fanguskdev.carofarty.storage.Records
+import com.fanguskdev.carofarty.ui.render.Art
 import com.fanguskdev.carofarty.ui.render.CARO_HEIGHT
 import com.fanguskdev.carofarty.ui.render.GreyPalette
 import com.fanguskdev.carofarty.ui.render.PixelBuffer
 import com.fanguskdev.carofarty.ui.render.SafeInsets
 import com.fanguskdev.carofarty.ui.render.paintBackground
 import com.fanguskdev.carofarty.ui.render.paintCaro
+import com.fanguskdev.carofarty.ui.render.paintCaroSprite
+import com.fanguskdev.carofarty.ui.render.paintChooser
 import com.fanguskdev.carofarty.ui.render.paintDebug
 import com.fanguskdev.carofarty.ui.render.paintHud
 import com.fanguskdev.carofarty.ui.render.paintPanel
@@ -51,9 +56,10 @@ import kotlin.math.roundToInt
 import kotlin.time.TimeSource
 
 /**
- * The game: the settings of `files/ajustes.json` (TEC-07), a run, the loop of a frame (TEC-05), the finger (PLY-10) and the
- * drawing (TEC-04): the world in a low resolution buffer scaled by an integer, shifted by the fraction of the camera so it
- * scrolls smoothly, and Caro, the marker and the panels on top, on the same pixel grid but without the shift. The camera
+ * The game: the settings of `files/ajustes.json` (TEC-07) and the art of `files/arte/` (TEC-18), a run, the loop of a frame
+ * (TEC-05), the finger (PLY-10) and the drawing (TEC-04): the world in a low resolution buffer scaled by an integer,
+ * shifted by the fraction of the camera so it scrolls smoothly, and Caro, the marker and the panels on top, on the same
+ * pixel grid but without the shift. The camera
  * (PLY-13) keeps Caro [CARO_SCREEN_X] pixels from the left edge, and goes up only when her head would come closer than
  * [HEAD_ROOM] to the top: a dead zone as tall as the screen, so it never moves while she runs on the ground.
  */
@@ -65,15 +71,21 @@ internal fun GameScreen(
     autopilot: Boolean = false,
 ) {
     val openedAt = remember { TimeSource.Monotonic.markNow() }
-    val config by produceState<GameConfig?>(null) { value = GameConfig.parse(Res.readBytes(SETTINGS).decodeToString()) }
-    val loaded = config
+    val resources by produceState<Loaded?>(null) {
+        value = Loaded(GameConfig.parse(Res.readBytes(SETTINGS).decodeToString()), Art.load())
+    }
+    val loaded = resources
     if (loaded == null) {
         Box(Modifier.fillMaxSize().background(Color.Black))
         return
     }
     val scope = rememberCoroutineScope()
     val records = remember(store) { Records(store) }
-    val session = remember(loaded) { GameSession(loaded, scope, records, debugBuild, debugAtStart, autopilot, openedAt) }
+    val choices = remember(store) { Choices(store) }
+    val session =
+        remember(loaded) {
+            GameSession(loaded.config, loaded.art, scope, records, choices, debugBuild, debugAtStart, autopilot, openedAt)
+        }
     val world = remember { PixelBuffer() }
     val safe = WindowInsets.safeDrawing
 
@@ -124,9 +136,12 @@ private fun DrawScope.drawGame(session: GameSession, world: PixelBuffer, viewpor
     val feetY = y.roundToInt()
     val cameraBottom = cameraBottom(feetY, viewport.height)
     val width = viewport.width + 1
+    val art = session.art
+    val palette = GreyPalette.of(run.scenario)
+    val millis = session.millis
     val image =
         world.paint(width, viewport.height) {
-            paintWorld(run, cameraLeft, cameraBottom, width, viewport.height, GreyPalette.of(run.scenario), session.showDebug, x, y)
+            paintWorld(run, cameraLeft, cameraBottom, width, viewport.height, palette, art, millis, session.showDebug, x, y)
         }
 
     drawRect(Color.Black)
@@ -134,7 +149,8 @@ private fun DrawScope.drawGame(session: GameSession, world: PixelBuffer, viewpor
     val top = viewport.offsetY.toFloat()
     val scale = viewport.scale.toFloat()
     clipRect(left, top, left + viewport.width * scale, top + viewport.height * scale) {
-        paintBackground(camera, REST_CAMERA, cameraBottom, viewport, GreyPalette.of(run.scenario))
+        val groundLine = run.config.course.minGroundTop * TILE
+        paintBackground(camera, REST_CAMERA, cameraBottom, viewport, palette, art?.scenario(run.scenario), groundLine)
         val shift = (fraction * viewport.scale).roundToInt()
         drawImage(
             image = image,
@@ -148,21 +164,25 @@ private fun DrawScope.drawGame(session: GameSession, world: PixelBuffer, viewpor
             translate(left, top)
             scale(scale, scale, Offset.Zero)
         }) {
-            paintCaro(
-                CARO_SCREEN_X,
-                viewport.height + cameraBottom - feetY,
-                caro.state,
-                stride =
-                (caro.meters * STRIDES_PER_METER).toInt() % 2 == 0,
-            )
+            val feet = viewport.height + cameraBottom - feetY
+            val caroArt = art?.caro
+            if (caroArt != null) {
+                paintCaroSprite(caroArt, run.scenario, session.look, run.reaction, CARO_SCREEN_X, feet)
+            } else {
+                paintCaro(CARO_SCREEN_X, feet, caro.state, stride = (caro.meters * STRIDES_PER_METER).toInt() % 2 == 0)
+            }
             if (run.phase != RunPhase.Ready) {
                 paintHud(session.pointsText, session.metersText, viewport.width, session.insets, warn = session.lowPoints)
             }
             if (session.panel.isNotEmpty()) paintPanel(session.panel, viewport.width, viewport.height)
+            if (session.choosing) paintChooser(session.scenarioNames, session.scenario.ordinal, viewport.width, session.chooserTop)
             if (session.showDebug) paintDebug(session.debugLines, viewport.height, session.insets)
         }
     }
 }
+
+/** What the game reads before its first frame: the settings and the art, which may be missing. */
+private class Loaded(val config: GameConfig, val art: Art?)
 
 /** The world y at the bottom of a screen [height] pixels tall with Caro's feet at [feetY] (PLY-13). */
 internal fun cameraBottom(feetY: Int, height: Int): Int = max(0, feetY + CARO_HEIGHT + HEAD_ROOM - height)

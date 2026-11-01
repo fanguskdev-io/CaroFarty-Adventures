@@ -1,0 +1,790 @@
+{
+ "version": 1,
+ "conjuntos": {
+  "caro": {
+   "hoja": "caro.png",
+   "tamaño": [
+    24,
+    32
+   ],
+   "ancla": [
+    12,
+    32
+   ],
+   "columnas": 16,
+   "animaciones": {
+    "espera": {
+     "fotogramas": [
+      0,
+      1,
+      2,
+      3
+     ],
+     "ms": [
+      700,
+      300,
+      700,
+      120
+     ],
+     "vacias-abajo": 0
+    },
+    "corre": {
+     "fotogramas": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+     ],
+     "ms": [
+      67,
+      67,
+      67,
+      67,
+      67,
+      67
+     ],
+     "vacias-abajo": 0
+    },
+    "salta": {
+     "fotogramas": [
+      10,
+      11
+     ],
+     "ms": [
+      70,
+      230
+     ],
+     "vacias-abajo": 0
+    },
+    "apice": {
+     "fotogramas": [
+      12
+     ],
+     "ms": [
+      150
+     ],
+     "vacias-abajo": 2
+    },
+    "cae": {
+     "fotogramas": [
+      13,
+      14
+     ],
+     "ms": [
+      70,
+      230
+     ],
+     "vacias-abajo": 0
+    },
+    "aterriza": {
+     "fotogramas": [
+      15,
+      16
+     ],
+     "ms": [
+      50,
+      50
+     ],
+     "vacias-abajo": 0
+    },
+    "corre-rapido": {
+     "fotogramas": [
+      17,
+      18,
+      19,
+      20,
+      21,
+      22
+     ],
+     "ms": [
+      40,
+      40,
+      40,
+      40,
+      40,
+      40
+     ],
+     "vacias-abajo": 0
+    },
+    "al-barranco": {
+     "fotogramas": [
+      23,
+      24
+     ],
+     "ms": [
+      100,
+      100
+     ],
+     "vacias-abajo": 0
+    },
+    "sin-puntos": {
+     "fotogramas": [
+      25,
+      26,
+      27,
+      28
+     ],
+     "ms": [
+      150,
+      150,
+      150,
+      150
+     ],
+     "vacias-abajo": 0
+    },
+    "record": {
+     "fotogramas": [
+      29,
+      30,
+      31,
+      32
+     ],
+     "ms": [
+      120,
+      120,
+      120,
+      120
+     ],
+     "vacias-abajo": 0
+    },
+    "corre-contenta": {
+     "fotogramas": [
+      33,
+      34,
+      35,
+      36,
+      37,
+      38
+     ],
+     "ms": [
+      67,
+      67,
+      67,
+      67,
+      67,
+      67
+     ],
+     "vacias-abajo": 0
+    },
+    "corre-asco": {
+     "fotogramas": [
+      39,
+      40,
+      41,
+      42,
+      43,
+      44
+     ],
+     "ms": [
+      67,
+      67,
+      67,
+      67,
+      67,
+      67
+     ],
+     "vacias-abajo": 0
+    },
+    "salta-contenta": {
+     "fotogramas": [
+      45,
+      46
+     ],
+     "ms": [
+      70,
+      230
+     ],
+     "vacias-abajo": 0
+    },
+    "salta-asco": {
+     "fotogramas": [
+      47,
+      48
+     ],
+     "ms": [
+      70,
+      230
+     ],
+     "vacias-abajo": 0
+    },
+    "apice-contenta": {
+     "fotogramas": [
+      49
+     ],
+     "ms": [
+      150
+     ],
+     "vacias-abajo": 2
+    },
+    "apice-asco": {
+     "fotogramas": [
+      50
+     ],
+     "ms": [
+      150
+     ],
+     "vacias-abajo": 2
+    },
+    "cae-contenta": {
+     "fotogramas": [
+      51,
+      52
+     ],
+     "ms": [
+      70,
+      230
+     ],
+     "vacias-abajo": 0
+    },
+    "cae-asco": {
+     "fotogramas": [
+      53,
+      54
+     ],
+     "ms": [
+      70,
+      230
+     ],
+     "vacias-abajo": 0
+    },
+    "aterriza-contenta": {
+     "fotogramas": [
+      55,
+      56
+     ],
+     "ms": [
+      50,
+      50
+     ],
+     "vacias-abajo": 0
+    },
+    "aterriza-asco": {
+     "fotogramas": [
+      57,
+      58
+     ],
+     "ms": [
+      50,
+      50
+     ],
+     "vacias-abajo": 0
+    },
+    "corre-rapido-contenta": {
+     "fotogramas": [
+      59,
+      60,
+      61,
+      62,
+      63,
+      64
+     ],
+     "ms": [
+      40,
+      40,
+      40,
+      40,
+      40,
+      40
+     ],
+     "vacias-abajo": 0
+    },
+    "corre-rapido-asco": {
+     "fotogramas": [
+      65,
+      66,
+      67,
+      68,
+      69,
+      70
+     ],
+     "ms": [
+      40,
+      40,
+      40,
+      40,
+      40,
+      40
+     ],
+     "vacias-abajo": 0
+    }
+   },
+   "variantes": [
+    {
+     "familia": "",
+     "nombre": "bosque",
+     "hoja": "caro@bosque.png"
+    },
+    {
+     "familia": "",
+     "nombre": "nieve",
+     "hoja": "caro@nieve.png"
+    },
+    {
+     "familia": "",
+     "nombre": "desierto",
+     "hoja": "caro@desierto.png"
+    }
+   ],
+   "razas": []
+  },
+  "recolectables": {
+   "hoja": "recolectables.png",
+   "tamaño": [
+    16,
+    16
+   ],
+   "ancla": [
+    8,
+    8
+   ],
+   "columnas": 16,
+   "animaciones": {
+    "gatito-quieto": {
+     "fotogramas": [
+      0,
+      1,
+      2,
+      3
+     ],
+     "ms": [
+      220,
+      220,
+      220,
+      180
+     ],
+     "vacias-abajo": 1
+    },
+    "huevo": {
+     "fotogramas": [
+      4,
+      5,
+      6,
+      7
+     ],
+     "ms": [
+      150,
+      120,
+      90,
+      150
+     ],
+     "vacias-abajo": 1
+    },
+    "pescado": {
+     "fotogramas": [
+      8,
+      9,
+      10,
+      11
+     ],
+     "ms": [
+      160,
+      110,
+      110,
+      140
+     ],
+     "vacias-abajo": 0
+    },
+    "perrito-shiba-camina": {
+     "fotogramas": [
+      12,
+      13,
+      14,
+      15
+     ],
+     "ms": [
+      130,
+      130,
+      130,
+      130
+     ],
+     "vacias-abajo": 1
+    },
+    "perrito-shiba-quieto": {
+     "fotogramas": [
+      16,
+      17,
+      18,
+      19
+     ],
+     "ms": [
+      200,
+      200,
+      160,
+      240
+     ],
+     "vacias-abajo": 1
+    },
+    "perrito-pastor-aleman-camina": {
+     "fotogramas": [
+      20,
+      21,
+      22,
+      23
+     ],
+     "ms": [
+      130,
+      130,
+      130,
+      130
+     ],
+     "vacias-abajo": 1
+    },
+    "perrito-pastor-aleman-quieto": {
+     "fotogramas": [
+      24,
+      25,
+      26,
+      27
+     ],
+     "ms": [
+      200,
+      200,
+      160,
+      240
+     ],
+     "vacias-abajo": 1
+    },
+    "perrito-carlino-camina": {
+     "fotogramas": [
+      28,
+      29,
+      30,
+      31
+     ],
+     "ms": [
+      130,
+      130,
+      130,
+      130
+     ],
+     "vacias-abajo": 1
+    },
+    "perrito-carlino-quieto": {
+     "fotogramas": [
+      32,
+      33,
+      34,
+      35
+     ],
+     "ms": [
+      200,
+      200,
+      160,
+      240
+     ],
+     "vacias-abajo": 1
+    },
+    "perrito-dalmata-camina": {
+     "fotogramas": [
+      36,
+      37,
+      38,
+      39
+     ],
+     "ms": [
+      130,
+      130,
+      130,
+      130
+     ],
+     "vacias-abajo": 1
+    },
+    "perrito-dalmata-quieto": {
+     "fotogramas": [
+      40,
+      41,
+      42,
+      43
+     ],
+     "ms": [
+      200,
+      200,
+      160,
+      240
+     ],
+     "vacias-abajo": 1
+    },
+    "perrito-golden-camina": {
+     "fotogramas": [
+      44,
+      45,
+      46,
+      47
+     ],
+     "ms": [
+      130,
+      130,
+      130,
+      130
+     ],
+     "vacias-abajo": 1
+    },
+    "perrito-golden-quieto": {
+     "fotogramas": [
+      48,
+      49,
+      50,
+      51
+     ],
+     "ms": [
+      200,
+      200,
+      160,
+      240
+     ],
+     "vacias-abajo": 1
+    },
+    "perrito-beagle-camina": {
+     "fotogramas": [
+      52,
+      53,
+      54,
+      55
+     ],
+     "ms": [
+      130,
+      130,
+      130,
+      130
+     ],
+     "vacias-abajo": 1
+    },
+    "perrito-beagle-quieto": {
+     "fotogramas": [
+      56,
+      57,
+      58,
+      59
+     ],
+     "ms": [
+      200,
+      200,
+      160,
+      240
+     ],
+     "vacias-abajo": 1
+    },
+    "perrito-yorkshire-camina": {
+     "fotogramas": [
+      60,
+      61,
+      62,
+      63
+     ],
+     "ms": [
+      130,
+      130,
+      130,
+      130
+     ],
+     "vacias-abajo": 1
+    },
+    "perrito-yorkshire-quieto": {
+     "fotogramas": [
+      64,
+      65,
+      66,
+      67
+     ],
+     "ms": [
+      200,
+      200,
+      160,
+      240
+     ],
+     "vacias-abajo": 1
+    },
+    "perrito-bulldog-frances-camina": {
+     "fotogramas": [
+      68,
+      69,
+      70,
+      71
+     ],
+     "ms": [
+      130,
+      130,
+      130,
+      130
+     ],
+     "vacias-abajo": 1
+    },
+    "perrito-bulldog-frances-quieto": {
+     "fotogramas": [
+      72,
+      73,
+      74,
+      75
+     ],
+     "ms": [
+      200,
+      200,
+      160,
+      240
+     ],
+     "vacias-abajo": 1
+    },
+    "perrito-corgi-camina": {
+     "fotogramas": [
+      76,
+      77,
+      78,
+      79
+     ],
+     "ms": [
+      130,
+      130,
+      130,
+      130
+     ],
+     "vacias-abajo": 1
+    },
+    "perrito-corgi-quieto": {
+     "fotogramas": [
+      80,
+      81,
+      82,
+      83
+     ],
+     "ms": [
+      200,
+      200,
+      160,
+      240
+     ],
+     "vacias-abajo": 1
+    }
+   },
+   "variantes": [
+    {
+     "familia": "gatito",
+     "nombre": "naranja",
+     "hoja": "recolectables@gatito-naranja.png"
+    },
+    {
+     "familia": "gatito",
+     "nombre": "gris-azulado",
+     "hoja": "recolectables@gatito-gris-azulado.png"
+    },
+    {
+     "familia": "gatito",
+     "nombre": "calico",
+     "hoja": "recolectables@gatito-calico.png"
+    },
+    {
+     "familia": "gatito",
+     "nombre": "crema",
+     "hoja": "recolectables@gatito-crema.png"
+    },
+    {
+     "familia": "gatito",
+     "nombre": "negro",
+     "hoja": "recolectables@gatito-negro.png"
+    },
+    {
+     "familia": "gatito",
+     "nombre": "blanco",
+     "hoja": "recolectables@gatito-blanco.png"
+    },
+    {
+     "familia": "gatito",
+     "nombre": "chocolate",
+     "hoja": "recolectables@gatito-chocolate.png"
+    },
+    {
+     "familia": "gatito",
+     "nombre": "siames",
+     "hoja": "recolectables@gatito-siames.png"
+    },
+    {
+     "familia": "perrito",
+     "nombre": "shiba",
+     "hoja": "recolectables@perrito-shiba.png"
+    },
+    {
+     "familia": "perrito",
+     "nombre": "pastor-aleman",
+     "hoja": "recolectables@perrito-pastor-aleman.png"
+    },
+    {
+     "familia": "perrito",
+     "nombre": "carlino",
+     "hoja": "recolectables@perrito-carlino.png"
+    },
+    {
+     "familia": "perrito",
+     "nombre": "dalmata",
+     "hoja": "recolectables@perrito-dalmata.png"
+    },
+    {
+     "familia": "perrito",
+     "nombre": "golden",
+     "hoja": "recolectables@perrito-golden.png"
+    },
+    {
+     "familia": "perrito",
+     "nombre": "beagle",
+     "hoja": "recolectables@perrito-beagle.png"
+    },
+    {
+     "familia": "perrito",
+     "nombre": "yorkshire",
+     "hoja": "recolectables@perrito-yorkshire.png"
+    },
+    {
+     "familia": "perrito",
+     "nombre": "bulldog-frances",
+     "hoja": "recolectables@perrito-bulldog-frances.png"
+    },
+    {
+     "familia": "perrito",
+     "nombre": "corgi",
+     "hoja": "recolectables@perrito-corgi.png"
+    }
+   ],
+   "razas": [
+    "shiba",
+    "pastor-aleman",
+    "carlino",
+    "dalmata",
+    "golden",
+    "beagle",
+    "yorkshire",
+    "bulldog-frances",
+    "corgi"
+   ]
+  },
+  "efectos": {
+   "hoja": "efectos.png",
+   "tamaño": [
+    16,
+    8
+   ],
+   "ancla": [
+    8,
+    8
+   ],
+   "columnas": 16,
+   "animaciones": {
+    "olor": {
+     "fotogramas": [
+      0,
+      1,
+      2
+     ],
+     "ms": [
+      140,
+      140,
+      140
+     ],
+     "vacias-abajo": 0
+    }
+   },
+   "variantes": [],
+   "razas": []
+  }
+ },
+ "escenarios": {}
+}

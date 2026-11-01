@@ -22,6 +22,13 @@ enum class EndCause {
     NoPoints,
 }
 
+/** What Caro's face shows for a moment after picking something up (CHR-07). */
+enum class Reaction {
+    None,
+    Happy,
+    Disgusted,
+}
+
 /** Something the screen may want to show or play, drained once per frame. */
 sealed interface RunEvent {
     data class Picked(val kind: ItemKind, val points: Int) : RunEvent
@@ -53,6 +60,11 @@ class GameRun(
         private set
     val events = ArrayList<RunEvent>()
 
+    /** Her face after the last thing she picked up: happy for a rescued animal, disgusted for food, for a moment. */
+    var reaction = Reaction.None
+        private set
+    private var reactionTime = 0f
+
     /** Metres run, the distance of the record. */
     val meters: Double get() = max(0.0, caro.meters)
 
@@ -80,6 +92,8 @@ class GameRun(
         if (course.end - caro.x < MIN_AHEAD) return
         caro.step(dt, pressed, held, course)
         for (i in 0 until course.items.size) course.items[i].walk?.step(dt)
+        reactionTime -= dt
+        if (reactionTime <= 0f) reaction = Reaction.None
         pickUp()
         course.dropBefore(caro.x - BEHIND)
         if (caro.state == CaroState.Fallen) end(EndCause.Fall)
@@ -100,6 +114,8 @@ class GameRun(
             item.taken = true
             val value = item.kind.points(config.score)
             events += RunEvent.Picked(item.kind, value)
+            reaction = if (item.kind.adds) Reaction.Happy else Reaction.Disgusted
+            reactionTime = config.items.reactionSeconds
             if (add(value)) return
         }
     }

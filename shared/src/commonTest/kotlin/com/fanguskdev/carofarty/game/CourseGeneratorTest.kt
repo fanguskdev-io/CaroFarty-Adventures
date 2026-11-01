@@ -97,6 +97,7 @@ class CourseGeneratorTest {
                 mix(item.x.toLong())
                 mix(item.y.toLong())
                 mix(item.coat.toLong())
+                mix(item.breed.toLong())
                 mix((item.walk?.from ?: 0f).toLong())
                 mix((item.walk?.to ?: 0f).toLong())
             }
@@ -238,6 +239,8 @@ class CourseGeneratorTest {
         }
         val coats = all.items.filter { it.kind == ItemKind.Gatito }.map { it.coat }.toSet()
         assertEquals((0 until Item.COATS).toSet(), coats, "the gatitos wear all eight coats")
+        val breeds = all.items.filter { it.kind == ItemKind.Perrito }.map { it.breed }.toSet()
+        assertEquals((0 until Item.BREEDS).toSet(), breeds, "the perritos come in all nine breeds")
     }
 
     @Test
@@ -271,7 +274,7 @@ class CourseGeneratorTest {
     private companion object {
         const val FNV_OFFSET = -3750763034362895579L
         const val FNV_PRIME = 1099511628211L
-        const val SAME_RUN = -5442993850744885108L
+        const val SAME_RUN = 3697109979829440507L
 
         /** How high an animal's centre sits over what it stands on, and the highest jump of docs/movimiento.md. */
         const val SITTING_HEIGHT = 8

@@ -39,7 +39,7 @@ class BlockSnapshotTest {
         val width = 400
         val height = 180
         val image = PixelBuffer().paint(width, height) {
-            paintWorld(run, cameraLeft = 0L, cameraBottom = 0, width, height, GreyPalette.of(Scenario.Bosque), false, 0.0, 32f)
+            paintWorld(run, cameraLeft = 0L, cameraBottom = 0, width, height, GreyPalette.of(Scenario.Bosque), null, 0L, false, 0.0, 32f)
         }
         val bitmap = image.asSkiaBitmap()
         // The block's outline at its top left corner, in the buffer (y grows down from the top).

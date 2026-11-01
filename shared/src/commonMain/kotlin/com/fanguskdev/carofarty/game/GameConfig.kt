@@ -112,6 +112,20 @@ data class ScoreConfig(
 
 /** The collectibles' collision boxes, in pixels (CHR-08): generous for what adds points, strict for what takes them away. */
 @Serializable
-data class ItemConfig(val positiveBox: Int = 16, val negativeBox: Int = 10) {
+data class ItemConfig(
+    val positiveBox: Int = 16,
+    val negativeBox: Int = 10,
+    /**
+     * The perritos on the ground walk (Fangusk, ADR 0008): how fast, how many never do, how many tiles from their place
+     * they go at most, and how long they walk and stop each time, in seconds.
+     */
+    val perritoWalkSpeed: Float = 24f,
+    val perritoStillShare: Float = 0.3f,
+    val perritoRangeTiles: Int = 2,
+    val perritoWalkMin: Float = 1f,
+    val perritoWalkMax: Float = 3f,
+    val perritoStopMin: Float = 0.5f,
+    val perritoStopMax: Float = 1.5f,
+) {
     fun box(kind: ItemKind): Int = if (kind.adds) positiveBox else negativeBox
 }

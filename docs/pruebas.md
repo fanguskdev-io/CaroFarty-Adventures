@@ -18,6 +18,7 @@ la [lista de bugs](bugs.md); los criterios de salida de cada hito, en [proceso](
 | El generador: reglas, semilla, recolectables, la elección, tensión y calma, nunca tres difíciles iguales seguidas, obstáculos en el aire que dejan pasar por debajo y un piloto 3 × 4 min sin caer | `CourseGeneratorTest` | Común |
 | La partida: el primer toque, los puntos, el fin por caída y por quedarse sin puntos | `GameRunTest` | Común |
 | Los récords por escenario | `RecordsTest` | Común |
+| El paseo de los perritos: dentro de su tramo, con paradas, igual en cualquier teléfono | `WalkTest` | Común |
 | El motor: el paso fijo, el escalado, el toque | `FixedStepTest`, `PixelViewportTest`, `TouchInputTest` | Común |
 | La cámara (PLY-13) y el medidor de fotogramas (MOB-02) | `CameraTest`, `FpsMeterTest` | Común |
 | El sintetizador y el almacén | `SynthTest`, `MemoryStoreTest` | Común |

@@ -52,6 +52,13 @@
   },
   "items": {
     "positiveBox": 16,
-    "negativeBox": 10
+    "negativeBox": 10,
+    "perritoWalkSpeed": 24.0,
+    "perritoStillShare": 0.3,
+    "perritoRangeTiles": 2,
+    "perritoWalkMin": 1.0,
+    "perritoWalkMax": 3.0,
+    "perritoStopMin": 0.5,
+    "perritoStopMax": 1.5
   }
 }

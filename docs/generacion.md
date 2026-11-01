@@ -35,7 +35,7 @@ contra las que chocar. Chocar contra el borde de un suelo más alto tras un salt
 
 | Patrón | Qué pide |
 |---|---|
-| Fila en el suelo | Perritos y gatitos que se recogen corriendo |
+| Fila en el suelo | Perritos y gatitos que se recogen corriendo. Los perritos pasean por su suelo o se quedan quietos ([ADR 0008](adr/0008-perritos-que-caminan-y-gatitos-de-ocho-pelajes.md)): como mucho a 2 tiles de su sitio, a 2 tiles o más de los bordes y a 3 tiles o más de lo que resta, así que siempre se recogen corriendo |
 | Arco sobre un barranco | Perritos y gatitos a lo largo de un salto medio: premian el salto bien medido |
 | Obstáculo en el suelo | Un huevo frito o un pescado en el camino que hay que saltar, como los cactus del dinosaurio |
 | Elección | Un perrito o un gatito en lo alto de un salto largo sobre un huevo frito o un pescado del suelo: un toque rápido salva el obstáculo y pasa por debajo; mantener el dedo lo recoge. La lleva la mitad de los obstáculos |

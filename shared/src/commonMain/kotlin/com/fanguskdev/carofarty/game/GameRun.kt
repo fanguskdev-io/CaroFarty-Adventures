@@ -79,6 +79,7 @@ class GameRun(
         // If the pieces made in the background ever fell behind, she waits for them rather than run off the course.
         if (course.end - caro.x < MIN_AHEAD) return
         caro.step(dt, pressed, held, course)
+        for (i in 0 until course.items.size) course.items[i].walk?.step(dt)
         pickUp()
         course.dropBefore(caro.x - BEHIND)
         if (caro.state == CaroState.Fallen) end(EndCause.Fall)

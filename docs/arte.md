@@ -90,9 +90,41 @@ Los nombres son los que busca el juego; las duraciones, una propuesta para ajust
 | `sin-puntos` | Al quedarse sin puntos | 3 o 4 | 150 ms, y se queda en el último |
 | `record` | En el panel de fin, con récord nuevo | 4, en bucle | 120 ms |
 
-**Recolectables** (`arte/recolectables/recolectables.json`): `perrito`, `gatito`, `huevo` y `pescado`, cada uno un bucle
-de 2 a 4 fotogramas de 120 a 200 ms (la cola que se mueve, el huevo que chisporrotea), y si se quiere, `recogido`, el
-efecto al tocarlo, de 3 fotogramas de 50 ms.
+**Recolectables** (`arte/recolectables/recolectables.json`), cada uno un bucle de 2 a 4 fotogramas de 120 a 200 ms:
+
+- `perrito-camina`, de lado y mirando a la derecha (el juego lo voltea para la izquierda), y `perrito-quieto`: los
+  perritos del suelo pasean o se paran ([ADR 0008](adr/0008-perritos-que-caminan-y-gatitos-de-ocho-pelajes.md));
+- `gatito-quieto`, sentado, con sus ocho pelajes como variantes de paleta;
+- `huevo` y `pescado` (el huevo que chisporrotea);
+- si se quiere, `recogido`, el efecto al tocarlo, de 3 fotogramas de 50 ms.
+
+## Las variantes de paleta
+
+Un mismo dibujo con otros colores: los ocho pelajes de los gatitos y la ropa de Caro en cada escenario, las dos cosas
+decisión de Fangusk.
+
+- Cada variante es un `.gpl` completo, con los mismos índices y el mismo número de colores que la paleta base, para que se
+  pueda abrir y ver en Aseprite.
+- El JSON del sprite dice cuáles hay, con su nombre y su paleta:
+
+```json
+"variantes": {
+  "gatito": {
+    "naranja": "gatito-naranja",
+    "gris-azulado": "gatito-gris-azulado",
+    "calico": "gatito-calico",
+    "crema": "gatito-crema",
+    "negro": "gatito-negro",
+    "blanco": "gatito-blanco",
+    "chocolate": "gatito-chocolate",
+    "siames": "gatito-siames"
+  }
+}
+```
+
+  y en `caro.json`, `"variantes": {"bosque": "caro-bosque", "nieve": "caro-nieve", "desierto": "caro-desierto"}`.
+- El script comprueba que cada variante tiene los mismos colores que la base. El juego sortea el pelaje de cada gatito con
+  la semilla y viste a Caro según el escenario.
 
 **Escenarios** (`arte/<escenario>/tiles.json` y sus fondos): los tiles del suelo, con al menos dos variantes de la
 superficie y del relleno, los bordes izquierdo y derecho (los del barranco tienen que leerse a cualquier velocidad) y sus

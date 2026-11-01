@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Estado** | aceptada: el qué lo dictó Fangusk el 2026-11-01 al jugar el prototipo en gris · propuesta: los números de la velocidad y cómo se colocan los obstáculos, que se afinan jugando |
+| **Estado** | aceptada: el qué lo dictó Fangusk el 2026-11-01 al jugar el prototipo en gris, y lo hecho le pareció bien: «Me parece ok los cambios incorporados» · propuesta: los números de la velocidad y cómo se colocan los obstáculos, que se afinan jugando |
 | **Fecha** | 2026-11-01 · **Fase:** P0 · Borrador anticipado, sin ninguna puerta confirmada · **Hito:** M1 · **Tarea:** GDD-08, GDD-22 |
 | **Propone · decide** | Fangusk · Fangusk |
 | **Reversibilidad** | alta · la velocidad vive en datos (TEC-07) y los obstáculos son patrones del generador |

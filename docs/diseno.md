@@ -42,7 +42,12 @@ para darle dificultad»; «El salto, por el momento lo veo perfecto, mas adelant
 recolectables acepto tu propuesta»; y «Creo que una buena idea para añadirle dificultad es incorporar obstáculos en el aire
 que dificulten el salto y hagan que el usuario deba tener un mejor timing», con dos formas a la vez: huevos y pescados en
 el camino del salto y bloques sólidos que lo frenan («La opcion 1 y 2 son buenas»;
-[ADR 0007](adr/0007-la-dificultad-velocidad-y-obstaculos-en-el-aire.md)).
+[ADR 0007](adr/0007-la-dificultad-velocidad-y-obstaculos-en-el-aire.md)). Con todo ello incorporado: «Me parece ok los
+cambios incorporados».
+
+En la sesión de diseño con GameMaster, el mismo día: «A diferencia de los gatitos, los perritos se moverán por el escenario
+y además podrán estar quietos», y los gatitos, con ocho pelajes al azar en todos los escenarios
+([ADR 0008](adr/0008-perritos-que-caminan-y-gatitos-de-ocho-pelajes.md)).
 
 ## El bucle de juego
 

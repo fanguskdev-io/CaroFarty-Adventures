@@ -9,6 +9,7 @@ import com.fanguskdev.carofarty.game.Item
 import com.fanguskdev.carofarty.game.TILE
 import com.fanguskdev.carofarty.ui.render.PixelFont.drawText
 import kotlin.math.floor
+import kotlin.math.roundToLong
 
 /**
  * Draws the world of the grey prototype into the low resolution buffer, in game pixels: the sky, a far band that moves
@@ -124,13 +125,14 @@ private fun DrawScope.paintItems(
     for (i in 0 until items.size) {
         val item = items[i]
         if (item.taken) continue
-        val left = item.x - half - cameraLeft
+        // Where it is now: the perritos walk (ADR 0008).
+        val left = item.currentX.roundToLong() - half - cameraLeft
         if (left > width || left + Item.SIZE < 0) continue
         val top = (base - item.y - half).toFloat()
         val outline = if (item.kind.adds) GreyPalette.good else GreyPalette.bad
         drawRect(outline, Offset(left.toFloat(), top), Size(Item.SIZE.toFloat(), Item.SIZE.toFloat()))
-        drawRect(GreyPalette.itemFill(item.kind), Offset(left + 1f, top + 1), Size(Item.SIZE - 2f, Item.SIZE - 2f))
-        drawText(GreyPalette.itemLetter(item.kind), (left + 4).toInt(), (top + 3).toInt(), GreyPalette.ink)
+        drawRect(GreyPalette.itemFill(item), Offset(left + 1f, top + 1), Size(Item.SIZE - 2f, Item.SIZE - 2f))
+        drawText(GreyPalette.itemLetter(item.kind), (left + 4).toInt(), (top + 3).toInt(), GreyPalette.itemInk(item))
     }
 }
 
@@ -151,7 +153,7 @@ private fun DrawScope.paintBoxes(
         val item = items[i]
         if (item.taken) continue
         val box = run.config.items.box(item.kind)
-        val x = (item.x - box / 2 - cameraLeft).toFloat()
+        val x = (item.currentX.roundToLong() - box / 2 - cameraLeft).toFloat()
         drawRect(GreyPalette.debug, Offset(x, (base - item.y - box / 2).toFloat()), Size(box.toFloat(), box.toFloat()), style = BOX)
     }
 }

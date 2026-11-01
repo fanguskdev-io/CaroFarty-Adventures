@@ -292,7 +292,7 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
                     val (x, y) = path[path.size * k / (ARC_ITEMS + 1)]
                     // Not where it would touch a ground (by the far edge, a landing passes close to its corner) or a block.
                     val under = sandbox.groundTopUnder(x - Item.SIZE / 2, x + Item.SIZE / 2)
-                    val item = Item(positiveKind(), x.toInt(), y.toInt())
+                    val item = positive(x.toInt(), y.toInt())
                     if ((under == null || y - Item.SIZE / 2 >= under) && pieceBlocks.none { overlaps(item, it) }) items += item
                 }
                 return
@@ -307,11 +307,36 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
             val x = from + k * ROW_SPACING
             if (x > ground.end - TILE) return
             if (items.any { !it.kind.adds && abs(it.x - x) < ROW_CLEARANCE }) continue
-            items += Item(positiveKind(), x, ground.top + GROUND_ITEM_HEIGHT)
+            val item = positive(x, ground.top + GROUND_ITEM_HEIGHT)
+            if (item.kind == ItemKind.Perrito) item.walk = walkFor(item, ground, items)
+            items += item
         }
     }
 
-    private fun positiveKind(): ItemKind = if (itemRandom.nextBoolean()) ItemKind.Perrito else ItemKind.Gatito
+    /** A perrito or a gatito; a gatito with one of its coats (ADR 0008). */
+    private fun positive(x: Int, y: Int): Item {
+        val item = Item(if (itemRandom.nextBoolean()) ItemKind.Perrito else ItemKind.Gatito, x, y)
+        if (item.kind == ItemKind.Gatito) item.coat = itemRandom.nextInt(Item.COATS)
+        return item
+    }
+
+    /**
+     * How a perrito on [ground] walks (ADR 0008), or null if it stays still: within its ground, away from the edges and from
+     * what takes points away on it, so running along the ground always picks it up without a jump.
+     */
+    private fun walkFor(perrito: Item, ground: Ground, items: List<Item>): Walk? {
+        val settings = config.items
+        if (itemRandom.nextFloat() < settings.perritoStillShare) return null
+        var low = max(ground.start + WALK_EDGE, perrito.x - settings.perritoRangeTiles * TILE)
+        var high = min(ground.end - WALK_EDGE, perrito.x + settings.perritoRangeTiles * TILE)
+        for (item in items) {
+            val onThisGround = item.x >= ground.start && item.x < ground.end && item.y - ground.top < Item.SIZE
+            if (item.kind.adds || !onThisGround) continue
+            if (item.x < perrito.x) low = max(low, item.x + ROW_CLEARANCE) else high = min(high, item.x - ROW_CLEARANCE)
+        }
+        if (perrito.x < low || perrito.x > high || high - low < MIN_WALK) return null
+        return Walk((low - perrito.x).toFloat(), (high - perrito.x).toFloat(), settings, itemRandom.nextInt())
+    }
 
     /**
      * Whether a player can cross from [from] to [to] (GEN-10): among the press moments of the last part of the run-up (and
@@ -364,7 +389,7 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
                 val path = mutableListOf<Pair<Double, Float>>()
                 lab.tryJump(sandbox, avoid, jump.startX, ground.top.toFloat(), runStart, press, hold, path = path)
                 val (x, y) = path.maxByOrNull { it.second } ?: return
-                items += Item(positiveKind(), x.toInt(), y.toInt())
+                items += positive(x.toInt(), y.toInt())
                 return
             }
         }
@@ -484,5 +509,9 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
         const val ROW_MAX = 4
         const val ROW_SPACING = 2 * TILE
         const val ROW_CLEARANCE = 3 * TILE
+
+        /** How far from the edges of its ground a perrito walks at least, and the shortest stretch worth walking. */
+        const val WALK_EDGE = 2 * TILE
+        const val MIN_WALK = 8
     }
 }

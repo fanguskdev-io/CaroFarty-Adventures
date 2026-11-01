@@ -38,13 +38,89 @@ class Block(
     val top: Int,
 )
 
-/** A collectible centred at ([x], [y]) in world pixels, [y] above the bottom edge. */
+/** A collectible placed at ([x], [y]) in world pixels, [y] above the bottom edge. */
 class Item(val kind: ItemKind, val x: Int, val y: Int) {
     var taken = false
 
+    /** For a gatito, which of its [COATS] coats it wears, drawn with the seed (ADR 0008). */
+    var coat = 0
+
+    /** For a perrito that walks along its ground (ADR 0008); null if it stays still. */
+    var walk: Walk? = null
+
+    /** Where its centre is now across: its place, plus what it has walked. */
+    val currentX: Double get() = x + (walk?.offset ?: 0f).toDouble()
+
     companion object {
-        /** The side of a collectible's collision box (CHR-08). */
+        /** The side of a collectible's drawing in the prototype (CHR-08). */
         const val SIZE = 12
+
+        /** The coats of the gatitos, in this order: naranja, gris azulado, calicó, crema, negro, blanco, chocolate, siamés. */
+        const val COATS = 8
+    }
+}
+
+/**
+ * A perrito's walk along its ground (ADR 0008): back and forth between [from] and [to], offsets from its place, now walking
+ * and now standing a while. It has its own small random source, seeded by the generator, so the same run walks the same on
+ * every phone.
+ */
+class Walk(
+    val from: Float,
+    val to: Float,
+    private val config: ItemConfig,
+    seed: Int,
+) {
+    var offset = 0f
+        private set
+    var facingLeft = false
+        private set
+    var walking = true
+        private set
+    private var state = seed
+    private var timer = 0f
+
+    init {
+        facingLeft = next() % 2 == 0
+        timer = between(config.perritoWalkMin, config.perritoWalkMax)
+    }
+
+    fun step(dt: Float) {
+        timer -= dt
+        if (timer <= 0f) {
+            walking = !walking
+            timer =
+                if (walking) {
+                    between(
+                        config.perritoWalkMin,
+                        config.perritoWalkMax,
+                    )
+                } else {
+                    between(config.perritoStopMin, config.perritoStopMax)
+                }
+        }
+        if (!walking) return
+        offset += (if (facingLeft) -config.perritoWalkSpeed else config.perritoWalkSpeed) * dt
+        // It turns at the ends of its stretch, never off its ground.
+        if (offset <= from) {
+            offset = from
+            facingLeft = false
+        } else if (offset >= to) {
+            offset = to
+            facingLeft = true
+        }
+    }
+
+    private fun between(low: Float, high: Float): Float = low + (high - low) * next() / RANDOM_MAX
+
+    /** A number from 0 to [RANDOM_MAX], from a linear congruential generator: small and the same on every platform. */
+    private fun next(): Int {
+        state = state * 1_103_515_245 + 12_345
+        return (state ushr 16) and RANDOM_MAX
+    }
+
+    private companion object {
+        const val RANDOM_MAX = 0x7FFF
     }
 }
 

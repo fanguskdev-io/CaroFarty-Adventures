@@ -97,6 +97,9 @@ class CourseGeneratorTest {
                 mix(item.kind.ordinal.toLong())
                 mix(item.x.toLong())
                 mix(item.y.toLong())
+                mix(item.coat.toLong())
+                mix((item.walk?.from ?: 0f).toLong())
+                mix((item.walk?.to ?: 0f).toLong())
             }
             for (block in piece.blocks) {
                 mix(block.start.toLong())
@@ -193,6 +196,34 @@ class CourseGeneratorTest {
     }
 
     @Test
+    fun perritosWalkOnTheirGroundAwayFromItsEdgesAndFromWhatTakesPointsAway() {
+        val generator = CourseGenerator(config, seed = 13)
+        val all = Course()
+        repeat(800) { all.append(generator.next()) }
+        assertTrue(all.items.any { it.walk != null }, "some perritos walk")
+        assertTrue(all.items.any { it.kind == ItemKind.Perrito && it.walk == null }, "and some stay still")
+        for (perrito in all.items) {
+            val walk = perrito.walk ?: continue
+            assertEquals(ItemKind.Perrito, perrito.kind)
+            val ground = all.grounds.first { perrito.x >= it.start && perrito.x < it.end }
+            val from = perrito.x + walk.from
+            val to = perrito.x + walk.to
+            assertTrue(from >= ground.start + 2 * TILE && to <= ground.end - 2 * TILE, "a perrito near the edge at ${perrito.x}")
+            for (other in all.items) {
+                val onTheGround = !other.kind.adds && other.x >= ground.start && other.x < ground.end && other.y - ground.top < Item.SIZE
+                if (onTheGround) {
+                    assertTrue(
+                        other.x <= from - 3 * TILE || other.x >= to + 3 * TILE,
+                        "a perrito by an obstacle at ${perrito.x}",
+                    )
+                }
+            }
+        }
+        val coats = all.items.filter { it.kind == ItemKind.Gatito }.map { it.coat }.toSet()
+        assertEquals((0 until Item.COATS).toSet(), coats, "the gatitos wear all eight coats")
+    }
+
+    @Test
     fun aCarefulPilotRunsKilometresWithoutFalling() {
         for (seed in 1L..3L) {
             val run = GameRun(config, Scenario.Bosque, seed)
@@ -223,7 +254,7 @@ class CourseGeneratorTest {
     private companion object {
         const val FNV_OFFSET = -3750763034362895579L
         const val FNV_PRIME = 1099511628211L
-        const val SAME_RUN = 7034805532936913927L
+        const val SAME_RUN = 2501442368024749609L
 
         /** How high a quick tap of 3 steps goes (docs/movimiento.md), and how far from its obstacle a long jump's top can be. */
         const val QUICK_TAP_HEIGHT = 24

@@ -14,9 +14,11 @@ referencias en M2; en el prototipo en gris son cuadrados de 12 × 12 px con una 
 | **Dónde sale** | En filas por el suelo, en arcos sobre los barrancos y en lo alto de la elección | Igual que el perrito | Obstáculo en el suelo, techo sobre un barranco o en el aire, en el camino de un salto | Igual que el huevo frito |
 | **Cuántos** (cada 100 m) | 7,1 a 8,8 | 7,5 a 8,9 | 1,1 al principio, 2,1 a toda velocidad | 0,7 al principio, 1,3 a toda velocidad |
 | **Caja de choque** | 16 × 16 px, generosa | 16 × 16 px, generosa | 10 × 10 px, estricta | 10 × 10 px, estricta |
+| **Se mueve** (ADR 0008) | En el suelo, pasea por su tramo o se queda quieto; nunca se cae por un barranco | Quieto, sentado | Quieto | Quieto |
+| **Variantes** (ADR 0008) | — | Ocho pelajes al azar: naranja, gris azulado, calicó, crema, negro, blanco, chocolate y siamés | — | — |
 | **Cómo se distingue** (propuesta) | Un animal de colores cálidos, que se mueve (el rabo) | Un animal de colores cálidos, que se mueve (las orejas o el rabo) | Comida quieta, blanca y amarilla | Comida quieta, gris azulada |
 | **Al recogerlo** (M4) | Un sonido alegre y corto | El suyo, distinto del perrito | Un sonido seco | Más seco aún: es lo que más resta |
-| **En el prototipo** | «P» marrón con borde verde | «G» naranja con borde verde | «H» crema con borde rojo | «F» azul con borde rojo (de *fish*: la P ya es del perrito) |
+| **En el prototipo** | «P» marrón con borde verde, que se mueve | «G» con borde verde, del color de su pelaje | «H» crema con borde rojo | «F» azul con borde rojo (de *fish*: la P ya es del perrito) |
 
 Las frecuencias están medidas en 20 partidas de 5 km ([métricas](metricas.md)). Perritos y gatitos salen a partes
 iguales; de lo que resta, 6 de cada 10 son huevos fritos y 4 pescados, porque el pescado quita más.

@@ -43,6 +43,25 @@ class GameRunTest {
     }
 
     @Test
+    fun aWalkingPerritoIsPickedUpJustByRunningPastIt() {
+        val perrito = Item(ItemKind.Perrito, 400, 32 + 8).apply { walk = Walk(-32f, 32f, config.items, seed = 3) }
+        val pieces = object : PieceSource {
+            private var given = false
+
+            override fun nextOrNull(): Piece? {
+                if (given) return null
+                given = true
+                return Piece(listOf(Ground(-512, 100_000, 32)), listOf(perrito), 100_000)
+            }
+        }
+        val run = GameRun(config, Scenario.Bosque, seed = 1, pieces = pieces)
+        run.step(step, pressed = true, held = false)
+        repeat(240) { run.step(step, pressed = false, held = false) }
+        assertTrue(perrito.taken, "she picked it up without jumping")
+        assertEquals(config.score.startPoints + config.score.perrito, run.points)
+    }
+
+    @Test
     fun theRunStartsWithTenPointsAndTheCourseAhead() {
         val run = newRun()
 

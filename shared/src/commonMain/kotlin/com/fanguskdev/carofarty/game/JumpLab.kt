@@ -97,8 +97,9 @@ fun overlaps(
     movement: MovementConfig,
 ): Boolean {
     val half = box / 2
-    return caro.right > item.x - half &&
-        caro.left < item.x + half &&
+    val x = item.currentX
+    return caro.right > x - half &&
+        caro.left < x + half &&
         caro.y + movement.hitboxHeight > item.y - half &&
         caro.y < item.y + half
 }

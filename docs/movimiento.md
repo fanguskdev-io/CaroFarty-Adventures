@@ -75,7 +75,7 @@ stateDiagram-v2
     Corriendo --> Cayendo: se acaba el suelo y empieza el coyote time
     Aterrizando --> Cayendo: se acaba el suelo
     Cayendo --> Saltando: toque dentro del coyote time
-    Saltando --> Cayendo: deja de subir
+    Saltando --> Cayendo: deja de subir o se da con un bloque
     Cayendo --> Aterrizando: toca suelo
     Aterrizando --> Corriendo: a los 0,1 s
     Cayendo --> Barranco: baja 40 px por debajo de la pantalla
@@ -91,6 +91,19 @@ En el código: `Waiting` (esperando), `Running` (corriendo), `Jumping` (saltando
 (aterrizando), `Fallen` (en el barranco) y `Stopped` (parada). Se salta desde el suelo, al aterrizar y durante el coyote
 time; nunca en el aire después. La línea de depuración cuenta los saltos y cuántos vinieron del coyote time y del buffer
 (PLY-04).
+
+## Los bloques en el aire
+
+Los bloques sólidos que pidió Fangusk ([ADR 0007](adr/0007-la-dificultad-velocidad-y-obstaculos-en-el-aire.md), PLY-16)
+chocan con la caja de colisión de Caro:
+
+- **Desde abajo**, su cabeza no pasa del borde inferior del bloque: deja de subir al momento y empieza a caer, aunque
+  mantenga el dedo.
+- **De costado**, en el aire, el bloque la frena como una pared y cae pegada a él; si debajo hay un barranco, se acaba
+  la partida.
+- **Encima**, es suelo: aterriza, corre y al acabar el bloque cae con su coyote time, como desde cualquier borde.
+- **A su favor**: si al subir solo roza con 3 px o menos la esquina de atrás de un bloque que ya deja atrás, no la frena
+  (PLY-05); y si sus pies llegan al costado a 4 px o menos de la parte de arriba, se sube encima en vez de chocar.
 
 ## Referencias
 

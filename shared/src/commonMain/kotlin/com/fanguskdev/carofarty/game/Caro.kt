@@ -40,6 +40,9 @@ class Caro(private val config: MovementConfig) {
     var state = CaroState.Waiting
         private set
 
+    /** Whether a tap now would jump: on the ground, or just off an edge within the coyote time (PLY-04). */
+    val mayStillJump: Boolean get() = state.grounded || (state == CaroState.Falling && coyote > 0f)
+
     /** How many jumps she has made, and how many came from the coyote time or the jump buffer (PLY-04, for the debug line). */
     var jumps = 0
         private set
@@ -134,7 +137,7 @@ class Caro(private val config: MovementConfig) {
     private fun run(dt: Float, terrain: Terrain) {
         speed = config.speedAt(meters)
         var next = x + speed * dt
-        val wall = terrain.wallAhead(right, next + halfWidth, y)
+        val wall = terrain.wallAhead(right, next + halfWidth, y, y + config.hitboxHeight)
         if (wall != null) next = wall - halfWidth.toDouble()
         x = next
     }
@@ -153,7 +156,7 @@ class Caro(private val config: MovementConfig) {
     }
 
     private fun stayOnGround(dt: Float, terrain: Terrain) {
-        val ground = terrain.groundTopUnder(left, right)
+        val ground = terrain.supportUnder(left, right, y)
         if (ground == null || ground < y) {
             state = CaroState.Falling
             coyote = config.coyoteTime
@@ -173,9 +176,17 @@ class Caro(private val config: MovementConfig) {
         vy = max(vy - (if (holding) config.holdGravity else config.gravity) * dt, -config.maxFallSpeed)
         val before = y
         y += vy * dt
+        if (vy > 0f) {
+            val ceiling = terrain.ceilingAbove(left, right, before + config.hitboxHeight, y + config.hitboxHeight)
+            if (ceiling != null) {
+                // A block over her head (ADR 0007): she stops going up and falls.
+                y = ceiling - config.hitboxHeight
+                vy = 0f
+            }
+        }
         if (vy <= 0f && state == CaroState.Jumping) state = CaroState.Falling
         if (vy <= 0f) {
-            val ground = terrain.groundTopUnder(left, right)
+            val ground = terrain.supportUnder(left, right, before)
             if (ground != null && before >= ground - Course.CORNER_TOLERANCE && y <= ground) land(ground)
         }
         if (y < FALL_LIMIT) state = CaroState.Fallen

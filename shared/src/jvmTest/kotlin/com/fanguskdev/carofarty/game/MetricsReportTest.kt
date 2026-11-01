@@ -33,6 +33,7 @@ class MetricsReportTest {
     @Test
     fun moreThingsThatTakePointsAwayAsTheRunGoesOn() {
         val counts = Array(BANDS.size) { IntArray(ItemKind.entries.size) }
+        val blocks = IntArray(BANDS.size)
         for (seed in 1L..SEEDS) {
             val generator = CourseGenerator(config, seed)
             var end = 0
@@ -41,6 +42,10 @@ class MetricsReportTest {
                 for (item in piece.items) {
                     val band = BANDS.indexOfFirst { item.x / TILE in it }
                     if (band >= 0) counts[band][item.kind.ordinal]++
+                }
+                for (block in piece.blocks) {
+                    val band = BANDS.indexOfFirst { block.start / TILE in it }
+                    if (band >= 0) blocks[band]++
                 }
                 end = piece.end
             }
@@ -53,12 +58,13 @@ class MetricsReportTest {
         assertTrue(BANDS.indices.all { per100m(it, adding) > 0f }, "there should be perritos and gatitos everywhere")
 
         val text = buildString {
-            appendLine("| Tramo | Perritos | Gatitos | Huevos fritos | Pescados | Suman | Restan |")
-            appendLine("|---|---|---|---|---|---|---|")
+            appendLine("| Tramo | Perritos | Gatitos | Huevos fritos | Pescados | Suman | Restan | Bloques |")
+            appendLine("|---|---|---|---|---|---|---|---|")
             for (band in BANDS.indices) {
+                val blocksPer100m = blocks[band] * 100f / SEEDS / (BANDS[band].last - BANDS[band].first)
                 append("| ${BANDS[band].first} a ${BANDS[band].last} m | ")
                 append(ItemKind.entries.joinToString(" | ") { format(per100m(band, listOf(it))) })
-                appendLine(" | ${format(per100m(band, adding))} | ${format(per100m(band, taking))} |")
+                appendLine(" | ${format(per100m(band, adding))} | ${format(per100m(band, taking))} | ${format(blocksPer100m)} |")
             }
         }
         out.resolve("frecuencias.md").writeText(text)

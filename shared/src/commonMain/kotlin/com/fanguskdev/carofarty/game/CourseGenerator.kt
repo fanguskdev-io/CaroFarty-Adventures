@@ -22,6 +22,9 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
     private val itemRandom = Random(seed xor ITEM_SALT)
     private val lab = JumpLab(movement, config.items.negativeBox)
     private val sandbox = Course()
+
+    /** The blocks of the piece being made, which the validator's sandbox carries too. */
+    private val pieceBlocks = mutableListOf<Block>()
     private val half = movement.hitboxWidth / 2
     private val maxHold = ceil(movement.holdWindow / JumpLab.STEP).toInt()
     private var last: Ground? = null
@@ -107,9 +110,11 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
         val ground = Ground(start, start + runTiles * TILE, topTiles * TILE)
 
         val items = mutableListOf<Item>()
+        pieceBlocks.clear()
         val pieceMeters = (ground.end - previous.end).toFloat() / TILE
         val per100m = course.negativesPer100mStart + (course.negativesPer100mEnd - course.negativesPer100mStart) * difficulty
         if (!easy) negatives(previous, ground, items, count = draw(pieceMeters * per100m / 100f))
+        if (!easy) airObstacles(previous, ground, items, difficulty)
         if (!fairGap(previous, ground, items, path = null)) return null
         // The step as built, which the limits of height may have cut short.
         val shape = shapeOf(gapTiles, (ground.top - previous.top) / TILE, ground, items)
@@ -118,7 +123,88 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
         positives(previous, ground, items, pieceMeters)
         items.sortBy { it.x }
         remember(if (easy) NO_SHAPE else shape)
-        return Piece(listOf(ground), items, ground.end, difficulty)
+        return Piece(listOf(ground), items, ground.end, difficulty, pieceBlocks.toList())
+    }
+
+    /**
+     * The obstacles in the air that Fangusk asked for (ADR 0007), more often with the difficulty: a huevo frito or a
+     * pescado, or a solid block, on the path of the jump anyone would make first over the gap, so it has to be timed or
+     * measured another way. One that would leave the piece unfair is taken away again.
+     */
+    private fun airObstacles(
+        previous: Ground,
+        ground: Ground,
+        items: MutableList<Item>,
+        difficulty: Float,
+    ) {
+        if (difficulty < course.airFromDifficulty) return
+        val chance = course.airChanceStart + (course.airChanceEnd - course.airChanceStart) * difficulty
+        if (itemRandom.nextFloat() >= chance) return
+        val path = mutableListOf<Pair<Double, Float>>()
+        if (!fairGap(previous, ground, items, path) || path.size < MIN_AIR_PATH) return
+        // Her body's centre around the top of that jump, where shorter jumps pass under and higher ones over, and over the
+        // gap itself: over the run-up she would run into it before any jump the validator tries.
+        val half = Item.SIZE / 2
+        val from = path.size * AIR_FROM_TENTHS / 10
+        val to = path.size * AIR_TO_TENTHS / 10
+        val overTheGap = (from until to).filter { path[it].first - half > previous.end && path[it].first + half < ground.start }
+        if (overTheGap.isEmpty()) return
+        val wantsBlock = itemRandom.nextFloat() < course.airBlockShare
+        repeat(AIR_TRIES) {
+            val (x, centre) = path[overTheGap[itemRandom.nextInt(overTheGap.size)]]
+            val placed = if (wantsBlock) block(previous, ground, items, x, centre) else onThePath(previous, ground, items, x, centre)
+            if (placed) return
+        }
+    }
+
+    /** A huevo frito or a pescado where her body would be at ([x], [centre]) on the obvious jump. Whether it stayed. */
+    private fun onThePath(
+        previous: Ground,
+        ground: Ground,
+        items: MutableList<Item>,
+        x: Double,
+        centre: Float,
+    ): Boolean {
+        // A little above or below her body on that jump: it still catches the obvious jump and leaves room around it.
+        val item = Item(negativeKind(), x.toInt(), centre.toInt() + itemRandom.nextInt(-AIR_SPREAD, AIR_SPREAD + 1))
+        items += item
+        if (fairGap(previous, ground, items, path = null)) return true
+        items -= item
+        return false
+    }
+
+    /** A block whose bottom her head reaches at ([x], [centre]) of the obvious jump, which it cuts short. Whether it stayed. */
+    private fun block(
+        previous: Ground,
+        ground: Ground,
+        items: List<Item>,
+        x: Double,
+        centre: Float,
+    ): Boolean {
+        val width = TILE * itemRandom.nextInt(1, MAX_BLOCK_TILES + 1)
+        val left = (x - width / 2).toInt()
+        val bottom = (centre + movement.hitboxHeight / 2 - BLOCK_BITE).toInt()
+        val block = Block(left, left + width, bottom, bottom + TILE)
+        // Never so low over a ground that she cannot run under it, and never over a collectible.
+        for (under in listOf(previous, ground)) {
+            if (block.end > under.start && block.start < under.end && block.bottom < under.top + BLOCK_CLEARANCE) return false
+        }
+        if (items.any { overlaps(it, block) }) return false
+        pieceBlocks += block
+        if (fairGap(previous, ground, items, path = null) && obstaclesStillFair(ground, items)) return true
+        pieceBlocks -= block
+        return false
+    }
+
+    private fun overlaps(item: Item, block: Block): Boolean {
+        val half = Item.SIZE / 2
+        return item.x + half > block.start && item.x - half < block.end && item.y + half > block.bottom && item.y - half < block.top
+    }
+
+    /** Whether every huevo frito and pescado on [ground] can still be jumped with the piece's blocks in place. */
+    private fun obstaclesStillFair(ground: Ground, items: List<Item>): Boolean = items.all { item ->
+        val onTheGround = !item.kind.adds && item.x >= ground.start && item.x < ground.end && item.y - ground.top < Item.SIZE
+        !onTheGround || fairObstacle(ground, item)
     }
 
     /** What makes a piece look like another: its gap, its step and whether it has something to jump over the gap or on the ground. */
@@ -128,14 +214,15 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
         ground: Ground,
         items: List<Item>,
     ): Int {
-        var negatives = 0
+        var negatives = if (pieceBlocks.isEmpty()) 0 else WITH_A_BLOCK
         for (item in items) {
             if (!item.kind.adds) negatives = negatives or if (item.x < ground.start) OVER_THE_GAP else ON_THE_GROUND
         }
         return ((gapTiles * SHAPE_STEPS) + stepTiles + course.maxStepDown) * SHAPE_NEGATIVES + negatives
     }
 
-    private fun difficult(gapTiles: Int, items: List<Item>): Boolean = gapTiles >= DIFFICULT_GAP_TILES || items.any { !it.kind.adds }
+    private fun difficult(gapTiles: Int, items: List<Item>): Boolean =
+        gapTiles >= DIFFICULT_GAP_TILES || pieceBlocks.isNotEmpty() || items.any { !it.kind.adds }
 
     private fun remember(shape: Int) {
         shapes[1] = shapes[0]
@@ -203,9 +290,10 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
             if (fairGap(previous, ground, items, path) && path.size >= ARC_ITEMS + 1) {
                 for (k in 1..ARC_ITEMS) {
                     val (x, y) = path[path.size * k / (ARC_ITEMS + 1)]
-                    // Not where it would touch a ground: by the far edge, a landing passes close to its corner.
+                    // Not where it would touch a ground (by the far edge, a landing passes close to its corner) or a block.
                     val under = sandbox.groundTopUnder(x - Item.SIZE / 2, x + Item.SIZE / 2)
-                    if (under == null || y - Item.SIZE / 2 >= under) items += Item(positiveKind(), x.toInt(), y.toInt())
+                    val item = Item(positiveKind(), x.toInt(), y.toInt())
+                    if ((under == null || y - Item.SIZE / 2 >= under) && pieceBlocks.none { overlaps(item, it) }) items += item
                 }
                 return
             }
@@ -238,7 +326,7 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
         path: MutableList<Pair<Double, Float>>?,
     ): Boolean {
         sandbox.clear()
-        sandbox.append(Piece(listOf(from, to), emptyList(), to.end))
+        sandbox.append(Piece(listOf(from, to), emptyList(), to.end, blocks = pieceBlocks))
         val speed = movement.speedAt(meters(from.end))
         val windowSteps = ceil(PRESS_WINDOW_SECONDS / JumpLab.STEP).toInt()
         val coyoteSteps = floor(movement.coyoteTime / JumpLab.STEP).toInt()
@@ -293,7 +381,7 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
 
         init {
             sandbox.clear()
-            sandbox.append(Piece(listOf(ground), emptyList(), ground.end))
+            sandbox.append(Piece(listOf(ground), emptyList(), ground.end, blocks = pieceBlocks))
         }
 
         fun clears(landing: JumpLab.Landing): Boolean =
@@ -309,6 +397,8 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
     ): Boolean {
         var fairPresses = 0
         for (press in lastPress downTo 0) {
+            // Not enough moments left to make it fair: the rest need not be tried.
+            if (fairPresses + press + 1 < FAIR_PRESSES) return false
             var holds = 0
             for (hold in 0..maxHold) {
                 // Enough good holds for this press, or no longer possible: the rest need not be tried.
@@ -364,9 +454,24 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
         /** How a piece's shape is counted: room for every step, and a bit for each place of the negatives. */
         const val NO_SHAPE = -1
         const val SHAPE_STEPS = 16
-        const val SHAPE_NEGATIVES = 4
+        const val SHAPE_NEGATIVES = 8
         const val OVER_THE_GAP = 1
         const val ON_THE_GROUND = 2
+        const val WITH_A_BLOCK = 4
+
+        /**
+         * The obstacles in the air: how long the obvious jump must be to carry one, the middle of it where it goes (in
+         * tenths), how wide a block is at most, how far into her head its bottom reaches on that jump and how much room it
+         * leaves over a ground, her whole sprite and a little more, so she always runs under it.
+         */
+        const val MIN_AIR_PATH = 10
+        const val AIR_FROM_TENTHS = 3
+        const val AIR_TO_TENTHS = 7
+        const val AIR_TRIES = 4
+        const val AIR_SPREAD = 8
+        const val MAX_BLOCK_TILES = 2
+        const val BLOCK_BITE = 4
+        const val BLOCK_CLEARANCE = 28
         const val LANDING_ROOM_TILES = 2
         const val OBSTACLE_TO_END_TILES = 4
 

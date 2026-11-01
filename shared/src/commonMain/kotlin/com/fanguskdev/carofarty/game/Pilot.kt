@@ -58,19 +58,18 @@ internal class Pilot(private val run: GameRun) {
     /** How many steps to keep the finger down on a jump that starts now, or -1 to keep running. */
     private fun jump(): Int {
         val caro = run.caro
-        if (!caro.state.grounded) return -1
+        // Also just off an edge, within the coyote time: the validator counts those jumps, and so does a person.
+        if (!caro.mayStillJump) return -1
         val grounds = run.course.grounds
         var runway = -1
         for (i in grounds.indices) {
             val ground = grounds[i]
-            if (runway < 0 && ground.start <= caro.x && caro.x < ground.end) {
-                runway = ground.end
-            } else if (runway >= 0 && ground.start == runway) {
-                runway = ground.end
-                break
-            } else if (runway >= 0) {
+            if (ground.start >= caro.right) {
+                if (runway >= 0 && ground.start == runway && caro.state.grounded) runway = ground.end
                 break
             }
+            // The ground under any part of her, or the last one she left.
+            runway = ground.end
         }
         if (runway < 0) return -1
         val items = run.course.items
@@ -90,7 +89,9 @@ internal class Pilot(private val run: GameRun) {
         var count = 0
         for (hold in 0..maxHold) {
             val landing = lab.tryJump(run.course, items, caro.x, caro.y, GameRun.START_X, pressAfter = 0, hold = hold)
-            if (landing.landed && !landing.touchedNegative && landing.x >= past) good[count++] = hold
+            // On a ground, like the validator: on top of a block over the gap she would run off its end.
+            val onAGround = run.course.groundTopUnder(landing.x - half, landing.x + half) == landing.top
+            if (landing.landed && !landing.touchedNegative && landing.x >= past && onAGround) good[count++] = hold
         }
         return if (count >= 2) good[count / 2] else -1
     }

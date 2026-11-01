@@ -58,8 +58,9 @@ class CourseGeneratorTest {
             val ground = piece.grounds.first()
             val gap = (ground.start - previous.end) / TILE
             val negatives = piece.items.filter { !it.kind.adds }.map { it.x < ground.start }.toSet()
-            val difficult = gap >= DIFFICULT_GAP_TILES || negatives.isNotEmpty()
-            shapes.addLast(if (difficult) "$gap ${ground.top - previous.top} $negatives" else null)
+            val blocks = piece.blocks.isNotEmpty()
+            val difficult = gap >= DIFFICULT_GAP_TILES || negatives.isNotEmpty() || blocks
+            shapes.addLast(if (difficult) "$gap ${ground.top - previous.top} $negatives $blocks" else null)
             if (shapes.size > 3) shapes.removeFirst()
             if (shapes.size == 3 && shapes.all { it != null }) {
                 assertTrue(shapes.toSet().size > 1, "three alike in a row at ${ground.start}: ${shapes.first()}")
@@ -96,6 +97,12 @@ class CourseGeneratorTest {
                 mix(item.kind.ordinal.toLong())
                 mix(item.x.toLong())
                 mix(item.y.toLong())
+            }
+            for (block in piece.blocks) {
+                mix(block.start.toLong())
+                mix(block.end.toLong())
+                mix(block.bottom.toLong())
+                mix(block.top.toLong())
             }
         }
         val run = GameRun(config, Scenario.Bosque, seed = 2026)
@@ -159,6 +166,33 @@ class CourseGeneratorTest {
     }
 
     @Test
+    fun obstaclesInTheAirAppearAndLeaveRoomToRunUnder() {
+        val generator = CourseGenerator(config, seed = 21)
+        val all = Course()
+        repeat(1_500) { all.append(generator.next()) }
+        assertTrue(all.blocks.isNotEmpty(), "there are blocks in the air")
+        // Eggs and fish over a gap, lower than the ceilings: on the path of a jump.
+        val onThePath = all.items.count { item ->
+            val before = all.grounds.lastOrNull { it.end <= item.x }
+            !item.kind.adds && all.groundTopUnder(item.x - 1.0, item.x + 1.0) == null && before != null && item.y - before.top < 70
+        }
+        assertTrue(onThePath > 0, "there are eggs and fish on the path of a jump")
+        val half = Item.SIZE / 2
+        for (block in all.blocks) {
+            for (ground in all.grounds) {
+                if (block.end > ground.start && block.start < ground.end) {
+                    assertTrue(block.bottom >= ground.top + BLOCK_CLEARANCE, "a block at ${block.start} too low to run under")
+                }
+            }
+            for (item in all.items) {
+                val inside =
+                    item.x + half > block.start && item.x - half < block.end && item.y + half > block.bottom && item.y - half < block.top
+                assertTrue(!inside, "a collectible inside the block at ${block.start}")
+            }
+        }
+    }
+
+    @Test
     fun aCarefulPilotRunsKilometresWithoutFalling() {
         for (seed in 1L..3L) {
             val run = GameRun(config, Scenario.Bosque, seed)
@@ -189,7 +223,7 @@ class CourseGeneratorTest {
     private companion object {
         const val FNV_OFFSET = -3750763034362895579L
         const val FNV_PRIME = 1099511628211L
-        const val SAME_RUN = -1073845633597531411L
+        const val SAME_RUN = 7034805532936913927L
 
         /** How high a quick tap of 3 steps goes (docs/movimiento.md), and how far from its obstacle a long jump's top can be. */
         const val QUICK_TAP_HEIGHT = 24
@@ -198,6 +232,9 @@ class CourseGeneratorTest {
         /** The generator's measure of a difficult piece, and how long a calm stretch lasts at most, in metres. */
         const val DIFFICULT_GAP_TILES = 4
         const val CALM_METERS = 150
+
+        /** The room a block leaves over a ground: her whole sprite, 24 px, and a little more. */
+        const val BLOCK_CLEARANCE = 28
 
         /**
          * Pieces are made in the background (BufferedPieces) and the run uses about one a second, so a piece only has to

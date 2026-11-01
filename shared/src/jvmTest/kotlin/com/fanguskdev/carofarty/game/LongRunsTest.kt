@@ -35,6 +35,7 @@ class LongRunsTest {
             val touched = run.events.filterIsInstance<RunEvent.Picked>().filter { it.points < 0 }
             println("GEN-07, semilla $seed: ${run.meters.toInt()} m, ${touched.size} tocados")
             assertTrue(touched.isEmpty(), "seed $seed: touched ${touched.size} by ${run.meters.toInt()} m")
+            assertTrue(run.endCause != EndCause.Fall, "seed $seed: fell at ${run.meters.toInt()} m")
         }
     }
 

@@ -32,6 +32,9 @@ Las especificaciones dejan fuera los enemigos y fijan cómo se pierde: con 0 pun
      puede correr.
 - **El validador comprueba los dos** con la misma física del juego: cada pieza sigue teniendo saltos que la cruzan con
   margen en el momento y en la duración (3 momentos de despegue con 4 pulsaciones buenas cada uno).
+- **Cuántos** (propuesta, para afinar jugando): desde el 5 % de dificultad; al principio lleva uno el 35 % de los
+  barrancos y a toda dificultad el 90 %, la mitad bloques de 1 o 2 tiles. Medido en 20 partidas de 5 km: a toda
+  velocidad, unos 0,6 bloques cada 100 m y algo más de medio huevo o pescado en el aire.
 
 ## Alternativas
 

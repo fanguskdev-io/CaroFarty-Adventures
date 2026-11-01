@@ -56,11 +56,11 @@ barrancos crecen en tiles porque Caro va más deprisa, pero medidos en tiempo de
 
 | Distancia | Tiempo de juego | Velocidad | Dificultad | Barranco más ancho | Restan cada 100 m: objetivo · medido |
 |---|---|---|---|---|---|
-| 0 a 500 m | Hasta 0,6 min | 160 a 247 px/s | 0 a 7 % | 3 a 5 tiles | 2,0 a 2,4 · 1,7 |
-| 500 a 1000 m | 0,6 a 1,1 min | 247 a 277 px/s | 7 a 26 % | 5 a 6 tiles | 2,4 a 3,6 · 2,1 |
-| 1000 a 2000 m | 1,1 a 2,1 min | 277 a 306 px/s | 26 a 74 % | 6 a 9 tiles | 3,6 a 6,4 · 3,2 |
-| 2000 a 3500 m | 2,1 a 3,3 min | 306 a 330 px/s | 74 a 100 % | 9 a 11 tiles | 6,4 a 8 · 2,8 |
-| Más de 3500 m | Desde 3,3 min | 330 a 360 px/s | 100 % | 11 a 12 tiles | 8 · 2,8 |
+| 0 a 500 m | Hasta 0,6 min | 160 a 247 px/s | 0 a 7 % | 3 a 5 tiles | 2,0 a 2,4 · 1,8 |
+| 500 a 1000 m | 0,6 a 1,1 min | 247 a 277 px/s | 7 a 26 % | 5 a 6 tiles | 2,4 a 3,6 · 2,5 |
+| 1000 a 2000 m | 1,1 a 2,1 min | 277 a 306 px/s | 26 a 74 % | 6 a 9 tiles | 3,6 a 6,4 · 3,5 |
+| 2000 a 3500 m | 2,1 a 3,3 min | 306 a 330 px/s | 74 a 100 % | 9 a 11 tiles | 6,4 a 8 · 3,3 |
+| Más de 3500 m | Desde 3,3 min | 330 a 360 px/s | 100 % | 11 a 12 tiles | 8 · 3,5 |
 
 - **La velocidad** sube durante toda la partida, como pidió Fangusk: deprisa al principio (277 px/s al minuto) y cada
   vez más despacio hacia los 360, sin llegar (344 a los 4,5 minutos, 357 a los 8) ([movimiento](movimiento.md)).
@@ -69,8 +69,10 @@ barrancos crecen en tiles porque Caro va más deprisa, pero medidos en tiempo de
   imposible), y llegan al máximo a los 3000 m, hacia los 3 minutos.
 - **Los barrancos** piden del 45 % al 75 % del salto largo a la velocidad del momento.
 - **Lo que resta** busca de 2 a 8 cada 100 m en los tramos de tensión, como mucho dos por pieza. Lo medido en 20 partidas
-  de 5 km se queda en 1,7 a 3,2 de media, porque las calmas no llevan ninguno y el validador quita los que no se pueden
+  de 5 km se queda en 1,8 a 3,5 de media, porque las calmas no llevan ninguno y el validador quita los que no se pueden
   esquivar con margen. Lo que suma, de 15 a 17 cada 100 m ([recolectables](recolectables.md)).
+- **Los obstáculos en el aire** (ADR 0007) empiezan hacia los 300 m y suben con la dificultad: a toda velocidad, unos
+  0,6 bloques cada 100 m, y los huevos y pescados en el camino del salto ya cuentan en «Restan».
 - **Tensión y calma** se turnan: tras 150 a 250 m de tensión vienen de 3 a 8 piezas tranquilas, unos 10 s, con perritos
   y gatitos y sin nada que reste. La partida empieza con 30 tiles llanos y una fila de perritos.
 

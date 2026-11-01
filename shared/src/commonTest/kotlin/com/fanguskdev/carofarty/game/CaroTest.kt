@@ -13,6 +13,16 @@ class CaroTest {
     /** A course of the given grounds. */
     private fun terrain(vararg grounds: Ground) = Course().apply { append(Piece(grounds.toList(), emptyList(), grounds.last().end)) }
 
+    /** A course of the given grounds and blocks in the air. */
+    private fun terrain(blocks: List<Block>, vararg grounds: Ground) =
+        Course().apply { append(Piece(grounds.toList(), emptyList(), grounds.last().end, blocks = blocks)) }
+
+    /** How many pixels of her collision box are inside [block] up and down, if she is inside it across at all. */
+    private fun Caro.insideOf(block: Block): Float {
+        if (right <= block.start || left >= block.end) return 0f
+        return max(0f, minOf(y + config.hitboxHeight, block.top.toFloat()) - maxOf(y, block.bottom.toFloat()))
+    }
+
     private fun runningOn(course: Course, x: Double = 100.0): Caro = Caro(config).apply {
         place(x, course.groundTopUnder(x - 1, x + 1)?.toFloat() ?: 0f)
         start()
@@ -173,6 +183,69 @@ class CaroTest {
 
         assertEquals(CaroState.Landing, caro.state)
         assertEquals(64f, caro.y)
+    }
+
+    @Test
+    fun aBlockOverHerHeadCutsTheJumpShort() {
+        val block = Block(60, 300, bottom = 32 + 50, top = 32 + 66)
+        val course = terrain(listOf(block), Ground(0, 100_000, 32))
+        val caro = runningOn(course)
+        caro.step(step, pressed = true, held = true, terrain = course)
+        var highest = caro.y
+        repeat(60) {
+            caro.step(step, pressed = false, held = true, terrain = course)
+            highest = max(highest, caro.y)
+            assertEquals(0f, caro.insideOf(block), "her head never goes into the block")
+        }
+        assertEquals(block.bottom - config.hitboxHeight, highest, 0.01f)
+        assertTrue(caro.state.grounded && caro.y == 32f, "she falls back to the ground")
+    }
+
+    @Test
+    fun theSideOfABlockStopsHerInTheAirAndSheFallsIntoTheGap() {
+        val block = Block(240, 272, bottom = 40, top = 120)
+        val course = terrain(listOf(block), Ground(0, 200, 32), Ground(600, 2_000, 32))
+        val caro = runningOn(course, x = 180.0)
+        caro.step(step, pressed = true, held = true, terrain = course)
+        var touched = false
+        repeat(240) { frame ->
+            caro.step(step, pressed = false, held = frame < 9, terrain = course)
+            if (caro.right == block.start.toDouble()) touched = true
+            assertTrue(caro.insideOf(block) <= Course.CORNER_TOLERANCE, "never through the block")
+        }
+        assertTrue(touched, "she reached the block's side")
+        assertEquals(CaroState.Fallen, caro.state)
+    }
+
+    @Test
+    fun sheCanLandOnABlockRunOnItAndDropOffItsEnd() {
+        val block = Block(200, 400, bottom = 60, top = 76)
+        val course = terrain(listOf(block), Ground(0, 100_000, 32))
+        val caro = runningOn(course, x = 140.0)
+        caro.step(step, pressed = true, held = true, terrain = course)
+        var onTop = false
+        repeat(240) {
+            caro.step(step, pressed = false, held = true, terrain = course)
+            if (caro.state.grounded && caro.y == block.top.toFloat()) onTop = true
+            assertTrue(caro.insideOf(block) <= Course.CORNER_TOLERANCE, "never through the block")
+        }
+        assertTrue(onTop, "she ran on top of the block")
+        assertTrue(caro.x > block.end && caro.state.grounded && caro.y == 32f, "and dropped back to the ground after it")
+    }
+
+    @Test
+    fun grazingTheBackCornerOfABlockDoesNotStopTheJump() {
+        // Her left edge is two pixels short of the block's end when her head reaches its bottom: she is leaving it behind.
+        val block = Block(0, 100, bottom = 32 + 22, top = 32 + 38)
+        val course = terrain(listOf(block), Ground(0, 100_000, 32))
+        val caro = runningOn(course)
+        caro.step(step, pressed = true, held = true, terrain = course)
+        var highest = caro.y
+        repeat(60) {
+            caro.step(step, pressed = false, held = true, terrain = course)
+            highest = max(highest, caro.y)
+        }
+        assertTrue(highest - 32f > 60f, "the jump went on to ${highest - 32f} px")
     }
 
     @Test

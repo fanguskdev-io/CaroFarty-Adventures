@@ -96,4 +96,6 @@ efecto al tocarlo, de 3 fotogramas de 50 ms.
 
 **Escenarios** (`arte/<escenario>/tiles.json` y sus fondos): los tiles del suelo, con al menos dos variantes de la
 superficie y del relleno, los bordes izquierdo y derecho (los del barranco tienen que leerse a cualquier velocidad) y sus
-esquinas; los fondos lejano y medio; el cielo; y decoración opcional, que puede animarse con 2 a 4 fotogramas de 250 ms.
+esquinas; el `bloque` en el aire, de 16 × 16, que encaje en filas de 1 a 3 y no se confunda con el suelo ni con los
+recolectables (ART-25); los fondos lejano y medio; el cielo; y decoración opcional, que puede animarse con 2 a 4 fotogramas
+de 250 ms.

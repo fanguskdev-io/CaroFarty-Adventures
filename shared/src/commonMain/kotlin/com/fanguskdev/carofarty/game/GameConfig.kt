@@ -80,6 +80,14 @@ data class CourseConfig(
     val tensionMaxMeters: Int = 250,
     val calmMinPieces: Int = 3,
     val calmMaxPieces: Int = 8,
+    /**
+     * The obstacles in the air that Fangusk asked for (ADR 0007): from what difficulty they appear, how often a gap gets
+     * one (growing with the difficulty) and what share of them are solid blocks instead of a huevo frito or a pescado.
+     */
+    val airFromDifficulty: Float = 0.05f,
+    val airChanceStart: Float = 0.35f,
+    val airChanceEnd: Float = 0.9f,
+    val airBlockShare: Float = 0.5f,
     val negativesPer100mStart: Float = 2f,
     val negativesPer100mEnd: Float = 8f,
     val positivesPer100m: Float = 8f,

@@ -32,6 +32,7 @@ internal fun DrawScope.paintWorld(
     drawRect(palette.sky, Offset.Zero, Size(width.toFloat(), height.toFloat()))
     paintFarBand(cameraLeft, height + floor(cameraBottom * FAR_SPEED).toInt(), width, palette)
     paintGrounds(run, cameraLeft, width, base, palette)
+    paintBlocks(run, cameraLeft, width, base, palette)
     paintItems(run, cameraLeft, width, base)
     if (debugBoxes) paintBoxes(run, cameraLeft, base, caroX, caroY)
 }
@@ -83,6 +84,32 @@ private fun DrawScope.paintGrounds(
         // The edges of a gap, dark, so they read at any speed (ENM-11).
         if (ground.start - cameraLeft == left) drawRect(GreyPalette.ink, Offset(left.toFloat(), top), Size(1f, ground.top.toFloat()))
         if (ground.end - cameraLeft == right) drawRect(GreyPalette.ink, Offset((right - 1).toFloat(), top), Size(1f, ground.top.toFloat()))
+    }
+}
+
+/** The solid blocks in the air (ADR 0007), outlined and split in tiles so a row of them reads as blocks. */
+private fun DrawScope.paintBlocks(
+    run: GameRun,
+    cameraLeft: Long,
+    width: Int,
+    base: Int,
+    palette: GreyPalette,
+) {
+    val blocks = run.course.blocks
+    for (i in 0 until blocks.size) {
+        val block = blocks[i]
+        val left = block.start - cameraLeft
+        if (left > width || block.end - cameraLeft < 0) continue
+        val top = (base - block.top).toFloat()
+        val across = (block.end - block.start).toFloat()
+        val tall = (block.top - block.bottom).toFloat()
+        drawRect(GreyPalette.ink, Offset(left.toFloat(), top), Size(across, tall))
+        drawRect(palette.groundTop, Offset(left + 1f, top + 1f), Size(across - 2f, tall - 2f))
+        var x = block.start + TILE
+        while (x < block.end) {
+            drawRect(GreyPalette.ink, Offset((x - cameraLeft).toFloat(), top), Size(1f, tall))
+            x += TILE
+        }
     }
 }
 

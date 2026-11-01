@@ -40,6 +40,13 @@ contra las que chocar. Chocar contra el borde de un suelo más alto tras un salt
 | Obstáculo en el suelo | Un huevo frito o un pescado en el camino que hay que saltar, como los cactus del dinosaurio |
 | Elección | Un perrito o un gatito en lo alto de un salto largo sobre un huevo frito o un pescado del suelo: un toque rápido salva el obstáculo y pasa por debajo; mantener el dedo lo recoge. La lleva la mitad de los obstáculos |
 | Techo | Un huevo frito o un pescado alto sobre un barranco: pide un salto que no suba demasiado |
+| En el camino del salto | Un huevo frito o un pescado sobre el barranco, donde pasaría el salto que cualquiera haría primero (cerca de su punto más alto, un poco por encima o por debajo): hay que adelantar, retrasar o medir el salto de otra manera. Lo pidió Fangusk ([ADR 0007](adr/0007-la-dificultad-velocidad-y-obstaculos-en-el-aire.md)) |
+| Bloque | Un bloque sólido de 1 o 2 tiles sobre el barranco, cuyo borde de abajo alcanza la cabeza de Caro en ese mismo salto: lo corta. Desde abajo frena la subida, de costado la para en el aire y encima se puede correr. Sobre un suelo deja siempre al menos 28 px por debajo, para que se pueda pasar corriendo. También lo pidió Fangusk |
+
+Los dos últimos, los obstáculos en el aire, empiezan cuando la dificultad pasa del 5 %. Al principio lleva uno el 35 % de
+los barrancos y, a toda dificultad, el 90 %; la mitad son bloques. Cada uno tiene cuatro intentos de colocarse donde la
+pieza siga siendo justa; si no lo consigue, la pieza sale sin él. Todo vive en `files/ajustes.json` (`airFromDifficulty`,
+`airChanceStart`, `airChanceEnd`, `airBlockShare`).
 
 Los que restan aparecen más a medida que sube la dificultad; las cifras medidas y la ficha de cada recolectable están en
 [recolectables](recolectables.md).
@@ -57,11 +64,13 @@ pulsaciones distintas que:
 
 Así nunca hace falta un salto perfecto: hay margen en el momento y en la duración. Un obstáculo en el suelo se valida igual,
 con 0,4 s de carrera para tomarlo. Los arcos se colocan sobre uno de los saltos buenos y la elección en lo alto de uno
-largo, así que se pueden recoger por construcción.
+largo, así que se pueden recoger por construcción. Los bloques entran en la misma simulación: el validador prueba los
+saltos contra ellos con la física del juego, y un salto que se da con uno no cuenta como bueno.
 
 Si un tramo no es justo se genera otro; tras 8 intentos sale uno fácil, un barranco de 2 tiles a la misma altura y sin
-nada que reste. En las pruebas, un piloto automático que salta como una persona cuidadosa recorre más de 20 km sin caer y
-se generan 10.000 tramos seguidos sin un error (GEN-10, GEN-11).
+nada que reste. En las pruebas, un piloto automático que salta como una persona cuidadosa recorre 39 km en 30 minutos sin
+caer, juega 5 partidas de 10 minutos sin caer ni tocar nada que reste, y se generan 10.000 tramos seguidos sin un error
+(GEN-10, GEN-11).
 
 ## La dificultad
 

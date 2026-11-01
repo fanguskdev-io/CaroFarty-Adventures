@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Estado** | propuesta |
+| **Estado** | aceptada: Fangusk validó M0 con este ADR: «tienes mi ok para M0» (Fangusk, 2026-11-01) |
 | **Fecha** | 2026-11-01 · **Fase:** P0 · Borrador anticipado, sin ninguna puerta confirmada · **Hito:** M0 · **Tarea:** GDD-04 (base de TEC-04, PLY-13 y UI-14) |
 | **Propone · decide** | agente (Claude Code, Opus 5.5) · Fangusk |
 | **Reversibilidad** | media · el arte se dibuja para esta escala y el diseño de los tramos cuenta con esta altura |

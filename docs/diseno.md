@@ -1,7 +1,7 @@
 # CaroFarty · página de diseño
 
-> **Pendiente de que Fangusk la valide** (GDD-01): es el criterio de salida de M0. Lo marcado como propuesta lo decidió el
-> agente y se puede cambiar.
+> **Validada por Fangusk el 2026-11-01**: «tienes mi ok para M0». Lo que sigue marcado como propuesta (los valores de los
+> recolectables y los récords por escenario) espera a que lo confirme.
 
 ## Visión
 
@@ -63,7 +63,7 @@ el backlog por si Fangusk los quiere).
 
 ## Cómo se controla
 
-Un solo gesto ([ADR 0002](adr/0002-salto-por-tiempo-de-pulsacion.md), propuesta): el primer toque arranca la carrera; cada
+Un solo gesto ([ADR 0002](adr/0002-salto-por-tiempo-de-pulsacion.md)): el primer toque arranca la carrera; cada
 toque siguiente es un salto que empieza al apoyar el dedo, y mantenerlo apoyado lo hace más alto y más largo. Se mide el
 tiempo y no la presión, porque los iPhone actuales no la miden y en Android no es fiable. Los números están en
 [movimiento](movimiento.md).
@@ -71,12 +71,12 @@ tiempo y no la presión, porque los iPhone actuales no la miden y en Android no 
 ## La pantalla
 
 En horizontal, pixel art con tiles de 16 px, un área mínima de 320×180 escalada por un número entero y la cámara que
-sigue a Caro con desplazamiento suave ([ADR 0003](adr/0003-horizontal-y-pixel-perfecto.md), propuesta).
+sigue a Caro con desplazamiento suave ([ADR 0003](adr/0003-horizontal-y-pixel-perfecto.md)).
 
 ## El recorrido
 
 Infinito, generado por reglas por delante de Caro y comprobado por un validador de saltos antes de aparecer: nunca hay un
-salto imposible ([ADR 0004](adr/0004-generacion-por-reglas-con-validador.md), propuesta;
+salto imposible ([ADR 0004](adr/0004-generacion-por-reglas-con-validador.md);
 [especificación](generacion.md)). La dificultad sube con la distancia, con respiros cada cierto tiempo.
 
 ## Los escenarios
@@ -112,7 +112,6 @@ de salida en [proceso](proceso.md):
 
 ## Pendiente de Fangusk
 
-- Validar esta página y aceptar o cambiar las propuestas de los ADR 0002 a 0004.
 - Confirmar los valores de los recolectables cuando juegue el prototipo.
 - Si los récords van por escenario o son uno general (propuesta: por escenario).
 - Los teléfonos donde se jugará y la cuenta de Apple, al llegar a la instalación (TEC-13).

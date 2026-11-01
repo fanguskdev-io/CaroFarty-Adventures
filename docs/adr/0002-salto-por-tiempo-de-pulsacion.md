@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Estado** | propuesta · Fangusk pidió que la altura y la longitud dependan «de la presión o del tiempo»; elegir el tiempo es del agente |
+| **Estado** | aceptada: Fangusk pidió que la altura y la longitud dependan «de la presión o del tiempo», el agente propuso el tiempo y Fangusk validó M0 con este ADR: «tienes mi ok para M0» (Fangusk, 2026-11-01) |
 | **Fecha** | 2026-11-01 · **Fase:** P0 · Borrador anticipado, sin ninguna puerta confirmada · **Hito:** M0 · **Tarea:** GDD-03 |
 | **Propone · decide** | agente (Claude Code, Opus 5.5) · Fangusk |
 | **Reversibilidad** | alta · los números viven en datos (TEC-07) |

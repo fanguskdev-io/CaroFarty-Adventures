@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Estado** | aceptada en el qué: Fangusk creó CaroFarty con el asistente de Kotlin Multiplatform de Android Studio, como sus otras apps · propuesta en el cómo: el motor propio sobre Canvas |
+| **Estado** | aceptada: el qué, porque Fangusk creó CaroFarty con el asistente de Kotlin Multiplatform de Android Studio, como sus otras apps; el cómo, el motor propio sobre Canvas, con su visto bueno a M0: «tienes mi ok para M0» (Fangusk, 2026-11-01) |
 | **Fecha** | 2026-11-01 · **Fase:** P0 · Borrador anticipado, sin ninguna puerta confirmada · **Hito:** M0 · **Tarea:** TEC-01 |
 | **Propone · decide** | agente (Claude Code, Opus 5.5) · Fangusk |
 | **Reversibilidad** | baja una vez escrito el juego: cambiar de motor es reescribirlo |

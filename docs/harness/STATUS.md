@@ -26,7 +26,7 @@ revisan las puertas que los piden y no deciden la talla, los criterios de muerte
 en el backlog compartido, `../backlog-juego-plataformas` (de la sesión GameMaster); las condiciones de una puerta irían
 allí como tareas (docs/05 §4).
 
-**Siguiente paso:** ninguno del arnés; el desarrollo sigue por orden de Fangusk: que valide la página de diseño de M0. Si
+**Siguiente paso:** ninguno del arnés; el desarrollo sigue por orden de Fangusk: M1, el prototipo en gris. Si
 un día quiere revisar G0, se abre la primera ronda de la cola de [entrevistas/one-pager-pending.md](entrevistas/one-pager-pending.md).
 
 ## Qué se está haciendo
@@ -34,7 +34,7 @@ un día quiere revisar G0, se abre la primera ronda de la cola de [entrevistas/o
 | Qué | Dimensión | Quién | Desde | Estado |
 |---|---|---|---|---|
 | Adopción del arnés ([hilo](entrevistas/one-pager-pending.md)) | PU, PV, EE, EI | agente (Claude Code, Opus 5.5) | 2026-11-01 | `bloqueado por Fangusk`: las rondas de descubrimiento no se abren mientras él no lo pida (lo dijo en BakiFace, ronda 2, 2026-11-01) |
-| Borrador anticipado del juego: código, puerta de calidad y [ADR](../adr/README.md), pedido por Fangusk | AT | agente (Claude Code, Opus 5.5) | 2026-11-01 | `en curso`: M0 escrito (diseño, ADR 0001 a 0006, puerta en verde en Android e iOS), espera su validación. `comprobar` avisa de que se escribe sin criterios de muerte confirmados (docs/07 §1 del arnés): Fangusk pidió construir ya, y el borrador no cuenta como evidencia de ninguna puerta hasta que confirme los del one-pager, cuya ronda está en cola |
+| Borrador anticipado del juego: código, puerta de calidad y [ADR](../adr/README.md), pedido por Fangusk | AT | agente (Claude Code, Opus 5.5) | 2026-11-01 | `en curso`: M0 validado por Fangusk el 2026-11-01 («tienes mi ok para M0»), con sus ADR aceptados; empieza M1, el prototipo en gris. `comprobar` avisa de que se escribe sin criterios de muerte confirmados (docs/07 §1 del arnés): Fangusk pidió construir ya, y el borrador no cuenta como evidencia de ninguna puerta hasta que confirme los del one-pager, cuya ronda está en cola |
 
 ## Equipo e hitos (EE)
 
@@ -46,7 +46,7 @@ un día quiere revisar G0, se abre la primera ronda de la cola de [entrevistas/o
 
 | Hito (EE-E4) | Fecha | Depende de | Colchón | Estado | Si se retrasa tres meses |
 |---|---|---|---|---|---|
-| M0 a M5 del backlog (diseño → prototipo en gris → Caro y el Bosque → Nieve y Desierto → música → entrega) | sin fecha: Fangusk no la fija (2026-11-01) | Fangusk: su validación de cada hito y sus referencias en M2 | — | M0 escrito, sin validar | nada que pagar: es un regalo sin fecha |
+| M0 a M5 del backlog (diseño → prototipo en gris → Caro y el Bosque → Nieve y Desierto → música → entrega) | sin fecha: Fangusk no la fija (2026-11-01) | Fangusk: su validación de cada hito y sus referencias en M2 | — | M0 validado el 2026-11-01; M1 en curso | nada que pagar: es un regalo sin fecha |
 
 ## Qué espera respuesta humana
 
@@ -93,3 +93,4 @@ un día quiere revisar G0, se abre la primera ronda de la cola de [entrevistas/o
 | Fecha | Quién | Qué cambió |
 |---|---|---|
 | 2026-11-01 | agente (Claude Code, Opus 5.5) | Adopción del arnés 1.15.0 en modo nuevo, pedida por Fangusk, sobre las especificaciones, el diseño y los ADR de M0; rondas de descubrimiento en cola sin abrir, como en BakiFace; el desarrollo sigue como borrador anticipado; riesgos de `docs/proceso.md` pasados a `riesgos.md`; bloque del arnés en `AGENTS.md` y CI `mayeutic` |
+| 2026-11-01 | agente (Claude Code, Opus 5.5) | Fangusk valida M0 («tienes mi ok para M0»): ADR 0001 a 0006 aceptados (los récords por escenario siguen propuestos); el borrador anticipado pasa a M1 |

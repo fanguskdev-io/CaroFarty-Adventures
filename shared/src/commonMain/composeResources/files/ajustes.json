@@ -1,0 +1,45 @@
+{
+  "movement": {
+    "startSpeed": 120.0,
+    "maxSpeed": 200.0,
+    "speedRampMeters": 1200.0,
+    "jumpSpeed": 230.0,
+    "holdGravity": 300.0,
+    "holdWindow": 0.36,
+    "gravity": 1600.0,
+    "maxFallSpeed": 300.0,
+    "coyoteTime": 0.08,
+    "jumpBuffer": 0.1,
+    "hitboxWidth": 10.0,
+    "hitboxHeight": 20.0
+  },
+  "course": {
+    "startFlatTiles": 30,
+    "minGroundTiles": 3,
+    "maxGroundTiles": 20,
+    "minGroundTop": 2,
+    "maxGroundTop": 6,
+    "maxStepUp": 2,
+    "maxStepDown": 3,
+    "minGapTiles": 2,
+    "gapFractionStart": 0.45,
+    "gapFractionEnd": 0.75,
+    "difficultyRampMeters": 2500.0,
+    "restEveryMinMeters": 150,
+    "restEveryMaxMeters": 250,
+    "restTiles": 12,
+    "negativesPer100mStart": 2.0,
+    "negativesPer100mEnd": 8.0,
+    "positivesPer100m": 8.0,
+    "landingMarginTiles": 1,
+    "fairHoldSteps": 4,
+    "validatorAttempts": 8
+  },
+  "score": {
+    "startPoints": 10,
+    "perrito": 1,
+    "gatito": 1,
+    "huevo": -2,
+    "pescado": -3
+  }
+}

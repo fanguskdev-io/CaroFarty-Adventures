@@ -15,7 +15,7 @@ dependencies {
 
 compose.desktop {
     application {
-        mainClass = "com.fanguskdev.carofarty.MainKt"
+        mainClass = "com.fanguskdev.carofarty.DesktopMainKt"
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)

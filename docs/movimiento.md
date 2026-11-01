@@ -24,19 +24,22 @@ La tabla de parámetros del salto y la carrera (GDD-05), lista para programar. L
 
 ## El salto según el tiempo de pulsación
 
-Simulado a 60 Hz con los parámetros de arriba, despegando y aterrizando a la misma altura. Un toque normal en una pantalla
-dura entre 0,05 y 0,1 s.
+Simulado con la misma lógica que el juego (60 pasos por segundo, el dedo cuenta por pasos), despegando y aterrizando a la
+misma altura. Un toque normal en una pantalla dura entre 0,05 y 0,1 s.
 
 | Dedo apoyado | Altura | Tiempo en el aire | Longitud a 120 px/s | A 160 px/s | A 200 px/s |
 |---|---|---|---|---|---|
-| 0,05 s (toque rápido) | 24 px (1,5 tiles) | 0,35 s | 42 px (2,6 tiles) | 56 px | 70 px |
-| 0,08 s | 29 px (1,8 tiles) | 0,40 s | 48 px (3,0 tiles) | 64 px | 80 px |
-| 0,12 s | 37 px (2,3 tiles) | 0,47 s | 56 px (3,5 tiles) | 75 px | 93 px |
-| 0,16 s | 42 px (2,7 tiles) | 0,52 s | 62 px (3,9 tiles) | 83 px | 103 px |
-| 0,20 s | 49 px (3,1 tiles) | 0,58 s | 70 px (4,4 tiles) | 93 px | 117 px |
-| 0,25 s | 56 px (3,5 tiles) | 0,63 s | 76 px (4,8 tiles) | 101 px | 127 px |
-| 0,30 s | 60 px (3,7 tiles) | 0,68 s | 82 px (5,1 tiles) | 109 px | 137 px |
-| 0,36 s o más (pulsación larga) | 67 px (4,2 tiles) | 0,75 s | 90 px (5,6 tiles) | 120 px | 150 px (9,4 tiles) |
+| 3 pasos, 0,05 s (toque rápido) | 24 px (1,5 tiles) | 0,35 s | 42 px (2,6 tiles) | 56 px | 70 px |
+| 5 pasos, 0,08 s | 29 px (1,8 tiles) | 0,40 s | 48 px (3,0 tiles) | 64 px | 80 px |
+| 7 pasos, 0,12 s | 35 px (2,2 tiles) | 0,45 s | 54 px (3,4 tiles) | 72 px | 90 px |
+| 10 pasos, 0,17 s | 42 px (2,7 tiles) | 0,52 s | 62 px (3,9 tiles) | 83 px | 103 px |
+| 12 pasos, 0,20 s | 47 px (3,0 tiles) | 0,55 s | 66 px (4,1 tiles) | 88 px | 110 px |
+| 15 pasos, 0,25 s | 54 px (3,4 tiles) | 0,62 s | 74 px (4,6 tiles) | 99 px | 123 px |
+| 18 pasos, 0,30 s | 60 px (3,7 tiles) | 0,68 s | 82 px (5,1 tiles) | 109 px | 137 px |
+| 22 pasos o más, 0,37 s (pulsación larga) | 67 px (4,2 tiles) | 0,75 s | 90 px (5,6 tiles) | 120 px | 150 px (9,4 tiles) |
+
+La ventana de pulsación de 0,36 s deja que cuenten 22 pasos: con el vigésimo segundo, el dedo lleva 0,367 s. `CaroTest`
+comprueba que el juego salta exactamente esto.
 
 Lo que sale de aquí para diseñar el recorrido (se afina en GDD-06):
 

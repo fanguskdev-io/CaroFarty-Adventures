@@ -20,17 +20,27 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
     private val movement = config.movement
     private val terrainRandom = Random(seed)
     private val itemRandom = Random(seed xor ITEM_SALT)
-    private val lab = JumpLab(movement)
+    private val lab = JumpLab(movement, config.items.negativeBox)
     private val sandbox = Course()
     private val half = movement.hitboxWidth / 2
     private val maxHold = ceil(movement.holdWindow / JumpLab.STEP).toInt()
     private var last: Ground? = null
-    private var nextRest = 0.0
+    private var nextCalm = 0.0
+    private var calmLeft = 0
 
-    /** The next piece of course. The first one is the flat start. */
+    /** The shapes of the last two pieces (see [shapeOf]), so no difficult piece comes three times alike in a row. */
+    private val shapes = intArrayOf(NO_SHAPE, NO_SHAPE)
+
+    /**
+     * The next piece of course. The first one is the flat start; then a stretch of tension and a calm one take turns (GDD-08;
+     * guía 1 de GameMaster, «calma, tensión, calma»).
+     */
     fun next(): Piece {
         val previous = last ?: return start()
-        val piece = if (meters(previous.end) >= nextRest) rest(previous) else gapPiece(previous)
+        if (calmLeft == 0 && meters(previous.end) >= nextCalm) {
+            calmLeft = terrainRandom.nextInt(course.calmMinPieces, course.calmMaxPieces + 1)
+        }
+        val piece = if (calmLeft > 0) calm(previous) else gapPiece(previous)
         last = piece.grounds.last()
         return piece
     }
@@ -43,22 +53,35 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
 
     private fun meters(x: Int): Double = (x - runStart) / TILE
 
+    /** The flat start: perritos and gatitos within reach from the first seconds and nothing else (guía 1, principio 1). */
     private fun start(): Piece {
         val ground = Ground(START_BEHIND, (runStart + course.startFlatTiles * TILE).toInt(), course.minGroundTop * TILE)
         last = ground
-        nextRest = meters(ground.end) + randomRestGap()
-        return Piece(listOf(ground), emptyList(), ground.end, difficulty = 0f)
+        nextCalm = meters(ground.end) + randomTension()
+        val items = mutableListOf<Item>()
+        row(ground, (runStart + START_ROW_TILE * TILE).toInt(), items)
+        return Piece(listOf(ground), items, ground.end, difficulty = 0f)
     }
 
-    private fun randomRestGap(): Int = terrainRandom.nextInt(course.restEveryMinMeters, course.restEveryMaxMeters + 1)
+    private fun randomTension(): Int = terrainRandom.nextInt(course.tensionMinMeters, course.tensionMaxMeters + 1)
 
-    /** A breather (GDD-08): flat ground with nothing that takes points away. */
-    private fun rest(previous: Ground): Piece {
-        nextRest = meters(previous.end) + randomRestGap()
-        val tiles = terrainRandom.nextInt(course.restTiles, course.restTiles + REST_EXTRA_TILES + 1)
+    /**
+     * A piece of a calm stretch: flat ground or the narrowest gap at the same height, with perritos and gatitos and nothing
+     * that takes points away. After the last one, the next stretch of tension.
+     */
+    private fun calm(previous: Ground): Piece {
+        calmLeft--
+        val piece = (if (terrainRandom.nextBoolean()) attempt(previous, easy = true) else null) ?: flat(previous)
+        if (calmLeft == 0) nextCalm = meters(piece.end) + randomTension()
+        return piece
+    }
+
+    private fun flat(previous: Ground): Piece {
+        val tiles = terrainRandom.nextInt(CALM_FLAT_MIN_TILES, CALM_FLAT_MAX_TILES + 1)
         val ground = Ground(previous.end, previous.end + tiles * TILE, previous.top)
         val items = mutableListOf<Item>()
-        if (itemRandom.nextFloat() < POSITIVE_ROW_ON_REST) row(ground, ground.start + TILE, items)
+        row(ground, ground.start + TILE, items)
+        remember(NO_SHAPE)
         return Piece(listOf(ground), items, ground.end, difficulty = difficultyAt(meters(previous.end)))
     }
 
@@ -88,9 +111,35 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
         val per100m = course.negativesPer100mStart + (course.negativesPer100mEnd - course.negativesPer100mStart) * difficulty
         if (!easy) negatives(previous, ground, items, count = draw(pieceMeters * per100m / 100f))
         if (!fairGap(previous, ground, items, path = null)) return null
+        // The step as built, which the limits of height may have cut short.
+        val shape = shapeOf(gapTiles, (ground.top - previous.top) / TILE, ground, items)
+        // Never three difficult pieces alike in a row (guía 1): a third one is made again.
+        if (!easy && difficult(gapTiles, items) && shape == shapes[0] && shape == shapes[1]) return null
         positives(previous, ground, items, pieceMeters)
         items.sortBy { it.x }
+        remember(if (easy) NO_SHAPE else shape)
         return Piece(listOf(ground), items, ground.end, difficulty)
+    }
+
+    /** What makes a piece look like another: its gap, its step and whether it has something to jump over the gap or on the ground. */
+    private fun shapeOf(
+        gapTiles: Int,
+        stepTiles: Int,
+        ground: Ground,
+        items: List<Item>,
+    ): Int {
+        var negatives = 0
+        for (item in items) {
+            if (!item.kind.adds) negatives = negatives or if (item.x < ground.start) OVER_THE_GAP else ON_THE_GROUND
+        }
+        return ((gapTiles * SHAPE_STEPS) + stepTiles + course.maxStepDown) * SHAPE_NEGATIVES + negatives
+    }
+
+    private fun difficult(gapTiles: Int, items: List<Item>): Boolean = gapTiles >= DIFFICULT_GAP_TILES || items.any { !it.kind.adds }
+
+    private fun remember(shape: Int) {
+        shapes[1] = shapes[0]
+        shapes[0] = shape
     }
 
     /** A whole number of things around [expected]: its whole part, and one more as often as its fraction says. */
@@ -302,11 +351,20 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
         const val OBSTACLE_WINDOW_SECONDS = 0.4f
         const val FAIR_PRESSES = 3
 
-        const val REST_EXTRA_TILES = 8
-        const val POSITIVE_ROW_ON_REST = 0.6f
+        const val START_ROW_TILE = 8
+        const val CALM_FLAT_MIN_TILES = 8
+        const val CALM_FLAT_MAX_TILES = 14
         const val FISH_SHARE = 0.4f
         const val CHOICE_SHARE = 0.5f
         const val MAX_NEGATIVES_PER_PIECE = 2
+        const val DIFFICULT_GAP_TILES = 4
+
+        /** How a piece's shape is counted: room for every step, and a bit for each place of the negatives. */
+        const val NO_SHAPE = -1
+        const val SHAPE_STEPS = 16
+        const val SHAPE_NEGATIVES = 4
+        const val OVER_THE_GAP = 1
+        const val ON_THE_GROUND = 2
         const val LANDING_ROOM_TILES = 2
         const val OBSTACLE_TO_END_TILES = 4
 

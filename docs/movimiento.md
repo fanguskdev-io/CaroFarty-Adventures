@@ -10,7 +10,7 @@ La tabla de parámetros del salto y la carrera (GDD-05), lista para programar. L
 | Paso de la física | 1/60 s | Con interpolación para pantallas de 90 y 120 Hz (TEC-05) |
 | Velocidad al empezar | 120 px/s (7,5 m/s) | Algo menos que correr en Super Mario World |
 | Velocidad máxima | 200 px/s (12,5 m/s) | Algo más que su carrera a tope |
-| Subida de la velocidad | `v(d) = 200 − 80 · e^(−d / 1200 m)` | 151 px/s a 600 m, 171 a 1200 m, 189 a 2400 m; con la dificultad, en [métricas](metricas.md) |
+| Subida de la velocidad | `v(d) = 200 − 80 · e^(−d / 450 m)` | 179 px/s a 600 m (1 min), 191 a 1000 m y 199 a 2000 m: rápida al principio y cada vez más lenta, cerca del tope entre los 90 y los 120 s, como recomienda la guía 1 de GameMaster; con la dificultad, en [métricas](metricas.md) |
 | Impulso del salto | 230 px/s hacia arriba | Al apoyar el dedo, sin esperar a levantarlo |
 | Gravedad con el dedo apoyado | 300 px/s² | Mientras sube y como mucho durante la ventana de pulsación |
 | Ventana de pulsación | 0,36 s | Mantener más no salta más |

@@ -30,15 +30,19 @@ internal fun DrawScope.paintCaro(
     frame.draw(this, x - CARO_WIDTH / 2, feet - CARO_HEIGHT, size = 1, ::caroColor)
 }
 
-/** The marker (UI-04): [points] on the left, [distance] and the pause button on the right, already as text. */
+/**
+ * The marker (UI-04): [points] on the left, in red when they are running out ([warn]), and [distance] and the pause button on
+ * the right, already as text.
+ */
 internal fun DrawScope.paintHud(
     points: String,
     distance: String,
     width: Int,
     insets: SafeInsets,
+    warn: Boolean = false,
 ) {
     val top = MARGIN + insets.top
-    drawText(points, MARGIN + insets.left, top, GreyPalette.text, GreyPalette.shadow)
+    drawText(points, MARGIN + insets.left, top, if (warn) GreyPalette.bad else GreyPalette.text, GreyPalette.shadow)
     val pauseLeft = width - insets.right - MARGIN - PAUSE_SIZE
     drawText(distance, pauseLeft - 6 - PixelFont.width(distance), top, GreyPalette.text, GreyPalette.shadow)
     drawRect(GreyPalette.panel, Offset(pauseLeft.toFloat(), (top - 3).toFloat()), Size(PAUSE_SIZE.toFloat(), PAUSE_SIZE.toFloat()))

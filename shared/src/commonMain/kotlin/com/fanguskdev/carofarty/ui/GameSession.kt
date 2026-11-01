@@ -72,6 +72,9 @@ internal class GameSession(
 
     var pointsText = ""
         private set
+
+    /** Whether the points are running out, for the marker in red (guía 1, principio 8). */
+    val lowPoints: Boolean get() = run.phase != RunPhase.Ready && run.points <= config.score.warnAtPoints
     var metersText = ""
         private set
 

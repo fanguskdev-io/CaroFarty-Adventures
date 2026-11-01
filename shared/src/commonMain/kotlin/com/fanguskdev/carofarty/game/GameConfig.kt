@@ -14,6 +14,7 @@ data class GameConfig(
     val movement: MovementConfig = MovementConfig(),
     val course: CourseConfig = CourseConfig(),
     val score: ScoreConfig = ScoreConfig(),
+    val items: ItemConfig = ItemConfig(),
 ) {
     companion object {
         private val json = Json { ignoreUnknownKeys = true }
@@ -28,8 +29,11 @@ data class GameConfig(
 data class MovementConfig(
     val startSpeed: Float = 120f,
     val maxSpeed: Float = 200f,
-    /** How many metres it takes the speed to cover about two thirds of the way from [startSpeed] to [maxSpeed]. */
-    val speedRampMeters: Float = 1200f,
+    /**
+     * How many metres it takes the speed to cover about two thirds of the way from [startSpeed] to [maxSpeed]: quick at
+     * first and slower and slower, so it is near the top after 90 to 120 s of running (guía 1 de GameMaster).
+     */
+    val speedRampMeters: Float = 450f,
     val jumpSpeed: Float = 230f,
     /** The gravity while the finger stays down, the jump is rising and [holdWindow] has not run out. */
     val holdGravity: Float = 300f,
@@ -61,11 +65,13 @@ data class CourseConfig(
     /** The widest gap, as a fraction of the longest jump at the speed she will have there: it grows with the distance. */
     val gapFractionStart: Float = 0.45f,
     val gapFractionEnd: Float = 0.75f,
-    /** How many metres it takes the difficulty to reach its end values. */
-    val difficultyRampMeters: Float = 2500f,
-    val restEveryMinMeters: Int = 150,
-    val restEveryMaxMeters: Int = 250,
-    val restTiles: Int = 12,
+    /** How many metres it takes the difficulty to reach its end values: in the first minute it barely moves. */
+    val difficultyRampMeters: Float = 3000f,
+    /** The rhythm (GDD-08): a stretch of tension this many metres long, then a calm one of this many easy pieces. */
+    val tensionMinMeters: Int = 150,
+    val tensionMaxMeters: Int = 250,
+    val calmMinPieces: Int = 3,
+    val calmMaxPieces: Int = 8,
     val negativesPer100mStart: Float = 2f,
     val negativesPer100mEnd: Float = 8f,
     val positivesPer100m: Float = 8f,
@@ -84,4 +90,12 @@ data class ScoreConfig(
     val gatito: Int = 1,
     val huevo: Int = -2,
     val pescado: Int = -3,
+    /** With this many points or fewer the marker turns red, a warning before losing (guía 1, principio 8). */
+    val warnAtPoints: Int = 3,
 )
+
+/** The collectibles' collision boxes, in pixels (CHR-08): generous for what adds points, strict for what takes them away. */
+@Serializable
+data class ItemConfig(val positiveBox: Int = 16, val negativeBox: Int = 10) {
+    fun box(kind: ItemKind): Int = if (kind.adds) positiveBox else negativeBox
+}

@@ -30,7 +30,7 @@ Fangusk pasará al empezar M2 (PRD-11), siempre dibujado desde cero ([propiedad 
 
 | | |
 |---|---|
-| De Super Mario World | No tiene un mundo de nieve: se aplica su estilo (contornos, pocos tonos, colores saturados) a un paisaje nevado |
+| De Super Mario World | No tiene un mundo de nieve, solo algunos niveles con hielo: se aplica su estilo (contornos, pocos tonos, colores saturados) a un paisaje nevado. Para el tema, no para el dibujo, Super Mario Bros. 3 tiene un mundo de hielo y Super Mario Maker 2 un estilo de nieve (guía 1 de GameMaster) |
 | Ambiente (propuesta) | Pinos nevados, montañas al fondo, copos que caen despacio y suelo de nieve con bordes de hielo |
 | Paleta (propuesta) | Blancos azulados, azules y algún acento cálido para que Caro y los recolectables destaquen; en el prototipo, la gama gris azulada |
 | Música (propuesta) | Más tranquila y brillante: unos 120 pulsos por minuto, campanillas y celesta, con el eco largo de la época |
@@ -41,7 +41,7 @@ Fangusk pasará al empezar M2 (PRD-11), siempre dibujado desde cero ([propiedad 
 
 | | |
 |---|---|
-| De Super Mario World | Tampoco tiene un desierto propiamente dicho: se aplica su estilo a dunas, rocas y cactus |
+| De Super Mario World | Tampoco tiene un desierto: se aplica su estilo a dunas, rocas y cactus. Para el tema, Super Mario Bros. 3 tiene un mundo de desierto y Super Mario Maker 2 un estilo de desierto |
 | Ambiente (propuesta) | Dunas al fondo, cactus y rocas, un sol grande y la calima del horizonte |
 | Paleta (propuesta) | Arenas, ocres y naranjas con un cielo turquesa; en el prototipo, la gama gris arena |
 | Música (propuesta) | Con más percusión y una escala con sabor propio: unos 130 pulsos por minuto, cuerdas pulsadas y tambores de mano |

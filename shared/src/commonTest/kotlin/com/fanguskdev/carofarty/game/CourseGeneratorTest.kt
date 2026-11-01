@@ -24,7 +24,48 @@ class CourseGeneratorTest {
         assertEquals(1, start.grounds.size)
         assertTrue(start.grounds.single().start < 0, "there is ground behind her at the start")
         assertEquals(course.startFlatTiles * TILE, start.end)
-        assertTrue(start.items.isEmpty())
+        assertTrue(start.items.isNotEmpty(), "perritos and gatitos within reach from the first seconds")
+        assertTrue(start.items.all { it.kind.adds && it.x > 0 }, "nothing that takes points away, all of it ahead of her")
+    }
+
+    @Test
+    fun stretchesOfTensionAndCalmTakeTurns() {
+        // A calm piece: flat or the narrowest gap at the same height, and nothing that takes points away.
+        val generator = CourseGenerator(config, seed = 5)
+        var previous = generator.next().grounds.last()
+        var calmInARow = 0
+        var calmStretches = 0
+        while (previous.end < 5_000 * TILE) {
+            val piece = generator.next()
+            val ground = piece.grounds.first()
+            val calm =
+                ground.start - previous.end <= course.minGapTiles * TILE && ground.top == previous.top && piece.items.all { it.kind.adds }
+            calmInARow = if (calm) calmInARow + 1 else 0
+            if (calmInARow == course.calmMinPieces) calmStretches++
+            previous = piece.grounds.last()
+        }
+        // One every 150 to 250 m of tension at least: about 20 in 5 km.
+        assertTrue(calmStretches >= 5_000 / (course.tensionMaxMeters + CALM_METERS), "$calmStretches calm stretches")
+    }
+
+    @Test
+    fun neverThreeDifficultPiecesAlikeInARow() {
+        val generator = CourseGenerator(config, seed = 9)
+        var previous = generator.next().grounds.last()
+        val shapes = ArrayDeque<String?>()
+        repeat(2_000) {
+            val piece = generator.next()
+            val ground = piece.grounds.first()
+            val gap = (ground.start - previous.end) / TILE
+            val negatives = piece.items.filter { !it.kind.adds }.map { it.x < ground.start }.toSet()
+            val difficult = gap >= DIFFICULT_GAP_TILES || negatives.isNotEmpty()
+            shapes.addLast(if (difficult) "$gap ${ground.top - previous.top} $negatives" else null)
+            if (shapes.size > 3) shapes.removeFirst()
+            if (shapes.size == 3 && shapes.all { it != null }) {
+                assertTrue(shapes.toSet().size > 1, "three alike in a row at ${ground.start}: ${shapes.first()}")
+            }
+            previous = piece.grounds.last()
+        }
     }
 
     @Test
@@ -148,11 +189,15 @@ class CourseGeneratorTest {
     private companion object {
         const val FNV_OFFSET = -3750763034362895579L
         const val FNV_PRIME = 1099511628211L
-        const val SAME_RUN = 4668162340810115065L
+        const val SAME_RUN = -319429965984655224L
 
         /** How high a quick tap of 3 steps goes (docs/movimiento.md), and how far from its obstacle a long jump's top can be. */
         const val QUICK_TAP_HEIGHT = 24
         const val CHOICE_REACH = 4 * TILE
+
+        /** The generator's measure of a difficult piece, and how long a calm stretch lasts at most, in metres. */
+        const val DIFFICULT_GAP_TILES = 4
+        const val CALM_METERS = 150
 
         /**
          * Pieces are made in the background (BufferedPieces) and the run uses about one a second, so a piece only has to

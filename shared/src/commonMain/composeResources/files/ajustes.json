@@ -2,7 +2,7 @@
   "movement": {
     "startSpeed": 120.0,
     "maxSpeed": 200.0,
-    "speedRampMeters": 1200.0,
+    "speedRampMeters": 450.0,
     "jumpSpeed": 230.0,
     "holdGravity": 300.0,
     "holdWindow": 0.36,
@@ -24,10 +24,11 @@
     "minGapTiles": 2,
     "gapFractionStart": 0.45,
     "gapFractionEnd": 0.75,
-    "difficultyRampMeters": 2500.0,
-    "restEveryMinMeters": 150,
-    "restEveryMaxMeters": 250,
-    "restTiles": 12,
+    "difficultyRampMeters": 3000.0,
+    "tensionMinMeters": 150,
+    "tensionMaxMeters": 250,
+    "calmMinPieces": 3,
+    "calmMaxPieces": 8,
     "negativesPer100mStart": 2.0,
     "negativesPer100mEnd": 8.0,
     "positivesPer100m": 8.0,
@@ -40,6 +41,11 @@
     "perrito": 1,
     "gatito": 1,
     "huevo": -2,
-    "pescado": -3
+    "pescado": -3,
+    "warnAtPoints": 3
+  },
+  "items": {
+    "positiveBox": 16,
+    "negativeBox": 10
   }
 }

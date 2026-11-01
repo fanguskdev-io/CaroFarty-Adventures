@@ -84,7 +84,7 @@ class CaroTest {
     @Test
     fun theSpeedGrowsWithTheDistanceTowardsItsMaximum() {
         assertEquals(120f, config.speedAt(0.0), 0.01f)
-        assertEquals(151.5f, config.speedAt(600.0), 0.1f)
+        assertEquals(178.9f, config.speedAt(600.0), 0.1f)
         assertTrue(config.speedAt(100_000.0) <= config.maxSpeed)
         assertTrue(config.speedAt(100_000.0) > 199.9f)
     }

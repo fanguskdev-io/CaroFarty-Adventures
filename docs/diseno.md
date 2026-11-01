@@ -92,7 +92,7 @@ sigue a Caro con desplazamiento suave ([ADR 0003](adr/0003-horizontal-y-pixel-pe
 
 Infinito, generado por reglas por delante de Caro y comprobado por un validador de saltos antes de aparecer: nunca hay un
 salto imposible ([ADR 0004](adr/0004-generacion-por-reglas-con-validador.md);
-[especificación](generacion.md)). La dificultad sube con la distancia, con respiros cada cierto tiempo.
+[especificación](generacion.md)). La dificultad sube con la distancia, y la tensión y la calma se turnan.
 
 ## Los escenarios
 

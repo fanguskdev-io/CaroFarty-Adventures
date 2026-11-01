@@ -10,7 +10,7 @@ import kotlin.math.ceil
  */
 internal class Pilot(private val run: GameRun) {
     private val movement = run.config.movement
-    private val lab = JumpLab(movement)
+    private val lab = JumpLab(movement, run.config.items.negativeBox)
     private val maxHold = ceil(movement.holdWindow / JumpLab.STEP).toInt()
     private val good = IntArray(maxHold + 1)
     private var holdLeft = 0

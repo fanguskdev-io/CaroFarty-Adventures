@@ -95,7 +95,7 @@ class GameRun(
     private fun pickUp() {
         for (i in 0 until course.items.size) {
             val item = course.items[i]
-            if (item.taken || !overlaps(caro, item, config.movement)) continue
+            if (item.taken || !overlaps(caro, item, config.items.box(item.kind), config.movement)) continue
             item.taken = true
             val value = item.kind.points(config.score)
             events += RunEvent.Picked(item.kind, value)

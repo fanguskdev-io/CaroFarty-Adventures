@@ -152,7 +152,9 @@ private fun DrawScope.drawGame(session: GameSession, world: PixelBuffer, viewpor
                 stride =
                 (caro.meters * STRIDES_PER_METER).toInt() % 2 == 0,
             )
-            if (run.phase != RunPhase.Ready) paintHud(session.pointsText, session.metersText, viewport.width, session.insets)
+            if (run.phase != RunPhase.Ready) {
+                paintHud(session.pointsText, session.metersText, viewport.width, session.insets, warn = session.lowPoints)
+            }
             if (session.panel.isNotEmpty()) paintPanel(session.panel, viewport.width, viewport.height)
             if (session.showDebug) paintDebug(session.debugLines, viewport.height, session.insets)
         }

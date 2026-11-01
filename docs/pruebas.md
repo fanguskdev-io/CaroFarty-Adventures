@@ -15,7 +15,7 @@ la [lista de bugs](bugs.md); los criterios de salida de cada hito, en [proceso](
 |---|---|---|
 | El salto: la tabla por fotogramas, el coyote time, el buffer, las paredes | `CaroTest` | Común |
 | La precisión lejos del origen (GEN-09) | `FarFromTheOriginTest` | Común |
-| El generador: reglas, semilla, recolectables, la elección, un piloto 3 × 4 min sin caer | `CourseGeneratorTest` | Común |
+| El generador: reglas, semilla, recolectables, la elección, tensión y calma, nunca tres difíciles iguales seguidas y un piloto 3 × 4 min sin caer | `CourseGeneratorTest` | Común |
 | La partida: el primer toque, los puntos, el fin por caída y por quedarse sin puntos | `GameRunTest` | Común |
 | Los récords por escenario | `RecordsTest` | Común |
 | El motor: el paso fijo, el escalado, el toque | `FixedStepTest`, `PixelViewportTest`, `TouchInputTest` | Común |
@@ -55,7 +55,8 @@ xcrun simctl launch booted com.fanguskdev.carofarty.CaroFarty -debug -autopilot
 - [ ] Se puede saltar justo después de dejar el borde (coyote time) y un toque justo antes de aterrizar salta al tocar
   suelo (buffer).
 - [ ] Caer por un barranco acaba con «TE CAÍSTE POR UN BARRANCO»; quedarse sin puntos, con «TE QUEDASTE SIN PUNTOS».
-- [ ] Perritos y gatitos suman; huevos fritos y pescado restan; los puntos nunca bajan de 0.
+- [ ] Perritos y gatitos suman; huevos fritos y pescado restan; los puntos nunca bajan de 0; con 3 o menos, el marcador
+  se pone en rojo.
 - [ ] Los récords se guardan al cerrar y abrir la app; con uno nuevo sale «¡NUEVO RÉCORD!».
 - [ ] La pausa: el botón, la app en segundo plano (vuelve en pausa) y el botón atrás de Android.
 - [ ] Del fin de una partida a la siguiente, un toque y menos de 2 s.

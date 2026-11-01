@@ -118,17 +118,14 @@ private fun DrawScope.paintBoxes(
     val left = (caroX - movement.hitboxWidth / 2 - cameraLeft).toFloat()
     val top = base - caroY - movement.hitboxHeight
     drawRect(GreyPalette.debug, Offset(left, top), Size(movement.hitboxWidth, movement.hitboxHeight), style = BOX)
+    // The collision boxes, not the drawings: generous for what adds points, strict for what takes them away (CHR-08).
     val items = run.course.items
     for (i in 0 until items.size) {
         val item = items[i]
         if (item.taken) continue
-        val x = (item.x - Item.SIZE / 2 - cameraLeft).toFloat()
-        drawRect(
-            GreyPalette.debug,
-            Offset(x, (base - item.y - Item.SIZE / 2).toFloat()),
-            Size(Item.SIZE.toFloat(), Item.SIZE.toFloat()),
-            style = BOX,
-        )
+        val box = run.config.items.box(item.kind)
+        val x = (item.x - box / 2 - cameraLeft).toFloat()
+        drawRect(GreyPalette.debug, Offset(x, (base - item.y - box / 2).toFloat()), Size(box.toFloat(), box.toFloat()), style = BOX)
     }
 }
 

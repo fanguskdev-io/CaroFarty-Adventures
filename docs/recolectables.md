@@ -11,7 +11,8 @@ referencias en M2; en el prototipo en gris son cuadrados de 12 × 12 px con una 
 |---|---|---|---|---|
 | **Puntos** | +1 | +1 | −2 | −3 |
 | **Dónde sale** | En filas por el suelo, en arcos sobre los barrancos y en lo alto de la elección | Igual que el perrito | Obstáculo en el suelo o techo sobre un barranco | Igual que el huevo frito |
-| **Cuántos** (cada 100 m) | 7,9 a 8,4 | 7,9 a 8,9 | 1,2 al principio, 3,2 a toda velocidad | 0,8 al principio, 2,1 a toda velocidad |
+| **Cuántos** (cada 100 m) | 8,7 a 9,1 | 8,6 a 9,6 | 1,0 al principio, 2,3 a toda velocidad | 0,8 al principio, 1,5 a toda velocidad |
+| **Caja de choque** | 16 × 16 px, generosa | 16 × 16 px, generosa | 10 × 10 px, estricta | 10 × 10 px, estricta |
 | **Cómo se distingue** (propuesta) | Un animal de colores cálidos, que se mueve (el rabo) | Un animal de colores cálidos, que se mueve (las orejas o el rabo) | Comida quieta, blanca y amarilla | Comida quieta, gris azulada |
 | **Al recogerlo** (M4) | Un sonido alegre y corto | El suyo, distinto del perrito | Un sonido seco | Más seco aún: es lo que más resta |
 | **En el prototipo** | «P» marrón con borde verde | «G» naranja con borde verde | «H» crema con borde rojo | «F» azul con borde rojo (de *fish*: la P ya es del perrito) |
@@ -26,7 +27,8 @@ A toda velocidad, un recolectable cruza la pantalla en unos 2 segundos, así que
 1. **Lo que suma y lo que resta no se confunden ni de reojo**: los que suman son animales, con colores cálidos y algo de
    movimiento; los que restan son comida quieta, con colores fríos o blancos.
 2. **Contorno oscuro** en los cuatro, como Caro, para que destaquen sobre los tres escenarios.
-3. **Silueta propia** en los 12 × 12 px de su caja (el dibujo puede ser algo mayor, la caja manda en el choque).
+3. **Silueta propia**, de al menos 10 × 10 px en un dibujo de 16 × 16. Las cajas de choque perdonan a favor de ella:
+   generosas para lo que suma y estrictas para lo que resta (guía 1 de GameMaster).
 4. **Ningún parecido** con objetos de otros juegos ([propiedad intelectual](propiedad-intelectual.md)).
 
 ## Los patrones

@@ -5,7 +5,7 @@ Especificación del recorrido infinito (GDD-07) que siguen GEN-01 a GEN-11. La d
 
 ## Objetivo
 
-Un recorrido sin fin que parezca diseñado: con ritmo (tensión y respiro), que no se repita y que siempre sea justo. Nunca
+Un recorrido sin fin que parezca diseñado: con ritmo (tensión y calma), que no se repita y que siempre sea justo. Nunca
 puede aparecer un salto imposible ni un recolectable que reste imposible de esquivar.
 
 ## Las piezas
@@ -27,8 +27,9 @@ contra las que chocar. Chocar contra el borde de un suelo más alto tras un salt
 | Largo de una tirada de suelo | De 3 a 20 tiles |
 | Ancho de un barranco | De 2 tiles hasta una fracción de la longitud de la pulsación larga a la velocidad de ese momento ([movimiento](movimiento.md)): el 45 % al empezar, hasta el 75 % |
 | Cambio de altura al otro lado de un barranco | Subida de hasta 2 tiles; bajada de hasta 3 |
-| Respiro | Cada 150 a 250 m, un tramo llano de al menos 12 tiles sin nada que reste |
-| Inicio de la partida | 30 tiles llanos antes del primer barranco |
+| Tensión y calma | Tras 150 a 250 m de tensión, de 3 a 8 piezas tranquilas (unos 10 s): suelo llano o el barranco más estrecho a la misma altura, con perritos y gatitos y nada que reste |
+| Repetición | Nunca tres piezas difíciles iguales seguidas: mismo barranco, mismo escalón y lo que resta en el mismo sitio |
+| Inicio de la partida | 30 tiles llanos, con una fila de perritos y gatitos, antes del primer barranco |
 
 ## Los patrones de recolectables
 
@@ -65,8 +66,8 @@ se generan 10.000 tramos seguidos sin un error (GEN-10, GEN-11).
 ## La dificultad
 
 Crece con la distancia: la velocidad ([movimiento](movimiento.md)), la fracción del salto largo que piden los barrancos y
-los recolectables que restan cada 100 m (de 2 al empezar a 8). Los respiros se mantienen siempre. La curva fina se cierra
-en GDD-08.
+los recolectables que restan cada 100 m (de 2 al empezar a 8). Las calmas se mantienen siempre. Las cifras y la curva están
+en [métricas](metricas.md).
 
 ## Los escenarios
 

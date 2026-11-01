@@ -5,7 +5,7 @@ package com.fanguskdev.carofarty.game
  * of its own on a terrain it is given, so what it says can be done can be done. One instance is reused for every try:
  * trying allocates nothing.
  */
-class JumpLab(private val movement: MovementConfig) {
+class JumpLab(private val movement: MovementConfig, private val negativeBox: Int = ItemConfig().negativeBox) {
     private val caro = Caro(movement)
 
     /** How a try ended: where she landed (or that she fell) and whether she touched something that takes points away. */
@@ -78,7 +78,7 @@ class JumpLab(private val movement: MovementConfig) {
     private fun touchesNegative(items: List<Item>): Boolean {
         for (i in items.indices) {
             val item = items[i]
-            if (!item.taken && !item.kind.adds && overlaps(caro, item, movement)) return true
+            if (!item.taken && !item.kind.adds && overlaps(caro, item, negativeBox, movement)) return true
         }
         return false
     }
@@ -89,9 +89,14 @@ class JumpLab(private val movement: MovementConfig) {
     }
 }
 
-/** Whether Caro's collision box overlaps [item]'s. */
-fun overlaps(caro: Caro, item: Item, movement: MovementConfig): Boolean {
-    val half = Item.SIZE / 2
+/** Whether Caro's collision box overlaps [item]'s, a square [box] pixels wide around its centre (ItemConfig). */
+fun overlaps(
+    caro: Caro,
+    item: Item,
+    box: Int,
+    movement: MovementConfig,
+): Boolean {
+    val half = box / 2
     return caro.right > item.x - half &&
         caro.left < item.x + half &&
         caro.y + movement.hitboxHeight > item.y - half &&

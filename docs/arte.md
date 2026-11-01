@@ -62,7 +62,7 @@ Un JSON por grupo de sprites, con sus rejillas como listas de cadenas:
 | Qué | Fotograma | Ancla | Notas |
 |---|---|---|---|
 | Caro | 24 × 32 px | `[12, 32]`: el suelo entre sus pies | Un cuerpo de unos 16 × 26 px deja sitio al pelo, los brazos y el vestido al saltar. Su caja de choque es de 10 × 20 px sobre el ancla y se ajusta al dibujo (CHR-08) |
-| Recolectables | 16 × 16 px | `[8, 8]`: el centro | La caja de choque es de 12 × 12 px; la silueta, de al menos 10 × 10 |
+| Recolectables | 16 × 16 px | `[8, 8]`: el centro | La caja de choque es de 16 × 16 px para lo que suma y de 10 × 10 para lo que resta (`items` en `files/ajustes.json`); la silueta, de al menos 10 × 10 |
 | Tiles del suelo | 16 × 16 px | — | Encajan entre sí en horizontal y en vertical: los suelos miden de 3 a 20 tiles de largo y de 2 a 6 de alto |
 | Fondos | Tiras de 256 o 512 px de ancho y hasta 270 de alto | — | Se repiten en horizontal sin costura: uno lejano (se mueve al 30 %) y uno medio (al 60 %) |
 | Cielo | 1 × 270 px | — | Un degradado en bandas de colores de la paleta, sin mezclas |

@@ -28,13 +28,5 @@
 
 ## Riesgos (PRD-08)
 
-Se revisan al cerrar cada hito.
-
-| Riesgo | Probabilidad | Impacto | Mitigación |
-|---|---|---|---|
-| El motor propio sobre Compose Canvas no llega a 60 fps en un teléfono modesto | Media | Alto | Búfer de baja resolución, atlas, cero asignaciones por fotograma y perfilado en sus teléfonos (TEC-04, TEC-17, MOB-06) |
-| Cortes o latencia en el audio sintetizado en tiempo real | Media | Alto | Salida de baja latencia en cada plataforma y medir el coste de la síntesis (AUD-25, AUD-29) |
-| La música acaba cansando | Media | Medio | Generación con variación continua y la prueba de los 30 min (AUD-26) |
-| Parecerse demasiado a Super Mario World | Media | Alto | [Guía de propiedad intelectual](propiedad-intelectual.md) en cada revisión de arte y de música |
-| El salto por tiempo de pulsación no se entiende | Baja | Medio | Pista en la primera partida (GDD-17) y ajuste fino (PLY-15) |
-| La app del iPhone caduca a los 7 días sin cuenta de pago | Alta si hay iPhone | Medio | Decidirlo al llegar a la instalación (TEC-13) |
+Viven en el registro del arnés, [docs/harness/riesgos.md](harness/riesgos.md), con su dimensión, su mitigación y su dueño,
+y se revisan al cerrar cada hito.

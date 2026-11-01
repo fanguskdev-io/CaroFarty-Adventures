@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Estado** | aceptada en el qué: lo dictó Fangusk el 2026-11-01 · propuesta en el cómo: la pantalla de elección y los récords por escenario |
-| **Fecha** | 2026-11-01 · **Hito:** M0 · **Tarea:** GDD-12 (y GEN-08, UI-20) |
+| **Fecha** | 2026-11-01 · **Fase:** P0 · Borrador anticipado, sin ninguna puerta confirmada · **Hito:** M0 · **Tarea:** GDD-12 (y GEN-08, UI-20) |
 | **Propone · decide** | Fangusk · Fangusk |
 | **Reversibilidad** | alta en el cómo; el qué es suyo |
 

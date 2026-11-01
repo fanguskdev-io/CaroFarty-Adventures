@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Estado** | propuesta |
-| **Fecha** | 2026-11-01 · **Hito:** M0 · **Tarea:** GDD-07 (base de GEN-01 a GEN-11) |
+| **Fecha** | 2026-11-01 · **Fase:** P0 · Borrador anticipado, sin ninguna puerta confirmada · **Hito:** M0 · **Tarea:** GDD-07 (base de GEN-01 a GEN-11) |
 | **Propone · decide** | agente (Claude Code, Opus 5.5) · Fangusk |
 | **Reversibilidad** | media · los tramos hechos a mano podrían añadirse después como una regla más |
 

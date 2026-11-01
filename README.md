@@ -47,6 +47,16 @@ bash scripts/verificar.sh
 Termina en «La puerta pasa» si pasa todo: sin `!!`, ktlint, sin avisos del compilador, pruebas en la JVM, en Android y en
 el simulador de iOS, lint de Android, los dos APK y la app de iOS ([proceso](docs/proceso.md)).
 
+## El arnés
+
+El proyecto usa el Mayeutic Harness para el desarrollo, como los demás de Fangusk: dónde está y qué sigue, en
+[docs/harness/STATUS.md](docs/harness/STATUS.md). La CI `mayeutic` (`.github/workflows/mayeutic.yml`) corre la misma puerta
+sin la parte de iOS cuando el repositorio esté en GitHub. Lo que el arnés comprueba del proyecto (pide PyYAML):
+
+```bash
+python3 ../mayeutic-harness/tools/proyecto.py comprobar .
+```
+
 ## El backlog
 
 El tablero compartido está en `../backlog-juego-plataformas` (lo creó la sesión GameMaster). Para cambiar el estado de una

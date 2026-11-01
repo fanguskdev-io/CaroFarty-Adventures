@@ -15,3 +15,12 @@ Lo que no se deduce del código. Si algo de aquí discrepa de su fuente, manda l
 - **Hecho quiere decir** que `bash scripts/verificar.sh` termina en «La puerta pasa» y que se ha probado en el emulador y
   en el simulador ([docs/proceso.md](docs/proceso.md)).
 - El código y sus comentarios, en inglés; los documentos y los textos del juego, en español.
+
+<!-- mayeutic-harness:begin 1.15.0 -->
+## Mayeutic Harness
+
+Este proyecto usa el Mayeutic Harness 1.15.0, en ../mayeutic-harness; dónde está y qué sigue, en docs/harness/STATUS.md.
+- Antes de tocar docs/harness/, lee docs/paquete-de-contexto.md del arnés y lo que cita; sus skills/ dicen qué hacer en cada paso, aunque no seas Claude Code.
+- Decide Fangusk: lo que decide una persona no lo decides tú (docs/07-agentes.md del arnés, §1).
+- Lo del arnés que no encaja (una pregunta, una regla, un aviso, una herramienta), una línea en docs/harness/uso-del-arnes.md en el momento; al acabar cada puerta, su revisión (docs/07-agentes.md del arnés, §9).
+<!-- mayeutic-harness:end -->

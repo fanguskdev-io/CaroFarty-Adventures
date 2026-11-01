@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Estado** | aceptada en el qué: «Para ella ahora, quizá publicar después» (Fangusk, 2026-11-01) · propuesta en el cómo: sin permiso de internet y todo guardado en el teléfono |
-| **Fecha** | 2026-11-01 · **Hito:** M0 · **Tarea:** PRD-01 |
+| **Fecha** | 2026-11-01 · **Fase:** P0 · Borrador anticipado, sin ninguna puerta confirmada · **Hito:** M0 · **Tarea:** PRD-01 |
 | **Propone · decide** | agente (Claude Code, Opus 5.5) · Fangusk |
 | **Reversibilidad** | alta · lo comercial sigue en el backlog, aparcado |
 

@@ -6,6 +6,9 @@ motivo de descarte y lo que cuesta cambiarla.
 **Aceptada** quiere decir que la dictó Fangusk, con sus palabras; **Propuesta**, que la tomó el agente y el código la sigue
 mientras Fangusk no diga otra cosa. Solo Fangusk pasa una propuesta a aceptada.
 
+Son un **borrador anticipado** del Mayeutic Harness ([docs/harness/STATUS.md](../harness/STATUS.md)): el proyecto está en P0
+y estas decisiones existen antes de G4 porque Fangusk pidió construir ya. Las revisa la puerta que las pide.
+
 | ADR | Decisión | Estado | Tarea |
 |---|---|---|---|
 | [0001](0001-motor-kotlin-multiplatform.md) | Kotlin Multiplatform y Compose Multiplatform, con un motor 2D propio sobre Canvas | Aceptada en el qué; propuesta en el cómo | TEC-01 |

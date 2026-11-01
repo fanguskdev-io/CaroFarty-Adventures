@@ -40,6 +40,14 @@ class Caro(private val config: MovementConfig) {
     var state = CaroState.Waiting
         private set
 
+    /** How many jumps she has made, and how many came from the coyote time or the jump buffer (PLY-04, for the debug line). */
+    var jumps = 0
+        private set
+    var coyoteJumps = 0
+        private set
+    var bufferedJumps = 0
+        private set
+
     /** Where she was a step ago, for drawing between two steps. */
     var previousX = 0.0
         private set
@@ -81,6 +89,9 @@ class Caro(private val config: MovementConfig) {
         buffer = 0f
         landingTime = 0f
         state = CaroState.Waiting
+        jumps = 0
+        coyoteJumps = 0
+        bufferedJumps = 0
     }
 
     /** The first tap: she starts running, without jumping (ADR 0002). */
@@ -109,7 +120,7 @@ class Caro(private val config: MovementConfig) {
         if (pressed) buffer = config.jumpBuffer
 
         run(dt, terrain)
-        if (buffer > 0f && (state.grounded || coyote > 0f)) jump()
+        if (buffer > 0f && (state.grounded || coyote > 0f)) jump(pressedNow = pressed)
 
         if (state.grounded) {
             stayOnGround(dt, terrain)
@@ -128,7 +139,12 @@ class Caro(private val config: MovementConfig) {
         x = next
     }
 
-    private fun jump() {
+    private fun jump(pressedNow: Boolean) {
+        jumps++
+        when {
+            !state.grounded -> coyoteJumps++
+            !pressedNow -> bufferedJumps++
+        }
         vy = config.jumpSpeed
         holdTime = 0f
         coyote = 0f

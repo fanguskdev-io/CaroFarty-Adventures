@@ -26,15 +26,17 @@ revisan las puertas que los piden y no deciden la talla, los criterios de muerte
 en el backlog compartido, `../backlog-juego-plataformas` (de la sesión GameMaster); las condiciones de una puerta irían
 allí como tareas (docs/05 §4).
 
-**Siguiente paso:** ninguno del arnés; el desarrollo sigue por orden de Fangusk: M1, el prototipo en gris. Si
-un día quiere revisar G0, se abre la primera ronda de la cola de [entrevistas/one-pager-pending.md](entrevistas/one-pager-pending.md).
+**Siguiente paso:** ninguno del arnés; el desarrollo sigue por orden de Fangusk. El prototipo en gris (M1) está listo
+para que lo juegue y dé su visto bueno (QA-02, QA-03); el diseño de Caro, los recolectables y los escenarios (M2) lo hace
+él con la sesión GameMaster, y aquí se integra con el formato de [docs/arte.md](../arte.md). Si un día quiere revisar G0,
+se abre la primera ronda de la cola de [entrevistas/one-pager-pending.md](entrevistas/one-pager-pending.md).
 
 ## Qué se está haciendo
 
 | Qué | Dimensión | Quién | Desde | Estado |
 |---|---|---|---|---|
 | Adopción del arnés ([hilo](entrevistas/one-pager-pending.md)) | PU, PV, EE, EI | agente (Claude Code, Opus 5.5) | 2026-11-01 | `bloqueado por Fangusk`: las rondas de descubrimiento no se abren mientras él no lo pida (lo dijo en BakiFace, ronda 2, 2026-11-01) |
-| Borrador anticipado del juego: código, puerta de calidad y [ADR](../adr/README.md), pedido por Fangusk | AT | agente (Claude Code, Opus 5.5) | 2026-11-01 | `en curso`: M0 validado por Fangusk el 2026-11-01 («tienes mi ok para M0»), con sus ADR aceptados; empieza M1, el prototipo en gris. `comprobar` avisa de que se escribe sin criterios de muerte confirmados (docs/07 §1 del arnés): Fangusk pidió construir ya, y el borrador no cuenta como evidencia de ninguna puerta hasta que confirme los del one-pager, cuya ronda está en cola |
+| Borrador anticipado del juego: código, puerta de calidad y [ADR](../adr/README.md), pedido por Fangusk | AT | agente (Claude Code, Opus 5.5) | 2026-11-01 | `en curso`: M0 validado por Fangusk el 2026-11-01 («tienes mi ok para M0»), con sus ADR aceptados; M1, el prototipo en gris, se juega en Android e iOS y pasa la puerta, a la espera de que Fangusk lo pruebe. `comprobar` avisa de que se escribe sin criterios de muerte confirmados (docs/07 §1 del arnés): Fangusk pidió construir ya, y el borrador no cuenta como evidencia de ninguna puerta hasta que confirme los del one-pager, cuya ronda está en cola |
 
 ## Equipo e hitos (EE)
 
@@ -42,11 +44,11 @@ un día quiere revisar G0, se abre la primera ronda de la cola de [entrevistas/o
 |---|---|---|
 | Fangusk | el juego que pide, las decisiones, las referencias del arte y las pruebas en los teléfonos | (hueco: en cola) |
 | Claude Code (Opus 5.5), sesión «CaroFarty The Game» | el código, los ADR, la puerta de calidad y el estado del backlog | no aplica: es un agente |
-| Claude, sesión «GameMaster» | el backlog compartido | no aplica: es un agente |
+| Claude, sesión «GameMaster» | el backlog compartido, las referencias y, con Fangusk, el diseño de M2 | no aplica: es un agente |
 
 | Hito (EE-E4) | Fecha | Depende de | Colchón | Estado | Si se retrasa tres meses |
 |---|---|---|---|---|---|
-| M0 a M5 del backlog (diseño → prototipo en gris → Caro y el Bosque → Nieve y Desierto → música → entrega) | sin fecha: Fangusk no la fija (2026-11-01) | Fangusk: su validación de cada hito y sus referencias en M2 | — | M0 validado el 2026-11-01; M1 en curso | nada que pagar: es un regalo sin fecha |
+| M0 a M5 del backlog (diseño → prototipo en gris → Caro y el Bosque → Nieve y Desierto → música → entrega) | sin fecha: Fangusk no la fija (2026-11-01) | Fangusk: su validación de cada hito y sus referencias en M2 | — | M0 validado el 2026-11-01; M1 hecho a falta de que Fangusk lo juegue | nada que pagar: es un regalo sin fecha |
 
 ## Qué espera respuesta humana
 
@@ -85,7 +87,8 @@ un día quiere revisar G0, se abre la primera ronda de la cola de [entrevistas/o
 
 ## Riesgos que hay que mirar esta semana
 
-- R-01 y R-02 · el motor sobre Compose Canvas y el audio sintetizado en tiempo real, sin probar todavía en un teléfono · impacto alto, se miden al construir el prototipo (M1) y la música (M4).
+- R-01 · el motor sobre Compose Canvas · medido en el emulador y el simulador (60 FPS, memoria estable); falta un teléfono suyo.
+- R-02 · el audio sintetizado en tiempo real, sin probar todavía en un teléfono · impacto alto, se mide al construir la música (M4).
 - R-04 · parecerse demasiado a Super Mario World · impacto alto, mitigando con la guía y su lista de comprobación.
 
 ## Historial de este fichero
@@ -94,3 +97,4 @@ un día quiere revisar G0, se abre la primera ronda de la cola de [entrevistas/o
 |---|---|---|
 | 2026-11-01 | agente (Claude Code, Opus 5.5) | Adopción del arnés 1.15.0 en modo nuevo, pedida por Fangusk, sobre las especificaciones, el diseño y los ADR de M0; rondas de descubrimiento en cola sin abrir, como en BakiFace; el desarrollo sigue como borrador anticipado; riesgos de `docs/proceso.md` pasados a `riesgos.md`; bloque del arnés en `AGENTS.md` y CI `mayeutic` |
 | 2026-11-01 | agente (Claude Code, Opus 5.5) | Fangusk valida M0 («tienes mi ok para M0»): ADR 0001 a 0006 aceptados (los récords por escenario siguen propuestos); el borrador anticipado pasa a M1 |
+| 2026-11-01 | agente (Claude Code, Opus 5.5) | M1: el prototipo en gris se juega en Android e iOS y pasa la puerta; métricas, curva de dificultad, fichas de recolectables y escenarios, pruebas, bugs y rendimiento en `docs/`; R-01 pasa a mitigando con las medidas del emulador y el simulador; Fangusk diseña M2 con GameMaster y aquí se integra (`docs/arte.md`) |

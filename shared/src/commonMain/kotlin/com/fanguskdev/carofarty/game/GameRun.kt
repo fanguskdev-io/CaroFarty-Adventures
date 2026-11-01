@@ -84,21 +84,33 @@ class GameRun(
         if (caro.state == CaroState.Fallen) end(EndCause.Fall)
     }
 
+    /** Stops generating ahead for a run that is left before its end (another scenario, another game). */
+    fun close() = pieces.close()
+
+    /** Takes [amount] points away as touching something would, with the same end at 0: a tool of the debug builds (TEC-10). */
+    fun takeAway(amount: Int) {
+        if (phase == RunPhase.Running) add(-amount)
+    }
+
     private fun pickUp() {
         for (i in 0 until course.items.size) {
             val item = course.items[i]
             if (item.taken || !overlaps(caro, item, config.movement)) continue
             item.taken = true
             val value = item.kind.points(config.score)
-            points = max(0, points + value)
-            maxPoints = max(maxPoints, points)
             events += RunEvent.Picked(item.kind, value)
-            if (points == 0) {
-                caro.stop()
-                end(EndCause.NoPoints)
-                return
-            }
+            if (add(value)) return
         }
+    }
+
+    /** Adds [value] to the points, which never go below 0, and ends the run when none are left. Whether it ended. */
+    private fun add(value: Int): Boolean {
+        points = max(0, points + value)
+        maxPoints = max(maxPoints, points)
+        if (points > 0) return false
+        caro.stop()
+        end(EndCause.NoPoints)
+        return true
     }
 
     private fun end(cause: EndCause) {

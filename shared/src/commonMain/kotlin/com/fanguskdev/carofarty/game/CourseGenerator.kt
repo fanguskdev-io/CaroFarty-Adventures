@@ -4,6 +4,7 @@ import kotlin.math.abs
 import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.max
+import kotlin.math.min
 import kotlin.random.Random
 
 /**
@@ -84,29 +85,60 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
 
         val items = mutableListOf<Item>()
         val pieceMeters = (ground.end - previous.end).toFloat() / TILE
-        val negatives = course.negativesPer100mStart + (course.negativesPer100mEnd - course.negativesPer100mStart) * difficulty
-        if (!easy && itemRandom.nextFloat() < pieceMeters * negatives / 100f) negative(previous, ground, items)
+        val per100m = course.negativesPer100mStart + (course.negativesPer100mEnd - course.negativesPer100mStart) * difficulty
+        if (!easy) negatives(previous, ground, items, count = draw(pieceMeters * per100m / 100f))
         if (!fairGap(previous, ground, items, path = null)) return null
         positives(previous, ground, items, pieceMeters)
         items.sortBy { it.x }
         return Piece(listOf(ground), items, ground.end, difficulty)
     }
 
-    /** One collectible that takes points away: high over a short gap, or on the ground where there is room to jump it. */
-    private fun negative(previous: Ground, ground: Ground, items: MutableList<Item>) {
-        val kind = if (itemRandom.nextFloat() < FISH_SHARE) ItemKind.Pescado else ItemKind.Huevo
-        val runTiles = (ground.end - ground.start) / TILE
-        if (runTiles >= OBSTACLE_MIN_RUN_TILES && itemRandom.nextBoolean()) {
-            val x = ground.start + (itemRandom.nextInt(OBSTACLE_FROM_TILE, runTiles - OBSTACLE_TO_END_TILES + 1)) * TILE
-            val obstacle = Item(kind, x, ground.top + GROUND_ITEM_HEIGHT)
-            if (fairObstacle(ground, obstacle)) items += obstacle
-        } else {
-            val gapCentre = (previous.end + ground.start) / 2
-            val ceiling = Item(kind, gapCentre, previous.top + CEILING_HEIGHT)
-            items += ceiling
-            if (!fairGap(previous, ground, items, path = null)) items -= ceiling
-        }
+    /** A whole number of things around [expected]: its whole part, and one more as often as its fraction says. */
+    private fun draw(expected: Float): Int {
+        val whole = expected.toInt()
+        return min(MAX_NEGATIVES_PER_PIECE, whole + if (itemRandom.nextFloat() < expected - whole) 1 else 0)
     }
+
+    /**
+     * [count] collectibles that take points away, up to two: on the ground where there is room to jump it, high over the
+     * gap, or both. One that cannot be made fair is left out.
+     */
+    private fun negatives(
+        previous: Ground,
+        ground: Ground,
+        items: MutableList<Item>,
+        count: Int,
+    ) {
+        if (count == 0) return
+        val onTheGround = (count >= 2 || itemRandom.nextBoolean()) && obstacle(ground, items)
+        if (count >= 2 || !onTheGround) ceiling(previous, ground, items)
+    }
+
+    /**
+     * A huevo frito or a pescado on [ground], as far in as a landing and a run-up to jump it take (fairGap makes her land
+     * before that run-up), and half the time with the choice over it. Whether it went in.
+     */
+    private fun obstacle(ground: Ground, items: MutableList<Item>): Boolean {
+        val speed = movement.speedAt(meters(ground.start))
+        val fromTile = ceil(((course.landingMarginTiles + LANDING_ROOM_TILES) * TILE + speed * OBSTACLE_WINDOW_SECONDS) / TILE).toInt()
+        val toTile = (ground.end - ground.start) / TILE - OBSTACLE_TO_END_TILES
+        if (toTile < fromTile) return false
+        val x = ground.start + itemRandom.nextInt(fromTile, toTile + 1) * TILE
+        val obstacle = Item(negativeKind(), x, ground.top + GROUND_ITEM_HEIGHT)
+        if (!fairObstacle(ground, obstacle)) return false
+        items += obstacle
+        if (itemRandom.nextFloat() < CHOICE_SHARE) choice(ground, obstacle, items)
+        return true
+    }
+
+    /** A huevo frito or a pescado high over the gap, where a long jump goes: it asks for a lower one. */
+    private fun ceiling(previous: Ground, ground: Ground, items: MutableList<Item>) {
+        val ceiling = Item(negativeKind(), (previous.end + ground.start) / 2, previous.top + CEILING_HEIGHT)
+        items += ceiling
+        if (!fairGap(previous, ground, items, path = null)) items -= ceiling
+    }
+
+    private fun negativeKind(): ItemKind = if (itemRandom.nextFloat() < FISH_SHARE) ItemKind.Pescado else ItemKind.Huevo
 
     /** Perritos and gatitos: an arc along a good jump over the gap, or a row on the ground. */
     private fun positives(
@@ -162,7 +194,13 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
         val startX = max(from.start + half.toDouble(), from.end - half - speed.toDouble() * (windowSteps + 1) * JumpLab.STEP)
         val lastPress = windowSteps + coyoteSteps
         val minLand = to.start + course.landingMarginTiles * TILE
-        val maxLand = to.end - speed.toDouble() * RUNWAY_SECONDS
+        var maxLand = to.end - speed.toDouble() * RUNWAY_SECONDS
+        // Something to jump on the ground she lands on: she has to land with the whole run-up to jump it still ahead.
+        for (item in items) {
+            if (!item.kind.adds && item.x > to.start && item.x < to.end && item.y - to.top < Item.SIZE) {
+                maxLand = min(maxLand, item.x - Item.SIZE / 2 - half - speed.toDouble() * OBSTACLE_WINDOW_SECONDS)
+            }
+        }
         return fair(lastPress, from.top.toFloat(), startX, items) { landing ->
             landing.landed && landing.top == to.top && landing.x >= minLand && landing.x <= maxLand
         }.also { if (it && path != null) recordGoodPath(path, from.top.toFloat(), startX, items, lastPress, minLand, maxLand, to.top) }
@@ -170,17 +208,45 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
 
     /** Whether the [obstacle] on [ground] can be jumped, with the same rule as a gap. */
     private fun fairObstacle(ground: Ground, obstacle: Item): Boolean {
-        sandbox.clear()
-        sandbox.append(Piece(listOf(ground), emptyList(), ground.end))
-        val speed = movement.speedAt(meters(obstacle.x))
+        val jump = ObstacleJump(ground, obstacle)
+        return fair(jump.windowSteps, ground.top.toFloat(), jump.startX, listOf(obstacle)) { jump.clears(it) }
+    }
+
+    /**
+     * The choice of GEN-07: a perrito or a gatito at the top of a long jump over the [obstacle]. A quick tap clears the
+     * obstacle and passes under it; keeping the finger down longer gets it.
+     */
+    private fun choice(ground: Ground, obstacle: Item, items: MutableList<Item>) {
+        val jump = ObstacleJump(ground, obstacle)
+        val avoid = listOf(obstacle)
+        for (hold in maxHold downTo maxHold * 2 / 3) {
+            for (press in jump.windowSteps downTo 0) {
+                if (!jump.clears(lab.tryJump(sandbox, avoid, jump.startX, ground.top.toFloat(), runStart, press, hold))) continue
+                val path = mutableListOf<Pair<Double, Float>>()
+                lab.tryJump(sandbox, avoid, jump.startX, ground.top.toFloat(), runStart, press, hold, path = path)
+                val (x, y) = path.maxByOrNull { it.second } ?: return
+                items += Item(positiveKind(), x.toInt(), y.toInt())
+                return
+            }
+        }
+    }
+
+    /** The jumps over an [obstacle] on [ground]: where the run-up starts, and whether a landing clears it with room to run. */
+    private inner class ObstacleJump(private val ground: Ground, obstacle: Item) {
         val windowSteps = ceil(OBSTACLE_WINDOW_SECONDS / JumpLab.STEP).toInt()
+        private val speed = movement.speedAt(meters(obstacle.x))
         val startX =
             max(ground.start + half.toDouble(), obstacle.x - Item.SIZE - half - speed.toDouble() * (windowSteps + 1) * JumpLab.STEP)
-        val past = obstacle.x + Item.SIZE / 2 + half
-        val maxLand = ground.end - speed.toDouble() * RUNWAY_SECONDS
-        return fair(windowSteps, ground.top.toFloat(), startX, listOf(obstacle)) { landing ->
-            landing.landed && landing.top == ground.top && landing.x >= past && landing.x <= maxLand
+        private val past = obstacle.x + Item.SIZE / 2 + half
+        private val maxLand = ground.end - speed.toDouble() * RUNWAY_SECONDS
+
+        init {
+            sandbox.clear()
+            sandbox.append(Piece(listOf(ground), emptyList(), ground.end))
         }
+
+        fun clears(landing: JumpLab.Landing): Boolean =
+            landing.landed && !landing.touchedNegative && landing.top == ground.top && landing.x >= past && landing.x <= maxLand
     }
 
     private inline fun fair(
@@ -226,7 +292,7 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
         }
     }
 
-    private companion object {
+    internal companion object {
         const val ITEM_SALT = 0x5EEDCAFE0FL
         const val START_BEHIND = -32 * TILE
 
@@ -239,8 +305,9 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
         const val REST_EXTRA_TILES = 8
         const val POSITIVE_ROW_ON_REST = 0.6f
         const val FISH_SHARE = 0.4f
-        const val OBSTACLE_MIN_RUN_TILES = 10
-        const val OBSTACLE_FROM_TILE = 5
+        const val CHOICE_SHARE = 0.5f
+        const val MAX_NEGATIVES_PER_PIECE = 2
+        const val LANDING_ROOM_TILES = 2
         const val OBSTACLE_TO_END_TILES = 4
 
         /** Where the collectibles go, above the ground's top: on the ground at her chest, high where a long jump goes. */

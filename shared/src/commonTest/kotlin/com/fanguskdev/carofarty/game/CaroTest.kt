@@ -54,6 +54,15 @@ class CaroTest {
     }
 
     @Test
+    fun aShorterPressNeverJumpsHigher() {
+        // The dinosaur of Chrome ignores a release in the first 30 px and gives its highest jump: here letting go always
+        // lowers it, from the first step on.
+        val heights = (1..30).map { jump(it).first }
+        heights.zipWithNext().forEach { (shorter, longer) -> assertTrue(shorter <= longer, "$shorter then $longer") }
+        assertTrue(heights.first() < heights.last() / 2, "a quick tap jumps less than half as high as a long press")
+    }
+
+    @Test
     fun holdingLongerThanTheWindowJumpsNoHigher() {
         assertEquals(jump(22).first, jump(120).first, 0.01f)
     }
@@ -100,6 +109,8 @@ class CaroTest {
         caro.step(step, pressed = true, held = true, terrain = course)
 
         assertEquals(CaroState.Jumping, caro.state)
+        assertEquals(1, caro.coyoteJumps, "the debug line counts it as a coyote jump")
+        assertEquals(0, caro.bufferedJumps)
     }
 
     @Test
@@ -113,6 +124,9 @@ class CaroTest {
         repeat(6) { caro.step(step, pressed = false, held = false, terrain = course) }
 
         assertEquals(CaroState.Jumping, caro.state, "the tap was remembered and she jumped again")
+        assertEquals(2, caro.jumps)
+        assertEquals(1, caro.bufferedJumps, "the debug line counts it as a buffered jump")
+        assertEquals(0, caro.coyoteJumps)
     }
 
     @Test

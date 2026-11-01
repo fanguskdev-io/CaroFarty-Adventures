@@ -1,6 +1,6 @@
 # Registro de riesgos · CaroFarty
 
-**Última revisión:** 2026-11-01, en la adopción, con los riesgos de M0 (PRD-08) · **Abiertos:** 6 · **Vencidos sin acción:** 0
+**Última revisión:** 2026-11-01, al terminar el prototipo en gris de M1 · **Abiertos:** 6 · **Vencidos sin acción:** 0
 
 ## Escalas
 
@@ -14,7 +14,7 @@
 
 | Id | Riesgo (qué pasaría y por qué) | Dimensión | Prob. | Impacto | Mitigación (qué hacemos para que no pase o duela menos) | Dueño | Fecha | Estado | Origen |
 |---|---|---|---|---|---|---|---|---|---|
-| R-01 | Si el motor propio sobre Compose Canvas no llega a 60 fps en un teléfono modesto, entonces el juego da tirones justo en lo que más importa, el salto, y cae H4 | RE | media | alto | Propuesta: dibujar en un búfer de baja resolución, sin asignaciones por fotograma, y medir en sus teléfonos desde el prototipo de M1 (TEC-04, TEC-17, MOB-06 del backlog; [ADR 0001](../adr/0001-motor-kotlin-multiplatform.md)) | Fangusk (propuesto) | — | abierto | medida del agente (PRD-08) |
+| R-01 | Si el motor propio sobre Compose Canvas no llega a 60 fps en un teléfono modesto, entonces el juego da tirones justo en lo que más importa, el salto, y cae H4 | RE | media | alto | Propuesta: dibujar en un búfer de baja resolución, sin asignaciones por fotograma, y medir en sus teléfonos desde el prototipo de M1 (TEC-04, TEC-17, MOB-06 del backlog; [ADR 0001](../adr/0001-motor-kotlin-multiplatform.md)). Hecho lo primero; medido el 2026-11-01 en el emulador y el simulador con el piloto automático: 60 FPS, de 1 a 4,5 ms de dibujo por fotograma y la memoria estable en 10 min ([rendimiento](../rendimiento.md)). Falta medirlo en sus teléfonos | Fangusk (propuesto) | — | mitigando | medida del agente (PRD-08) |
 | R-02 | Si la música sintetizada en tiempo real se corta o llega con retraso en Android o en iOS, entonces la música dinámica que pidió Fangusk suena mal y cae H4 | RE | media | alto | Propuesta: una salida de audio de baja latencia en cada plataforma (AudioTrack, AVAudioEngine) y medir el coste de la síntesis en sus teléfonos (AUD-25, AUD-29 del backlog) | Fangusk (propuesto) | — | abierto | medida del agente (PRD-08) |
 | R-03 | Si la música acaba cansando en una partida larga, entonces falla la especificación 8 de Fangusk («no puede aburrir porque la partida puede ser infinita») y cae H2 | UX | media | medio | Propuesta: música generativa con variación continua por escenario y la prueba de los 30 min a juicio de Fangusk (AUD-26, criterio de salida de M4) | Fangusk (propuesto) | — | abierto | medida del agente (PRD-08) |
 | R-04 | Si el arte, la música o los sonidos se parecen demasiado a los de Super Mario World, entonces infringen la propiedad intelectual de Nintendo; con el juego en el teléfono de ella no pasa nada, pero impide publicarlo, que Fangusk deja abierto (ADR 0005) | LC | media | alto | Propuesta: la [guía de propiedad intelectual](../propiedad-intelectual.md), con su lista de comprobación en cada revisión de arte y de música (LEG-01, hecha) | Fangusk (propuesto) | — | mitigando | medida del agente (PRD-08) |

@@ -28,6 +28,17 @@ class LongRunsTest {
     }
 
     @Test
+    fun aCarefulPilotNeverHasToTouchWhatTakesPointsAway() {
+        for (seed in 1L..5L) {
+            val run = GameRun(config, Scenario.Bosque, seed)
+            Pilot(run).play(seconds = 600f)
+            val touched = run.events.filterIsInstance<RunEvent.Picked>().filter { it.points < 0 }
+            println("GEN-07, semilla $seed: ${run.meters.toInt()} m, ${touched.size} tocados")
+            assertTrue(touched.isEmpty(), "seed $seed: touched ${touched.size} by ${run.meters.toInt()} m")
+        }
+    }
+
+    @Test
     fun thirtyMinutesOfRunWithoutHolesNorOverlaps() {
         val run = GameRun(config, Scenario.Desierto, seed = 2026)
         val pilot = Pilot(run)

@@ -61,6 +61,21 @@ Su partida queda en 742 m y 16 puntos máximos, y cada récord se compara por se
 Lo que no está en las especificaciones no entra: ni vidas, ni enemigos, ni power-ups, ni monedas (siguen aparcados en
 el backlog por si Fangusk los quiere).
 
+## El fin de la partida
+
+Las reglas son de Fangusk: se acaba al llegar a 0 puntos o al caer por un barranco, sin vidas ni segunda oportunidad. Lo
+que se ve y se oye es propuesta (GDD-14); el prototipo en gris ya hace lo que se ve:
+
+1. **Al instante**: el mundo se para. Si cae, Caro sale por debajo de la pantalla; si se queda sin puntos, se para en
+   seco. Con el arte (M2), una animación para cada caso; con el sonido (M4), un efecto corto distinto para cada causa y la
+   música que se apaga.
+2. **El panel**: «FIN DE LA PARTIDA», la causa («TE CAÍSTE POR UN BARRANCO» o «TE QUEDASTE SIN PUNTOS»), la distancia y
+   los puntos máximos de la partida al lado de los récords del escenario y, si ha batido alguno, «¡NUEVO RÉCORD!» (con
+   su fanfarria en M4).
+3. **Otra partida**: un toque, en cuanto pasan 0,6 s (para que un salto que llega tarde no la empiece sin querer). Arranca
+   ya corriendo y en el mismo escenario: del fallo a volver a jugar, menos de 2 s. Desde el panel se podrá cambiar de
+   escenario cuando exista la pantalla para elegirlo (M3).
+
 ## Cómo se controla
 
 Un solo gesto ([ADR 0002](adr/0002-salto-por-tiempo-de-pulsacion.md)): el primer toque arranca la carrera; cada
@@ -120,6 +135,8 @@ de salida en [proceso](proceso.md):
 ## Documentos
 
 - [Decisiones (ADR)](adr/README.md)
-- [Movimiento](movimiento.md) · [Generación del recorrido](generacion.md) · [Proceso y criterios de salida](proceso.md)
+- [Movimiento](movimiento.md) · [Métricas y curva de dificultad](metricas.md) · [Generación del recorrido](generacion.md)
+- [Recolectables](recolectables.md) · [Escenarios](escenarios.md) · [Proceso y criterios de salida](proceso.md)
+- [Pruebas](pruebas.md) · [Lista de bugs](bugs.md) · [Rendimiento](rendimiento.md) · [Cómo se entrega el arte](arte.md)
 - [Dispositivos de prueba](dispositivos.md) · [Propiedad intelectual](propiedad-intelectual.md)
 - El backlog compartido: `../backlog-juego-plataformas` (lo creó la sesión GameMaster; el estado de cada tarea se lleva allí)

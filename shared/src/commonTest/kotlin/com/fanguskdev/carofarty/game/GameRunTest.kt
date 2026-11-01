@@ -27,6 +27,22 @@ class GameRunTest {
     }
 
     @Test
+    fun takingPointsAwayEndsTheRunAtZeroAsTouchingSomethingWould() {
+        val run = newRun()
+        run.takeAway(4)
+        assertEquals(config.score.startPoints, run.points, "nothing is taken before the run starts")
+
+        run.step(step, pressed = true, held = false)
+        run.takeAway(4)
+        assertEquals(config.score.startPoints - 4, run.points)
+        run.takeAway(100)
+        assertEquals(0, run.points)
+        assertEquals(RunPhase.Over, run.phase)
+        assertEquals(EndCause.NoPoints, run.endCause)
+        assertEquals(config.score.startPoints, run.maxPoints)
+    }
+
+    @Test
     fun theRunStartsWithTenPointsAndTheCourseAhead() {
         val run = newRun()
 

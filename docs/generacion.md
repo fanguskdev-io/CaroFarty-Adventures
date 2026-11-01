@@ -37,23 +37,30 @@ contra las que chocar. Chocar contra el borde de un suelo más alto tras un salt
 | Fila en el suelo | Perritos y gatitos que se recogen corriendo |
 | Arco sobre un barranco | Perritos y gatitos a lo largo de un salto medio: premian el salto bien medido |
 | Obstáculo en el suelo | Un huevo frito o un pescado en el camino que hay que saltar, como los cactus del dinosaurio |
-| Elección | Un perrito alto y un pescado bajo, o al revés: hay que decidir cuánto mantener el dedo |
-| Techo | Un huevo frito alto sobre un barranco corto: pide un salto corto |
+| Elección | Un perrito o un gatito en lo alto de un salto largo sobre un huevo frito o un pescado del suelo: un toque rápido salva el obstáculo y pasa por debajo; mantener el dedo lo recoge. La lleva la mitad de los obstáculos |
+| Techo | Un huevo frito o un pescado alto sobre un barranco: pide un salto que no suba demasiado |
 
-La frecuencia de cada patrón cambia con la dificultad; los valores y la frecuencia de cada recolectable se cierran en
-GDD-10.
+Los que restan aparecen más a medida que sube la dificultad; las cifras medidas y la ficha de cada recolectable están en
+[recolectables](recolectables.md).
 
 ## El validador
 
-Antes de que un tramo entre en el mundo, el validador simula los saltos con el mismo código de física del juego: todas las
-duraciones de pulsación, de fotograma en fotograma, desde todos los puntos de despegue del borde. El tramo vale si:
+Antes de que un tramo entre en el mundo, el validador simula los saltos con el mismo código de física del juego
+(`JumpLab`): cada momento de despegue de los últimos 0,2 s de carrera antes del borde y del coyote time, de fotograma en
+fotograma, con cada duración de pulsación. Un barranco es **justo** si al menos 3 de esos momentos tienen al menos 4
+pulsaciones distintas que:
 
-1. todos sus barrancos se pueden cruzar aterrizando con al menos 1 tile de margen;
-2. todos los recolectables que restan se pueden esquivar con algún salto que también cruce;
-3. los recolectables de los arcos se pueden recoger con algún salto.
+1. aterrizan al otro lado con al menos 1 tile de margen;
+2. dejan por delante al menos 0,3 s de carrera para preparar el siguiente salto;
+3. no tocan nada que reste.
 
-Si no vale se genera otro; tras 8 intentos sale un tramo llano y seguro. El mismo validador recorre en las pruebas miles de
-tramos con semillas distintas (GEN-10, GEN-11).
+Así nunca hace falta un salto perfecto: hay margen en el momento y en la duración. Un obstáculo en el suelo se valida igual,
+con 0,4 s de carrera para tomarlo. Los arcos se colocan sobre uno de los saltos buenos y la elección en lo alto de uno
+largo, así que se pueden recoger por construcción.
+
+Si un tramo no es justo se genera otro; tras 8 intentos sale uno fácil, un barranco de 2 tiles a la misma altura y sin
+nada que reste. En las pruebas, un piloto automático que salta como una persona cuidadosa recorre más de 20 km sin caer y
+se generan 10.000 tramos seguidos sin un error (GEN-10, GEN-11).
 
 ## La dificultad
 
@@ -72,6 +79,8 @@ sería una decisión de Fangusk, y entraría como reglas o patrones de ese escen
 
 - Dos fuentes de azar con semilla, terreno y recolectables (GEN-05): la misma semilla da la misma partida en cualquier
   teléfono.
-- Se genera hasta dos pantallas por delante de la cámara y se recicla lo que queda atrás, sin crear objetos en cada
-  fotograma (TEC-17).
-- Las coordenadas del mundo crecen sin fin: se recolocan cerca del origen cada cierto tiempo (GEN-09).
+- Se genera en segundo plano hasta 1024 px por delante de Caro (unas dos pantallas y media) y se suelta lo que queda
+  256 px por detrás; el hilo del juego no crea objetos en cada fotograma (TEC-17).
+- Las coordenadas del mundo crecen sin fin, pero en doble precisión: tras 24 horas a 200 px/s van por 17 millones de
+  píxeles y aún distinguen milmillonésimas de píxel. No hace falta recolocarlas cerca del origen; `FarFromTheOriginTest`
+  comprueba que el salto es idéntico lejos del origen (GEN-09).

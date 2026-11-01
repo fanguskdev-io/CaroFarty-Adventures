@@ -78,7 +78,7 @@ class JumpLab(private val movement: MovementConfig) {
     private fun touchesNegative(items: List<Item>): Boolean {
         for (i in items.indices) {
             val item = items[i]
-            if (!item.kind.adds && overlaps(caro, item, movement)) return true
+            if (!item.taken && !item.kind.adds && overlaps(caro, item, movement)) return true
         }
         return false
     }

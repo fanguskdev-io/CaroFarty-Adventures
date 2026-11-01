@@ -4,18 +4,19 @@ Un plataformas de desplazamiento horizontal infinito en pixel art para Android e
 recoge perritos y gatitos (que suman) esquivando huevos fritos y pescado (que restan). Es un regalo de Fangusk para su
 esposa. La [página de diseño](docs/diseno.md) cuenta lo que pidió, las reglas y las decisiones.
 
-> En construcción: está terminando M0 (diseño y decisiones). El siguiente hito es el prototipo en gris (M1).
+> En construcción: M0 (diseño y decisiones) está validado y el prototipo en gris (M1) ya se juega en Android e iOS, a la
+> espera de que Fangusk lo pruebe. Después vienen Caro, los recolectables y el Bosque con su arte (M2).
 
 ## Estructura
 
 ```
 shared/         el juego entero, común a Android, iOS y el escritorio (Kotlin Multiplatform + Compose Multiplatform)
   src/commonMain/kotlin/com/fanguskdev/carofarty/
-    engine/       motor 2D: bucle de paso fijo, entrada, cámara y dibujo píxel perfecto (M1)
-    game/         reglas: Caro, el recorrido, los recolectables y los puntos (M1)
+    engine/       motor 2D: bucle de paso fijo, escalado píxel perfecto y el dedo
+    game/         reglas: Caro, el recorrido y su validador, los recolectables, los puntos y el piloto automático
     audio/        síntesis de sonido y música generativa (M4)
-    storage/      lo que se guarda en el teléfono: récords y ajustes
-    ui/           pantallas: marcador, fin de partida y menús
+    storage/      lo que se guarda en el teléfono: los récords
+    ui/           la pantalla de juego: la cámara, el dibujo, el marcador, los paneles y la línea de depuración
   src/androidMain, src/iosMain, src/jvmMain   lo que es de cada plataforma
 androidApp/     la app de Android
 iosApp/         la app de iOS (proyecto de Xcode)
@@ -24,8 +25,8 @@ docs/           diseño, decisiones (ADR) y guías
 scripts/        la puerta de calidad y el ayudante del backlog
 ```
 
-Las carpetas `engine/`, `game/` y `ui/` llegan con el prototipo; `audio/` tiene de momento las piezas básicas del
-sintetizador.
+`audio/` tiene de momento las piezas básicas del sintetizador. Los ajustes del juego (velocidades, salto, recorrido y
+puntos) están en `shared/src/commonMain/composeResources/files/ajustes.json`.
 
 Las versiones viven en `gradle/libs.versions.toml`: Kotlin 2.4.21, Compose Multiplatform 1.12.2, el plugin de Android
 9.5.0 y Gradle 9.8.2, las estables del 2026-11-01.
@@ -37,6 +38,10 @@ Las versiones viven en `gradle/libs.versions.toml`: Kotlin 2.4.21, Compose Multi
 - iOS: abrir `iosApp/iosApp.xcodeproj` en Xcode y ejecutar el esquema `iosApp`, o por consola
   `xcodebuild -project iosApp/iosApp.xcodeproj -scheme iosApp -destination 'platform=iOS Simulator,name=iPhone 17 Pro' build`.
 - Escritorio: `./gradlew :desktopApp:run`.
+
+La versión de depuración trae herramientas: la línea de depuración (un toque con un segundo dedo) y un piloto automático
+que juega solo. Cómo arrancar con ellas, en [pruebas](docs/pruebas.md); qué mide la línea, en
+[rendimiento](docs/rendimiento.md).
 
 ## Cómo se comprueba
 

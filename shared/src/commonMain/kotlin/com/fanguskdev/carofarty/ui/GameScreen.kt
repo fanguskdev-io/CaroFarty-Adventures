@@ -29,6 +29,7 @@ import androidx.lifecycle.compose.LifecycleEventEffect
 import carofarty.shared.generated.resources.Res
 import com.fanguskdev.carofarty.engine.PixelViewport
 import com.fanguskdev.carofarty.game.GameConfig
+import com.fanguskdev.carofarty.game.GameRun
 import com.fanguskdev.carofarty.game.RunPhase
 import com.fanguskdev.carofarty.storage.KeyValueStore
 import com.fanguskdev.carofarty.storage.Records
@@ -36,6 +37,7 @@ import com.fanguskdev.carofarty.ui.render.CARO_HEIGHT
 import com.fanguskdev.carofarty.ui.render.GreyPalette
 import com.fanguskdev.carofarty.ui.render.PixelBuffer
 import com.fanguskdev.carofarty.ui.render.SafeInsets
+import com.fanguskdev.carofarty.ui.render.paintBackground
 import com.fanguskdev.carofarty.ui.render.paintCaro
 import com.fanguskdev.carofarty.ui.render.paintDebug
 import com.fanguskdev.carofarty.ui.render.paintHud
@@ -132,6 +134,7 @@ private fun DrawScope.drawGame(session: GameSession, world: PixelBuffer, viewpor
     val top = viewport.offsetY.toFloat()
     val scale = viewport.scale.toFloat()
     clipRect(left, top, left + viewport.width * scale, top + viewport.height * scale) {
+        paintBackground(camera, REST_CAMERA, cameraBottom, viewport, GreyPalette.of(run.scenario))
         val shift = (fraction * viewport.scale).roundToInt()
         drawImage(
             image = image,
@@ -166,6 +169,9 @@ internal fun cameraBottom(feetY: Int, height: Int): Int = max(0, feetY + CARO_HE
 
 /** Where Caro runs, in game pixels from the left edge (ADR 0003). */
 private const val CARO_SCREEN_X = 96
+
+/** The camera before the first tap, with Caro at the start: where the far band sits on the game's pixel grid. */
+private const val REST_CAMERA = GameRun.START_X - CARO_SCREEN_X
 
 /** The game pixels the camera leaves above Caro's head before going up. */
 internal const val HEAD_ROOM = 8

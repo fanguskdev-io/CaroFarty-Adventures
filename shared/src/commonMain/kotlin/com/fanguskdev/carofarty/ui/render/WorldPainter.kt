@@ -2,8 +2,11 @@ package com.fanguskdev.carofarty.ui.render
 
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import com.fanguskdev.carofarty.engine.PixelViewport
 import com.fanguskdev.carofarty.game.GameRun
 import com.fanguskdev.carofarty.game.Item
 import com.fanguskdev.carofarty.game.TILE
@@ -30,26 +33,43 @@ internal fun DrawScope.paintWorld(
 ) {
     // The buffer row of the world's y = 0, which goes down out of the buffer when the camera goes up (PLY-13).
     val base = height + cameraBottom
-    drawRect(palette.sky, Offset.Zero, Size(width.toFloat(), height.toFloat()))
-    paintFarBand(cameraLeft, height + floor(cameraBottom * FAR_SPEED).toInt(), width, palette)
+    // Clear: the sky and the far band are drawn behind it, each with its own offset (paintBackground).
+    drawRect(Color.Transparent, Offset.Zero, Size(width.toFloat(), height.toFloat()), blendMode = BlendMode.Clear)
     paintGrounds(run, cameraLeft, width, base, palette)
     paintBlocks(run, cameraLeft, width, base, palette)
     paintItems(run, cameraLeft, width, base)
     if (debugBoxes) paintBoxes(run, cameraLeft, base, caroX, caroY)
 }
 
-private fun DrawScope.paintFarBand(
-    cameraLeft: Long,
-    base: Int,
-    width: Int,
+/**
+ * The sky and the far band, drawn straight on the screen behind the world (TEC-04). The band moves at [FAR_SPEED] of the
+ * [camera] with its own offset rounded to a pixel of the phone, so it glides at its own pace instead of stepping a whole
+ * game pixel at a time and taking the world's sub-pixel shift on top, which made it shake. At the start of a run, with
+ * the camera at [restCamera], it sits on the game's pixel grid.
+ */
+internal fun DrawScope.paintBackground(
+    camera: Double,
+    restCamera: Double,
+    cameraBottom: Int,
+    viewport: PixelViewport,
     palette: GreyPalette,
 ) {
-    val far = floor(cameraLeft * FAR_SPEED).toLong()
-    var column = far / FAR_COLUMN - 1
-    while ((column * FAR_COLUMN - far) < width) {
-        val left = (column * FAR_COLUMN - far).toFloat()
+    val scale = viewport.scale
+    val left = viewport.offsetX.toFloat()
+    val top = viewport.offsetY.toFloat()
+    drawRect(palette.sky, Offset(left, top), Size((viewport.width * scale).toFloat(), (viewport.height * scale).toFloat()))
+    val far = (camera - restCamera) * FAR_SPEED + floor(restCamera * FAR_SPEED)
+    val farPixels = (far * scale).roundToLong()
+    val base = viewport.height + floor(cameraBottom * FAR_SPEED).toInt()
+    var column = floor(far / FAR_COLUMN).toLong() - 1
+    while (column * FAR_COLUMN * scale - farPixels < viewport.width * scale) {
+        val x = left + (column * FAR_COLUMN * scale - farPixels)
         val tall = FAR_MIN + (hash(column) % FAR_RANGE).toInt()
-        drawRect(palette.far, Offset(left, (base - tall).toFloat()), Size(FAR_COLUMN.toFloat(), tall.toFloat()))
+        drawRect(
+            palette.far,
+            Offset(x, top + (base - tall) * scale),
+            Size((FAR_COLUMN * scale).toFloat(), (tall * scale).toFloat()),
+        )
         column++
     }
 }

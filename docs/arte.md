@@ -80,8 +80,8 @@ Los nombres son los que busca el juego; las duraciones, una propuesta para ajust
 | Nombre | Cuándo | Fotogramas | Duración |
 |---|---|---|---|
 | `espera` | Antes del primer toque | 4, en bucle | 150–250 ms |
-| `corre` | Corriendo | 6 a 8, en bucle | La pone la distancia: un ciclo cada 3 tiles, así que a 120 px/s cada fotograma de 6 dura 67 ms y a 200 px/s, 40 ms |
-| `corre-rapido` | Desde unos 170 px/s, si se hace | 6, en bucle | Igual que `corre` |
+| `corre` | Corriendo, hasta 240 px/s | 6 a 8, en bucle | La pone la distancia: un ciclo cada 3 tiles, así que con 6 fotogramas cada uno dura 50 ms a 160 px/s; nunca menos de 40 ms, para que no se vea frenética |
+| `corre-rapido` | Desde 240 px/s, con zancadas más largas | 6, en bucle | Un ciclo cada 5 tiles: 56 ms por fotograma a 240 px/s y 37 a 360, que se quedan en 40 como mínimo (propuesta de GameMaster en su guía 2) |
 | `salta` | Subiendo | 1 o 2 | Se queda en el último hasta el ápice |
 | `apice` | Arriba del todo | 1 | Mientras apenas sube o baja |
 | `cae` | Bajando | 1 o 2 | Se queda en el último |

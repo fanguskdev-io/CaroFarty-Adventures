@@ -34,6 +34,7 @@ class MetricsReportTest {
     fun moreThingsThatTakePointsAwayAsTheRunGoesOn() {
         val counts = Array(BANDS.size) { IntArray(ItemKind.entries.size) }
         val blocks = IntArray(BANDS.size)
+        val platforms = IntArray(BANDS.size)
         for (seed in 1L..SEEDS) {
             val generator = CourseGenerator(config, seed)
             var end = 0
@@ -45,7 +46,9 @@ class MetricsReportTest {
                 }
                 for (block in piece.blocks) {
                     val band = BANDS.indexOfFirst { block.start / TILE in it }
-                    if (band >= 0) blocks[band]++
+                    // A platform carries an animal on top (ADR 0008); the rest are obstacles in the air (ADR 0007).
+                    val reward = piece.items.any { it.kind.adds && it.x >= block.start && it.x < block.end && it.y > block.top }
+                    if (band >= 0) if (reward) platforms[band]++ else blocks[band]++
                 }
                 end = piece.end
             }
@@ -58,13 +61,16 @@ class MetricsReportTest {
         assertTrue(BANDS.indices.all { per100m(it, adding) > 0f }, "there should be perritos and gatitos everywhere")
 
         val text = buildString {
-            appendLine("| Tramo | Perritos | Gatitos | Huevos fritos | Pescados | Suman | Restan | Bloques |")
-            appendLine("|---|---|---|---|---|---|---|---|")
+            appendLine("| Tramo | Perritos | Gatitos | Huevos fritos | Pescados | Suman | Restan | Bloques | Plataformas |")
+            appendLine("|---|---|---|---|---|---|---|---|---|")
             for (band in BANDS.indices) {
-                val blocksPer100m = blocks[band] * 100f / SEEDS / (BANDS[band].last - BANDS[band].first)
+                val meters = (BANDS[band].last - BANDS[band].first) * SEEDS / 100f
+                val blocksPer100m = blocks[band] / meters
+                val platformsPer100m = platforms[band] / meters
                 append("| ${BANDS[band].first} a ${BANDS[band].last} m | ")
                 append(ItemKind.entries.joinToString(" | ") { format(per100m(band, listOf(it))) })
-                appendLine(" | ${format(per100m(band, adding))} | ${format(per100m(band, taking))} | ${format(blocksPer100m)} |")
+                append(" | ${format(per100m(band, adding))} | ${format(per100m(band, taking))}")
+                appendLine(" | ${format(blocksPer100m)} | ${format(platformsPer100m)} |")
             }
         }
         out.resolve("frecuencias.md").writeText(text)

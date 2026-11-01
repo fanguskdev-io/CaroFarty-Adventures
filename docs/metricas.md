@@ -47,8 +47,7 @@ barrancos crecen en tiles porque Caro va más deprisa, pero medidos en tiempo de
 |---|---|---|
 | En el suelo: fila u obstáculo | 8 px | La fila se recoge corriendo; el obstáculo se salva con cualquier salto que pase por encima |
 | Techo sobre un barranco | 74 px | Lo toca un salto que suba más de 48 px por debajo (el dedo apoyado más de unos 0,2 s): pide uno más corto |
-| Arco sobre un barranco | Sobre la trayectoria de un salto medio que cruza | Recogerlo es medir bien el salto |
-| Elección | En lo alto de un salto largo sobre el obstáculo, por encima de 54 px | Un toque rápido (la cabeza llega a 44 px) pasa por debajo; manteniendo el dedo se recoge |
+| Encima de una plataforma con premio | 8 px sobre la plataforma, que tiene su borde de abajo de 28 a 36 px sobre el suelo | Sin saltar se pasa por debajo; con el dedo apoyado algo más de 0,2 s se sube a recogerlo |
 
 ## La curva de dificultad
 

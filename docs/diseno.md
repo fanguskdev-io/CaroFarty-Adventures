@@ -46,7 +46,8 @@ el camino del salto y bloques sólidos que lo frenan («La opcion 1 y 2 son buen
 cambios incorporados».
 
 En la sesión de diseño con GameMaster, el mismo día: «A diferencia de los gatitos, los perritos se moverán por el escenario
-y además podrán estar quietos», y los gatitos, con ocho pelajes al azar en todos los escenarios
+y además podrán estar quietos», y los gatitos, con ocho pelajes al azar en todos los escenarios; y «En el aire no puede
+aparecer ningún animal, salvo que esté en una plataforma»
 ([ADR 0008](adr/0008-perritos-que-caminan-y-gatitos-de-ocho-pelajes.md)).
 
 ## El bucle de juego

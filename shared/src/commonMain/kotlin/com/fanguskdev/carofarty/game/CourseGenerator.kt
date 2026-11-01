@@ -105,7 +105,11 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
         val stepTiles = if (easy) 0 else terrainRandom.nextInt(-course.maxStepDown, course.maxStepUp + 1)
         val topTiles = (previous.top / TILE + stepTiles).coerceIn(course.minGroundTop, course.maxGroundTop)
         val minRun = max(course.minGroundTiles, ceil((course.landingMarginTiles * TILE + speed * RUNWAY_SECONDS * 2) / TILE).toInt())
-        val runTiles = terrainRandom.nextInt(minRun, max(minRun, course.maxGroundTiles) + 1)
+        // A piece with a platform and its reward (ADR 0008) gets a ground long enough for it at the speed of the moment.
+        val withPlatform = !easy && itemRandom.nextFloat() < course.rewardPlatformShare
+        val platformRun = ceil((course.landingMarginTiles * TILE + speed * PLATFORM_SECONDS) / TILE).toInt() + PLATFORM_MAX_TILES
+        val shortest = if (withPlatform) max(minRun, platformRun) else minRun
+        val runTiles = terrainRandom.nextInt(shortest, max(shortest, course.maxGroundTiles) + 1)
         val start = previous.end + gapTiles * TILE
         val ground = Ground(start, start + runTiles * TILE, topTiles * TILE)
 
@@ -120,7 +124,7 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
         val shape = shapeOf(gapTiles, (ground.top - previous.top) / TILE, ground, items)
         // Never three difficult pieces alike in a row (guía 1): a third one is made again.
         if (!easy && difficult(gapTiles, items) && shape == shapes[0] && shape == shapes[1]) return null
-        positives(previous, ground, items, pieceMeters)
+        positives(previous, ground, items, pieceMeters, withPlatform)
         items.sortBy { it.x }
         remember(if (easy) NO_SHAPE else shape)
         return Piece(listOf(ground), items, ground.end, difficulty, pieceBlocks.toList())
@@ -252,7 +256,7 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
 
     /**
      * A huevo frito or a pescado on [ground], as far in as a landing and a run-up to jump it take (fairGap makes her land
-     * before that run-up), and half the time with the choice over it. Whether it went in.
+     * before that run-up). Whether it went in.
      */
     private fun obstacle(ground: Ground, items: MutableList<Item>): Boolean {
         val speed = movement.speedAt(meters(ground.start))
@@ -263,7 +267,6 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
         val obstacle = Item(negativeKind(), x, ground.top + GROUND_ITEM_HEIGHT)
         if (!fairObstacle(ground, obstacle)) return false
         items += obstacle
-        if (itemRandom.nextFloat() < CHOICE_SHARE) choice(ground, obstacle, items)
         return true
     }
 
@@ -282,23 +285,63 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
         ground: Ground,
         items: MutableList<Item>,
         pieceMeters: Float,
+        withPlatform: Boolean,
     ) {
+        // Never in the air (Fangusk: «En el aire no puede aparecer ningún animal, salvo que esté en una plataforma»).
+        if (withPlatform && rewardPlatform(previous, ground, items)) return
         val expected = pieceMeters * course.positivesPer100m / 100f
         if (itemRandom.nextFloat() >= expected) return
-        if (itemRandom.nextBoolean()) {
-            val path = mutableListOf<Pair<Double, Float>>()
-            if (fairGap(previous, ground, items, path) && path.size >= ARC_ITEMS + 1) {
-                for (k in 1..ARC_ITEMS) {
-                    val (x, y) = path[path.size * k / (ARC_ITEMS + 1)]
-                    // Not where it would touch a ground (by the far edge, a landing passes close to its corner) or a block.
-                    val under = sandbox.groundTopUnder(x - Item.SIZE / 2, x + Item.SIZE / 2)
-                    val item = positive(x.toInt(), y.toInt())
-                    if ((under == null || y - Item.SIZE / 2 >= under) && pieceBlocks.none { overlaps(item, it) }) items += item
-                }
-                return
+        row(ground, ground.start + ROW_FROM_TILE * TILE, items)
+    }
+
+    /**
+     * A platform with its reward (ADR 0008): a block over [ground], high enough to run under, with a gatito sitting or a
+     * perrito walking on top, which a jump with the finger held reaches. Without jumping she runs under it; on it, she picks
+     * the reward up and drops back to the same ground. Whether it went in.
+     */
+    private fun rewardPlatform(previous: Ground, ground: Ground, items: MutableList<Item>): Boolean {
+        val speed = movement.speedAt(meters(ground.start))
+        val tiles = itemRandom.nextInt(PLATFORM_MIN_TILES, PLATFORM_MAX_TILES + 1)
+        // Time to land from the gap and take off again before it, and room to drop back to the ground after it.
+        val from = ground.start + course.landingMarginTiles * TILE + (speed * PLATFORM_RUN_UP_SECONDS).toInt()
+        val to = ground.end - (speed * PLATFORM_DROP_SECONDS).toInt() - tiles * TILE
+        if (to < from) return false
+        val start = from + itemRandom.nextInt(0, (to - from) / TILE + 1) * TILE
+        val bottom = ground.top + BLOCK_CLEARANCE + itemRandom.nextInt(0, PLATFORM_EXTRA_HEIGHT + 1)
+        val platform = Block(start, start + tiles * TILE, bottom, bottom + TILE)
+        // Nothing that takes points away under it or near it, and no other block by it.
+        if (items.any { !it.kind.adds && it.x > platform.start - ROW_CLEARANCE && it.x < platform.end + ROW_CLEARANCE }) return false
+        if (pieceBlocks.any { it.end > platform.start - TILE && it.start < platform.end + TILE }) return false
+        pieceBlocks += platform
+        if (!reachable(ground, platform) || !fairGap(previous, ground, items, path = null)) {
+            pieceBlocks -= platform
+            return false
+        }
+        val count = if (tiles >= PLATFORM_MAX_TILES && itemRandom.nextBoolean()) 2 else 1
+        for (k in 1..count) {
+            val animal = positive(platform.start + k * (platform.end - platform.start) / (count + 1), platform.top + GROUND_ITEM_HEIGHT)
+            // A perrito walks the platform and turns at its edges, like on the ground.
+            if (animal.kind == ItemKind.Perrito) animal.walk = walkOn(animal, platform.start + PLATFORM_EDGE, platform.end - PLATFORM_EDGE)
+            items += animal
+        }
+        return true
+    }
+
+    /** Whether some jumps from [ground] before it land on top of the [platform]: getting its reward has to be fair too. */
+    private fun reachable(ground: Ground, platform: Block): Boolean {
+        sandbox.clear()
+        sandbox.append(Piece(listOf(ground), emptyList(), ground.end, blocks = pieceBlocks))
+        val speed = movement.speedAt(meters(platform.start))
+        val windowSteps = ceil(PLATFORM_WINDOW_SECONDS / JumpLab.STEP).toInt()
+        val startX = max(ground.start + half.toDouble(), platform.start - half - speed.toDouble() * (windowSteps + 1) * JumpLab.STEP)
+        var good = 0
+        for (press in windowSteps downTo 0) {
+            for (hold in maxHold downTo 0) {
+                val landing = lab.tryJump(sandbox, emptyList(), startX, ground.top.toFloat(), runStart, press, hold)
+                if (landing.landed && landing.top == platform.top && ++good >= PLATFORM_GOOD_JUMPS) return true
             }
         }
-        row(ground, ground.start + ROW_FROM_TILE * TILE, items)
+        return false
     }
 
     private fun row(ground: Ground, from: Int, items: MutableList<Item>) {
@@ -325,17 +368,24 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
      * what takes points away on it, so running along the ground always picks it up without a jump.
      */
     private fun walkFor(perrito: Item, ground: Ground, items: List<Item>): Walk? {
-        val settings = config.items
-        if (itemRandom.nextFloat() < settings.perritoStillShare) return null
-        var low = max(ground.start + WALK_EDGE, perrito.x - settings.perritoRangeTiles * TILE)
-        var high = min(ground.end - WALK_EDGE, perrito.x + settings.perritoRangeTiles * TILE)
+        var low = ground.start + WALK_EDGE
+        var high = ground.end - WALK_EDGE
         for (item in items) {
             val onThisGround = item.x >= ground.start && item.x < ground.end && item.y - ground.top < Item.SIZE
             if (item.kind.adds || !onThisGround) continue
             if (item.x < perrito.x) low = max(low, item.x + ROW_CLEARANCE) else high = min(high, item.x - ROW_CLEARANCE)
         }
-        if (perrito.x < low || perrito.x > high || high - low < MIN_WALK) return null
-        return Walk((low - perrito.x).toFloat(), (high - perrito.x).toFloat(), settings, itemRandom.nextInt())
+        return walkOn(perrito, low, high)
+    }
+
+    /** A walk for a perrito between [low] and [high] (its centre, in world pixels), or null if it stays still. */
+    private fun walkOn(perrito: Item, low: Int, high: Int): Walk? {
+        val settings = config.items
+        if (itemRandom.nextFloat() < settings.perritoStillShare) return null
+        val from = max(low, perrito.x - settings.perritoRangeTiles * TILE)
+        val to = min(high, perrito.x + settings.perritoRangeTiles * TILE)
+        if (perrito.x < from || perrito.x > to || to - from < MIN_WALK) return null
+        return Walk((from - perrito.x).toFloat(), (to - perrito.x).toFloat(), settings, itemRandom.nextInt())
     }
 
     /**
@@ -374,25 +424,6 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
     private fun fairObstacle(ground: Ground, obstacle: Item): Boolean {
         val jump = ObstacleJump(ground, obstacle)
         return fair(jump.windowSteps, ground.top.toFloat(), jump.startX, listOf(obstacle)) { jump.clears(it) }
-    }
-
-    /**
-     * The choice of GEN-07: a perrito or a gatito at the top of a long jump over the [obstacle]. A quick tap clears the
-     * obstacle and passes under it; keeping the finger down longer gets it.
-     */
-    private fun choice(ground: Ground, obstacle: Item, items: MutableList<Item>) {
-        val jump = ObstacleJump(ground, obstacle)
-        val avoid = listOf(obstacle)
-        for (hold in maxHold downTo maxHold * 2 / 3) {
-            for (press in jump.windowSteps downTo 0) {
-                if (!jump.clears(lab.tryJump(sandbox, avoid, jump.startX, ground.top.toFloat(), runStart, press, hold))) continue
-                val path = mutableListOf<Pair<Double, Float>>()
-                lab.tryJump(sandbox, avoid, jump.startX, ground.top.toFloat(), runStart, press, hold, path = path)
-                val (x, y) = path.maxByOrNull { it.second } ?: return
-                items += positive(x.toInt(), y.toInt())
-                return
-            }
-        }
     }
 
     /** The jumps over an [obstacle] on [ground]: where the run-up starts, and whether a landing clears it with room to run. */
@@ -472,7 +503,6 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
         const val CALM_FLAT_MIN_TILES = 8
         const val CALM_FLAT_MAX_TILES = 14
         const val FISH_SHARE = 0.4f
-        const val CHOICE_SHARE = 0.5f
         const val MAX_NEGATIVES_PER_PIECE = 2
         const val DIFFICULT_GAP_TILES = 4
 
@@ -503,7 +533,6 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
         /** Where the collectibles go, above the ground's top: on the ground at her chest, high where a long jump goes. */
         const val GROUND_ITEM_HEIGHT = 8
         const val CEILING_HEIGHT = 74
-        const val ARC_ITEMS = 3
         const val ROW_FROM_TILE = 3
         const val ROW_MIN = 2
         const val ROW_MAX = 4
@@ -513,5 +542,20 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
         /** How far from the edges of its ground a perrito walks at least, and the shortest stretch worth walking. */
         const val WALK_EDGE = 2 * TILE
         const val MIN_WALK = 8
+
+        /**
+         * The platforms with a reward: how many tiles wide, how much higher than the least to run under them they can be,
+         * the time to take off for one after landing and to drop back after it, how long a run-up the jumps onto it are
+         * tried from and how many have to land on it, and how far from its edges an animal stays.
+         */
+        const val PLATFORM_MIN_TILES = 2
+        const val PLATFORM_MAX_TILES = 3
+        const val PLATFORM_EXTRA_HEIGHT = 8
+        const val PLATFORM_RUN_UP_SECONDS = 0.45f
+        const val PLATFORM_DROP_SECONDS = 0.5f
+        const val PLATFORM_SECONDS = PLATFORM_RUN_UP_SECONDS + PLATFORM_DROP_SECONDS
+        const val PLATFORM_WINDOW_SECONDS = 0.5f
+        const val PLATFORM_GOOD_JUMPS = 4
+        const val PLATFORM_EDGE = 6
     }
 }

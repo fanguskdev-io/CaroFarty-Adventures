@@ -15,7 +15,7 @@ la [lista de bugs](bugs.md); los criterios de salida de cada hito, en [proceso](
 |---|---|---|
 | El salto: la tabla por fotogramas, el coyote time, el buffer, las paredes y los bloques en el aire | `CaroTest` | Común |
 | La precisión lejos del origen (GEN-09) | `FarFromTheOriginTest` | Común |
-| El generador: reglas, semilla, recolectables, la elección, tensión y calma, nunca tres difíciles iguales seguidas, obstáculos en el aire que dejan pasar por debajo y un piloto 3 × 4 min sin caer | `CourseGeneratorTest` | Común |
+| El generador: reglas, semilla, recolectables, ningún animal en el aire, plataformas con premio, tensión y calma, nunca tres difíciles iguales seguidas, obstáculos en el aire que dejan pasar por debajo y un piloto 3 × 4 min sin caer | `CourseGeneratorTest` | Común |
 | La partida: el primer toque, los puntos, el fin por caída y por quedarse sin puntos | `GameRunTest` | Común |
 | Los récords por escenario | `RecordsTest` | Común |
 | El paseo de los perritos: dentro de su tramo, con paradas, igual en cualquier teléfono | `WalkTest` | Común |

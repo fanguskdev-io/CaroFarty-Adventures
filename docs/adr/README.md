@@ -20,4 +20,4 @@ y estas decisiones existen antes de G4 porque Fangusk pidió construir ya. Las r
 | [0005](0005-un-regalo-sin-conexion.md) | Un regalo sin conexión: sin anuncios, analítica ni nada que salga del teléfono | Aceptada | PRD-01 |
 | [0006](0006-tres-escenarios-a-elegir.md) | Tres escenarios distintos y ella elige dónde jugar | Aceptada; los récords por escenario, propuesta | GDD-12 |
 | [0007](0007-la-dificultad-velocidad-y-obstaculos-en-el-aire.md) | La velocidad sigue subiendo y hay obstáculos en el aire: huevos y pescados en el camino del salto y bloques sólidos | Aceptada; los números y la colocación, propuesta | GDD-08, GDD-22 |
-| [0008](0008-perritos-que-caminan-y-gatitos-de-ocho-pelajes.md) | Los perritos del suelo pasean o se quedan quietos; los gatitos, quietos y con ocho pelajes al azar | Aceptada; cómo pasean, propuesta | ITM-18, ITM-19 |
+| [0008](0008-perritos-que-caminan-y-gatitos-de-ocho-pelajes.md) | Los perritos pasean o se quedan quietos; los gatitos, quietos y con ocho pelajes al azar; ningún animal en el aire, salvo en una plataforma | Aceptada; cómo pasean y las plataformas con premio, propuesta | ITM-18, ITM-19, GEN-21 |

@@ -36,9 +36,8 @@ contra las que chocar. Chocar contra el borde de un suelo más alto tras un salt
 | Patrón | Qué pide |
 |---|---|
 | Fila en el suelo | Perritos y gatitos que se recogen corriendo. Los perritos pasean por su suelo o se quedan quietos ([ADR 0008](adr/0008-perritos-que-caminan-y-gatitos-de-ocho-pelajes.md)): como mucho a 2 tiles de su sitio, a 2 tiles o más de los bordes y a 3 tiles o más de lo que resta, así que siempre se recogen corriendo |
-| Arco sobre un barranco | Perritos y gatitos a lo largo de un salto medio: premian el salto bien medido |
 | Obstáculo en el suelo | Un huevo frito o un pescado en el camino que hay que saltar, como los cactus del dinosaurio |
-| Elección | Un perrito o un gatito en lo alto de un salto largo sobre un huevo frito o un pescado del suelo: un toque rápido salva el obstáculo y pasa por debajo; mantener el dedo lo recoge. La lleva la mitad de los obstáculos |
+| Plataforma con premio | Un bloque de 2 o 3 tiles sobre un tramo largo de suelo, con hueco para pasar corriendo por debajo, y encima un gatito sentado o un perrito que pasea y se da la vuelta en sus bordes. Sin saltar se pasa por debajo; manteniendo el dedo se sube, se recoge y se baja al mismo suelo. Lo lleva una de cada tres piezas de tensión, con el suelo alargado lo justo para que quepa a cualquier velocidad, y el validador comprueba que varios saltos aterrizan encima. Los animales nunca flotan: Fangusk, «En el aire no puede aparecer ningún animal, salvo que esté en una plataforma» ([ADR 0008](adr/0008-perritos-que-caminan-y-gatitos-de-ocho-pelajes.md)) |
 | Techo | Un huevo frito o un pescado alto sobre un barranco: pide un salto que no suba demasiado |
 | En el camino del salto | Un huevo frito o un pescado sobre el barranco, donde pasaría el salto que cualquiera haría primero (cerca de su punto más alto, un poco por encima o por debajo): hay que adelantar, retrasar o medir el salto de otra manera. Lo pidió Fangusk ([ADR 0007](adr/0007-la-dificultad-velocidad-y-obstaculos-en-el-aire.md)) |
 | Bloque | Un bloque sólido de 1 o 2 tiles sobre el barranco, cuyo borde de abajo alcanza la cabeza de Caro en ese mismo salto: lo corta. Desde abajo frena la subida, de costado la para en el aire y encima se puede correr. Sobre un suelo deja siempre al menos 28 px por debajo, para que se pueda pasar corriendo. También lo pidió Fangusk |
@@ -63,9 +62,9 @@ pulsaciones distintas que:
 3. no tocan nada que reste.
 
 Así nunca hace falta un salto perfecto: hay margen en el momento y en la duración. Un obstáculo en el suelo se valida igual,
-con 0,4 s de carrera para tomarlo. Los arcos se colocan sobre uno de los saltos buenos y la elección en lo alto de uno
-largo, así que se pueden recoger por construcción. Los bloques entran en la misma simulación: el validador prueba los
-saltos contra ellos con la física del juego, y un salto que se da con uno no cuenta como bueno.
+con 0,4 s de carrera para tomarlo. Una plataforma con premio solo entra si al menos cuatro saltos del suelo aterrizan
+encima y el barranco anterior sigue siendo justo con ella. Los bloques entran en la misma simulación: el validador prueba
+los saltos contra ellos con la física del juego, y un salto que se da con uno no cuenta como bueno.
 
 Si un tramo no es justo se genera otro; tras 8 intentos sale uno fácil, un barranco de 2 tiles a la misma altura y sin
 nada que reste. En las pruebas, un piloto automático que salta como una persona cuidadosa recorre 39 km en 30 minutos sin

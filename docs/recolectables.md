@@ -11,7 +11,7 @@ referencias en M2; en el prototipo en gris son cuadrados de 12 × 12 px con una 
 | | Perrito | Gatito | Huevo frito | Pescado |
 |---|---|---|---|---|
 | **Puntos** | +1 | +1 | −2 | −3 |
-| **Dónde sale** | En filas por el suelo, en arcos sobre los barrancos y en lo alto de la elección | Igual que el perrito | Obstáculo en el suelo, techo sobre un barranco o en el aire, en el camino de un salto | Igual que el huevo frito |
+| **Dónde sale** | En filas por el suelo y encima de las plataformas con premio, nunca en el aire | Igual que el perrito | Obstáculo en el suelo, techo sobre un barranco o en el aire, en el camino de un salto | Igual que el huevo frito |
 | **Cuántos** (cada 100 m) | 7,1 a 8,8 | 7,5 a 8,9 | 1,1 al principio, 2,1 a toda velocidad | 0,7 al principio, 1,3 a toda velocidad |
 | **Caja de choque** | 16 × 16 px, generosa | 16 × 16 px, generosa | 10 × 10 px, estricta | 10 × 10 px, estricta |
 | **Se mueve** (ADR 0008) | En el suelo, pasea por su tramo o se queda quieto; nunca se cae por un barranco | Quieto, sentado | Quieto | Quieto |
@@ -36,9 +36,10 @@ A toda velocidad, un recolectable cruza la pantalla en unos 2 segundos, así que
 
 ## Los patrones
 
-Cómo se colocan está en [generación](generacion.md): filas en el suelo, arcos sobre los barrancos, obstáculos en el suelo
-que hay que saltar, techos sobre los barrancos que piden un salto más bajo, huevos y pescados en el camino del salto que
-cualquiera haría primero y la elección, un perrito o un gatito en lo alto de un salto largo sobre un obstáculo. El validador garantiza que lo que resta siempre se puede esquivar con margen; en las
+Cómo se colocan está en [generación](generacion.md): filas en el suelo, plataformas con un premio encima, obstáculos en
+el suelo que hay que saltar, techos sobre los barrancos que piden un salto más bajo y huevos y pescados en el camino del
+salto que cualquiera haría primero. Los animales siempre están posados, en el suelo o en una plataforma; en el aire solo
+hay lo que resta. El validador garantiza que lo que resta siempre se puede esquivar con margen; en las
 pruebas, un piloto automático juega 50 minutos sin tocar ninguno.
 
 ## Un ejemplo de partida

@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Estado** | aceptada: el qué lo decidió Fangusk el 2026-11-01 en la sesión de diseño con GameMaster, que lo transmitió con sus palabras · propuesta: cómo caminan (velocidad, paradas, por dónde), que se afina jugando |
-| **Fecha** | 2026-11-01 · **Fase:** P0 · Borrador anticipado, sin ninguna puerta confirmada · **Hito:** M2 · **Tarea:** ITM-18, ITM-19 |
+| **Fecha** | 2026-11-01 · **Fase:** P0 · Borrador anticipado, sin ninguna puerta confirmada · **Hito:** M2 · **Tarea:** ITM-18, ITM-19, GEN-21 |
 | **Propone · decide** | Fangusk · Fangusk |
 | **Reversibilidad** | alta · el paseo vive en datos (`items` en `files/ajustes.json`) y los pelajes son variantes de paleta |
 
@@ -22,8 +22,12 @@ gris azulado, calicó, crema, negro, blanco, chocolate y siamés.
   - como mucho a 2 tiles de su sitio, a 2 tiles o más de los bordes de su suelo y a 3 tiles o más de los huevos y
     pescados de ese suelo.
   Así siempre se recogen corriendo, sin saltar ni tocar nada que reste, y una prueba lo comprueba.
-- **Los perritos y gatitos del aire** (los arcos sobre los barrancos y el premio de la elección) se quedan quietos de
-  momento. La pregunta de qué hacer con ellos está hecha a Fangusk a través de GameMaster.
+- **Ningún animal en el aire.** Preguntado por los que salían flotando en los arcos sobre los barrancos y en el premio de
+  la elección, Fangusk respondió (a través de GameMaster): «En el aire no puede aparecer ningún animal, salvo que esté en
+  una plataforma». Arcos y elección se sustituyen por **plataformas con premio**: un bloque de 2 o 3 tiles sobre un tramo
+  largo de suelo, con hueco para pasar corriendo por debajo, y encima un gatito sentado o un perrito que pasea y se da la
+  vuelta en sus bordes. El validador comprueba que varios saltos aterrizan encima. Los huevos y los pescados pueden seguir
+  en el aire (ADR 0007).
 - **Los gatitos se quedan quietos**, sentados, y cada uno lleva uno de los ocho pelajes, sorteado con la semilla: la misma
   partida sale con los mismos gatitos en cualquier teléfono. El arte los dibuja con una sola rejilla y una paleta por
   pelaje ([arte](../arte.md)); en el prototipo en gris, el color del cuadrado da una idea de cada uno.

@@ -38,6 +38,7 @@
     "negativesPer100mStart": 2.0,
     "negativesPer100mEnd": 8.0,
     "positivesPer100m": 8.0,
+    "rewardPlatformShare": 0.35,
     "landingMarginTiles": 1,
     "fairHoldSteps": 4,
     "validatorAttempts": 8

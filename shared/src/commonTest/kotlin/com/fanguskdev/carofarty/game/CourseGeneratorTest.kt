@@ -1,6 +1,5 @@
 package com.fanguskdev.carofarty.game
 
-import kotlin.math.abs
 import kotlin.math.ceil
 import kotlin.math.roundToLong
 import kotlin.test.Test
@@ -153,19 +152,37 @@ class CourseGeneratorTest {
     }
 
     @Test
-    fun someObstaclesHaveAPerritoOrAGatitoAboveThatAQuickTapMisses() {
+    fun noAnimalFloats() {
+        // Fangusk: «En el aire no puede aparecer ningún animal, salvo que esté en una plataforma».
         val generator = CourseGenerator(config, seed = 11)
         val all = Course()
-        repeat(400) { all.append(generator.next()) }
-        val movement = config.movement
-        val rewards = all.items.count { obstacle ->
-            val ground = all.groundTopUnder(obstacle.x - 1.0, obstacle.x + 1.0) ?: return@count false
-            val onTheGround = !obstacle.kind.adds && obstacle.y - ground < Item.SIZE
-            // Above her head at the top of a quick tap: only a longer jump gets it.
-            val missed = ground + QUICK_TAP_HEIGHT + movement.hitboxHeight
-            onTheGround && all.items.any { it.kind.adds && abs(it.x - obstacle.x) < CHOICE_REACH && it.y - Item.SIZE / 2 > missed }
+        repeat(800) { all.append(generator.next()) }
+        for (animal in all.items.filter { it.kind.adds }) {
+            val onAGround = all.groundTopUnder(animal.x - 1.0, animal.x + 1.0) == animal.y - SITTING_HEIGHT
+            val onABlock = all.blocks.any { animal.x >= it.start && animal.x < it.end && it.top == animal.y - SITTING_HEIGHT }
+            assertTrue(onAGround || onABlock, "a ${animal.kind} in the air at ${animal.x}, ${animal.y}")
         }
-        assertTrue(rewards > 0, "no obstacle has a reward for a long jump")
+    }
+
+    @Test
+    fun platformsWithARewardSitOverTheGroundWithinAJump() {
+        val generator = CourseGenerator(config, seed = 17)
+        val all = Course()
+        repeat(800) { all.append(generator.next()) }
+        val platforms = all.blocks.filter { block ->
+            all.items.any {
+                it.kind.adds &&
+                    it.x >= block.start &&
+                    it.x < block.end &&
+                    it.y == block.top + SITTING_HEIGHT
+            }
+        }
+        assertTrue(platforms.isNotEmpty(), "there are platforms with a reward")
+        for (platform in platforms) {
+            val ground = all.groundTopUnder(platform.start.toDouble(), platform.end.toDouble())
+            assertTrue(ground != null, "a platform over a ground, never over a gap")
+            assertTrue(platform.top - ground <= HIGHEST_JUMP - SITTING_HEIGHT, "a platform at ${platform.start} out of reach")
+        }
     }
 
     @Test
@@ -254,11 +271,11 @@ class CourseGeneratorTest {
     private companion object {
         const val FNV_OFFSET = -3750763034362895579L
         const val FNV_PRIME = 1099511628211L
-        const val SAME_RUN = 2501442368024749609L
+        const val SAME_RUN = -5442993850744885108L
 
-        /** How high a quick tap of 3 steps goes (docs/movimiento.md), and how far from its obstacle a long jump's top can be. */
-        const val QUICK_TAP_HEIGHT = 24
-        const val CHOICE_REACH = 4 * TILE
+        /** How high an animal's centre sits over what it stands on, and the highest jump of docs/movimiento.md. */
+        const val SITTING_HEIGHT = 8
+        const val HIGHEST_JUMP = 67
 
         /** The generator's measure of a difficult piece, and how long a calm stretch lasts at most, in metres. */
         const val DIFFICULT_GAP_TILES = 4

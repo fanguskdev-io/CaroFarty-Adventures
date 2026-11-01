@@ -91,6 +91,8 @@ data class CourseConfig(
     val negativesPer100mStart: Float = 2f,
     val negativesPer100mEnd: Float = 8f,
     val positivesPer100m: Float = 8f,
+    /** Of the groups of perritos and gatitos, the share that goes on a platform with a reward instead of a row (ADR 0008). */
+    val rewardPlatformShare: Float = 0.35f,
     /** How far inside the next ground a valid jump has to land. */
     val landingMarginTiles: Int = 1,
     /** How many hold lengths, in steps of the simulation, have to work for a gap to count as fair. */

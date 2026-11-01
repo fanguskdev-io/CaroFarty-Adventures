@@ -19,4 +19,4 @@ y estas decisiones existen antes de G4 porque Fangusk pidió construir ya. Las r
 | [0004](0004-generacion-por-reglas-con-validador.md) | Un recorrido generado por reglas y comprobado por un validador de saltos | Aceptada | GDD-07 |
 | [0005](0005-un-regalo-sin-conexion.md) | Un regalo sin conexión: sin anuncios, analítica ni nada que salga del teléfono | Aceptada | PRD-01 |
 | [0006](0006-tres-escenarios-a-elegir.md) | Tres escenarios distintos y ella elige dónde jugar | Aceptada; los récords por escenario, propuesta | GDD-12 |
-| [0007](0007-la-dificultad-velocidad-y-obstaculos-en-el-aire.md) | La velocidad sigue subiendo y hay obstáculos en el aire: huevos y pescados en el camino del salto y bloques sólidos | Aceptada; los números y la colocación, propuesta | GDD-08, GDD-19 |
+| [0007](0007-la-dificultad-velocidad-y-obstaculos-en-el-aire.md) | La velocidad sigue subiendo y hay obstáculos en el aire: huevos y pescados en el camino del salto y bloques sólidos | Aceptada; los números y la colocación, propuesta | GDD-08, GDD-22 |

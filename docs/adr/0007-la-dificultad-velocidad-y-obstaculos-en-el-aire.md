@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Estado** | aceptada: el qué lo dictó Fangusk el 2026-11-01 al jugar el prototipo en gris · propuesta: los números de la velocidad y cómo se colocan los obstáculos, que se afinan jugando |
-| **Fecha** | 2026-11-01 · **Fase:** P0 · Borrador anticipado, sin ninguna puerta confirmada · **Hito:** M1 · **Tarea:** GDD-08, GDD-19 |
+| **Fecha** | 2026-11-01 · **Fase:** P0 · Borrador anticipado, sin ninguna puerta confirmada · **Hito:** M1 · **Tarea:** GDD-08, GDD-22 |
 | **Propone · decide** | Fangusk · Fangusk |
 | **Reversibilidad** | alta · la velocidad vive en datos (TEC-07) y los obstáculos son patrones del generador |
 
@@ -41,7 +41,7 @@ Las especificaciones dejan fuera los enemigos y fijan cómo se pierde: con 0 pun
 
 ## Consecuencias
 
-- Tareas nuevas en el backlog: el diseño de los obstáculos en el aire (GDD-19), el choque con los bloques (PLY-16), su
-  colocación en el generador (GEN-18) y su dibujo en cada escenario (ART-25, en M2, con el resto del arte).
+- Tareas nuevas en el backlog: el diseño de los obstáculos en el aire (GDD-22), el choque con los bloques (PLY-16), su
+  colocación en el generador (GEN-20) y su dibujo en cada escenario (ART-25, en M2, con el resto del arte).
 - La corrección de esquinas (PLY-05) gana sentido con los bloques: rozar uno por muy poco no debería frenar el salto.
 - Los números se afinan jugando (PLY-15) en `files/ajustes.json`.

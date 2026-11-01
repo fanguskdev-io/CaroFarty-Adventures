@@ -63,9 +63,10 @@ en GDD-08.
 
 ## Los escenarios
 
-Bosque, Nieve y Desierto se suceden cada 600 m con un tramo de transición llano entre ellos, y el ciclo vuelve a empezar
-con la dificultad que haya alcanzado la partida. En la primera versión los tres tienen las mismas reglas de terreno y
-cambian el arte, la paleta y la música; una mecánica propia por escenario sería una decisión de Fangusk.
+Ella elige el escenario antes de cada partida y el recorrido se genera entero en él, sin transiciones
+([ADR 0006](adr/0006-tres-escenarios-a-elegir.md)): el generador recibe el escenario y usa sus piezas, su paleta y sus
+fondos (GEN-08). En la primera versión los tres comparten estas reglas de terreno; una mecánica propia por escenario
+sería una decisión de Fangusk, y entraría como reglas o patrones de ese escenario sin tocar el validador.
 
 ## Semilla y memoria
 

@@ -13,3 +13,4 @@ mientras Fangusk no diga otra cosa. Solo Fangusk pasa una propuesta a aceptada.
 | [0003](0003-horizontal-y-pixel-perfecto.md) | En horizontal, 320×180 como mínimo, tiles de 16 px y escalado entero | Propuesta | GDD-04 |
 | [0004](0004-generacion-por-reglas-con-validador.md) | Un recorrido generado por reglas y comprobado por un validador de saltos | Propuesta | GDD-07 |
 | [0005](0005-un-regalo-sin-conexion.md) | Un regalo sin conexión: sin anuncios, analítica ni nada que salga del teléfono | Aceptada en el qué; propuesta en el cómo | PRD-01 |
+| [0006](0006-tres-escenarios-a-elegir.md) | Tres escenarios distintos y ella elige dónde jugar | Aceptada en el qué; propuesta en el cómo | GDD-12 |

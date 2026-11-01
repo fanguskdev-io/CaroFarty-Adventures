@@ -32,12 +32,15 @@ Los pilares, que deciden qué entra y qué no:
    puede ser «infinita».
 
 Y en sus respuestas del mismo día: para ella ahora y quizá publicarlo después; se empieza con 10 puntos; dos récords, la
-distancia y los puntos; sin fecha de entrega.
+distancia y los puntos; sin fecha de entrega. Y una aclaración: «Vale una pequeña aclaración sobre los escenarios, no tienen
+que ser el mismo y que vaya cambiando cada 600 metros. Son 3 escenarios distintos, el usuario elige donde jugar sin en
+Bosque, Nieve o Desierto» ([ADR 0006](adr/0006-tres-escenarios-a-elegir.md)).
 
 ## El bucle de juego
 
-Tocar para empezar → Caro corre sola → saltar los barrancos y elegir qué recoger → la partida acaba al quedarse sin puntos
-o al caer → se ven los récords → un toque y otra partida.
+Elegir dónde jugar (Bosque, Nieve o Desierto) → tocar para empezar → Caro corre sola → saltar los barrancos y elegir qué
+recoger → la partida acaba al quedarse sin puntos o al caer → se ven los récords → un toque y otra partida, en el mismo
+escenario o en otro.
 
 ## Las reglas
 
@@ -50,6 +53,7 @@ o al caer → se ven los récords → un toque y otra partida.
 | Pescado | −3 | Propuesta, a confirmar jugando el prototipo |
 | Fin de la partida | Los puntos llegan a 0 (nunca bajan de 0) o Caro cae por un barranco | Fangusk |
 | Récords | La distancia recorrida (1 tile = 1 m) y los puntos máximos alcanzados en la partida | Fangusk |
+| Récords por escenario o generales | Uno de distancia y uno de puntos por escenario | Propuesta, pendiente de Fangusk |
 
 Un ejemplo: empieza con 10; coge seis perritos y gatitos (16) y choca con un pescado (13); a los 742 m cae por un barranco.
 Su partida queda en 742 m y 16 puntos máximos, y cada récord se compara por separado.
@@ -77,14 +81,18 @@ salto imposible ([ADR 0004](adr/0004-generacion-por-reglas-con-validador.md), pr
 
 ## Los escenarios
 
-Bosque → Nieve → Desierto → Bosque…, cambiando cada 600 m (alrededor de un minuto de carrera) con un tramo de
-transición. Toman el estilo de Super Mario World; como el juego no tiene un mundo de nieve ni uno de desierto propiamente
-dichos, se aplica su estilo a esos temas. El arte se diseña a partir de las referencias de Fangusk (M2).
+Tres escenarios distintos, Bosque, Nieve y Desierto, y ella elige en cuál jugar antes de cada partida. La partida entera,
+por larga que sea, transcurre en el escenario elegido, con su decorado, su paleta y su música
+([ADR 0006](adr/0006-tres-escenarios-a-elegir.md), dictado por Fangusk). En la primera versión los tres comparten las
+reglas del recorrido; una particularidad jugable de alguno sería una decisión de Fangusk.
+
+Toman el estilo de Super Mario World; como el juego no tiene un mundo de nieve ni uno de desierto propiamente dichos, se
+aplica su estilo a esos temas. El arte se diseña a partir de las referencias de Fangusk (M2).
 
 ## La música
 
 Música generativa y adaptativa por escenario (M4): compuesta por reglas a partir de motivos propios, con variaciones para
-que nunca suene igual, capas que entran con la velocidad y transiciones al cambiar de escenario. Se sintetiza en el
+que nunca suene igual y capas que entran con la velocidad, una música para cada escenario. Se sintetiza en el
 propio teléfono con sonido de 16 bits (instrumentos al estilo de la Super Nintendo y su eco característico) y es
 composición original.
 
@@ -98,7 +106,7 @@ de salida en [proceso](proceso.md):
 | M0 | Esta página y las decisiones (ADR) |
 | M1 | Prototipo en gris en Android e iOS: carrera, salto variable, barrancos, recolectables, fin de partida y generación validada |
 | M2 | Caro, los recolectables y el Bosque con el arte final |
-| M3 | La Nieve, el Desierto y las transiciones |
+| M3 | La Nieve, el Desierto y la pantalla para elegir escenario |
 | M4 | Música dinámica y efectos |
 | M5 | Menús, récords, pausa, ajustes, icono e instalación en sus teléfonos |
 
@@ -106,6 +114,7 @@ de salida en [proceso](proceso.md):
 
 - Validar esta página y aceptar o cambiar las propuestas de los ADR 0002 a 0004.
 - Confirmar los valores de los recolectables cuando juegue el prototipo.
+- Si los récords van por escenario o son uno general (propuesta: por escenario).
 - Los teléfonos donde se jugará y la cuenta de Apple, al llegar a la instalación (TEC-13).
 - Las referencias de Caro, los recolectables y los escenarios, al empezar M2.
 

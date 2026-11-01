@@ -17,6 +17,7 @@ que toque lo afectado y, entera, al cerrar cada hito; para entregar, ninguno blo
 | N.º | Visto | Dónde | Qué pasa | Gravedad | Tarea |
 |---|---|---|---|---|---|
 | B-07 | 2026-11-01 | Lint de Android | Avisos sin efecto en el juego: `appCategory` solo cuenta desde Android 8, Android 16 ignora la orientación fija en pantallas grandes y falta el icono monocromo | Menor | UI-19 |
+| B-09 | 2026-11-01 | Gradle | El plugin de recarga en caliente de Compose (`org.jetbrains.compose.hot`, de la plantilla, solo en el escritorio) usa `Configuration.setVisible`, que Gradle 10 quita | Menor | Al subir a Gradle 10: actualizar el plugin o quitarlo |
 
 ## Cerrados
 
@@ -28,3 +29,4 @@ que toque lo afectado y, entera, al cerrar cada hito; para entregar, ninguno blo
 | B-04 | 2026-11-01 | iOS | La app pedía iOS 18.2 y la librería gráfica de Compose está compilada para 18.5 (aviso del enlazador) | Menor | Mínimo iOS 18.5: no deja fuera ningún iPhone que tuviera iOS 18 |
 | B-05 | 2026-11-01 | Línea de depuración | A 60 FPS constantes marcaba 59 | Menor | Se redondea en vez de truncar |
 | B-06 | 2026-11-01 | Línea de depuración | Dibujar la línea pesaba en lo que mide: el texto y Caro se pintaban píxel a píxel | Menor | Se pintan por tramos de una fila: de 5,9 a 4,5 ms por fotograma en el simulador de iOS |
+| B-08 | 2026-11-01 | Escritorio | Los récords se guardaban sin forzar la escritura en disco: cerrando la ventana de golpe podían perderse | Menor | Se escriben en disco al guardarlos |

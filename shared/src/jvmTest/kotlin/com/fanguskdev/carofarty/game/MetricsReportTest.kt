@@ -140,7 +140,7 @@ class MetricsReportTest {
 
         appendLine("""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 $WIDTH $HEIGHT" font-family="sans-serif" font-size="12">""")
         appendLine("""<rect width="$WIDTH" height="$HEIGHT" fill="#ffffff"/>""")
-        for (meters in 0..CURVE_METERS step 1000) {
+        for (meters in 0..CURVE_METERS step 2000) {
             appendLine("""<line x1="${x(meters)}" y1="$TOP" x2="${x(meters)}" y2="${TOP + plotHeight}" stroke="#dddddd"/>""")
             appendLine("""<text x="${x(meters)}" y="${TOP + plotHeight + 16}" text-anchor="middle">$meters m</text>""")
         }
@@ -162,7 +162,7 @@ class MetricsReportTest {
     private fun format(value: Float): String = String.format(Locale.ROOT, "%.1f", value)
 
     private companion object {
-        val DISTANCES = listOf(0, 300, 600, 900, 1200, 1800, 2400, 3600, 5000)
+        val DISTANCES = listOf(0, 300, 600, 900, 1200, 1800, 2400, 3600, 5000, 7500, 10_000)
 
         /** Stretches of the run, in metres, and how many runs of 5 km are counted for the frequencies. */
         val BANDS = listOf(0..500, 500..1000, 1000..2000, 2000..3500, 3500..5000)
@@ -172,10 +172,10 @@ class MetricsReportTest {
         val STEPS = listOf(0, 2, -3)
         const val BASE_TOP = 5
         const val RUN_UP = 64 * TILE
-        const val MAX_GAP_TILES = 14
+        const val MAX_GAP_TILES = 20
 
-        const val CURVE_METERS = 5000
-        const val CURVE_STEP = 50
+        const val CURVE_METERS = 10_000
+        const val CURVE_STEP = 100
         const val WIDTH = 640
         const val HEIGHT = 280
         const val LEFT = 56

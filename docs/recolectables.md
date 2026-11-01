@@ -1,8 +1,9 @@
 # Recolectables
 
 La ficha de cada recolectable (GDD-10). Lo que dictó Fangusk: suman los perritos y los gatitos; restan los huevos fritos
-y el pescado; se empieza con 10 puntos y con 0 se acaba la partida. **Los valores son una propuesta** hasta que Fangusk
-los confirme jugando el prototipo (QA-03), y viven en `files/ajustes.json` (`score`). Su aspecto final sale de sus
+y el pescado; se empieza con 10 puntos y con 0 se acaba la partida. **Los valores los aceptó Fangusk** después de jugar
+el prototipo: «con respecto a los recolectables acepto tu propuesta» (2026-11-01). Viven en `files/ajustes.json`
+(`score`). Su aspecto final sale de sus
 referencias en M2; en el prototipo en gris son cuadrados de 12 × 12 px con una letra.
 
 ## Las fichas
@@ -11,7 +12,7 @@ referencias en M2; en el prototipo en gris son cuadrados de 12 × 12 px con una 
 |---|---|---|---|---|
 | **Puntos** | +1 | +1 | −2 | −3 |
 | **Dónde sale** | En filas por el suelo, en arcos sobre los barrancos y en lo alto de la elección | Igual que el perrito | Obstáculo en el suelo o techo sobre un barranco | Igual que el huevo frito |
-| **Cuántos** (cada 100 m) | 8,7 a 9,1 | 8,6 a 9,6 | 1,0 al principio, 2,3 a toda velocidad | 0,8 al principio, 1,5 a toda velocidad |
+| **Cuántos** (cada 100 m) | 7,1 a 8,6 | 7,4 a 8,9 | 1,0 al principio, 1,7 a toda velocidad | 0,7 al principio, 1,1 a toda velocidad |
 | **Caja de choque** | 16 × 16 px, generosa | 16 × 16 px, generosa | 10 × 10 px, estricta | 10 × 10 px, estricta |
 | **Cómo se distingue** (propuesta) | Un animal de colores cálidos, que se mueve (el rabo) | Un animal de colores cálidos, que se mueve (las orejas o el rabo) | Comida quieta, blanca y amarilla | Comida quieta, gris azulada |
 | **Al recogerlo** (M4) | Un sonido alegre y corto | El suyo, distinto del perrito | Un sonido seco | Más seco aún: es lo que más resta |

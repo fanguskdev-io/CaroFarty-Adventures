@@ -1,8 +1,10 @@
 {
   "movement": {
-    "startSpeed": 120.0,
-    "maxSpeed": 200.0,
-    "speedRampMeters": 450.0,
+    "startSpeed": 160.0,
+    "quickSpeed": 240.0,
+    "maxSpeed": 360.0,
+    "quickRampMeters": 300.0,
+    "slowRampMeters": 2500.0,
     "jumpSpeed": 230.0,
     "holdGravity": 300.0,
     "holdWindow": 0.36,

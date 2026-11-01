@@ -203,7 +203,9 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
             if (fairGap(previous, ground, items, path) && path.size >= ARC_ITEMS + 1) {
                 for (k in 1..ARC_ITEMS) {
                     val (x, y) = path[path.size * k / (ARC_ITEMS + 1)]
-                    items += Item(positiveKind(), x.toInt(), y.toInt())
+                    // Not where it would touch a ground: by the far edge, a landing passes close to its corner.
+                    val under = sandbox.groundTopUnder(x - Item.SIZE / 2, x + Item.SIZE / 2)
+                    if (under == null || y - Item.SIZE / 2 >= under) items += Item(positiveKind(), x.toInt(), y.toInt())
                 }
                 return
             }

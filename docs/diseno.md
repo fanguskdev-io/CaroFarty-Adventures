@@ -1,7 +1,7 @@
 # CaroFarty · página de diseño
 
-> **Validada por Fangusk el 2026-11-01**: «tienes mi ok para M0». Lo que sigue marcado como propuesta (los valores de los
-> recolectables y los récords por escenario) espera a que lo confirme.
+> **Validada por Fangusk el 2026-11-01**: «tienes mi ok para M0». Lo que sigue marcado como propuesta (los récords por
+> escenario) espera a que lo confirme.
 
 ## Visión
 
@@ -36,6 +36,14 @@ distancia y los puntos; sin fecha de entrega. Y una aclaración: «Vale una pequ
 que ser el mismo y que vaya cambiando cada 600 metros. Son 3 escenarios distintos, el usuario elige donde jugar sin en
 Bosque, Nieve o Desierto» ([ADR 0006](adr/0006-tres-escenarios-a-elegir.md)).
 
+Después de jugar el prototipo en gris, el mismo día: «En la primera version el juego es sencillo, basicamente lo que
+buscabamos pero se hace lento, parece un paseo, estaría mejor que la velocidad fuese subiendo conforme avanza el escenario
+para darle dificultad»; «El salto, por el momento lo veo perfecto, mas adelante volvere a probar»; «con respecto a los
+recolectables acepto tu propuesta»; y «Creo que una buena idea para añadirle dificultad es incorporar obstáculos en el aire
+que dificulten el salto y hagan que el usuario deba tener un mejor timing», con dos formas a la vez: huevos y pescados en
+el camino del salto y bloques sólidos que lo frenan («La opcion 1 y 2 son buenas»;
+[ADR 0007](adr/0007-la-dificultad-velocidad-y-obstaculos-en-el-aire.md)).
+
 ## El bucle de juego
 
 Elegir dónde jugar (Bosque, Nieve o Desierto) → tocar para empezar → Caro corre sola → saltar los barrancos y elegir qué
@@ -47,10 +55,12 @@ escenario o en otro.
 | Regla | Valor | Estado |
 |---|---|---|
 | Puntos al empezar | 10 | Fangusk |
-| Perrito | +1 | Propuesta, a confirmar jugando el prototipo |
-| Gatito | +1 | Propuesta, a confirmar jugando el prototipo |
-| Huevo frito | −2 | Propuesta, a confirmar jugando el prototipo |
-| Pescado | −3 | Propuesta, a confirmar jugando el prototipo |
+| Perrito | +1 | Fangusk, tras jugar el prototipo |
+| Gatito | +1 | Fangusk, tras jugar el prototipo |
+| Huevo frito | −2 | Fangusk, tras jugar el prototipo |
+| Pescado | −3 | Fangusk, tras jugar el prototipo |
+| La velocidad | Sube durante toda la partida, de 160 px/s hacia 360 ([movimiento](movimiento.md)) | Fangusk, que suba; los números, propuesta |
+| Obstáculos en el aire | Huevos y pescados en el camino del salto y bloques sólidos que lo frenan | Fangusk; cómo se colocan, propuesta |
 | Fin de la partida | Los puntos llegan a 0 (nunca bajan de 0) o Caro cae por un barranco | Fangusk |
 | Récords | La distancia recorrida (1 tile = 1 m) y los puntos máximos alcanzados en la partida | Fangusk |
 | Récords por escenario o generales | Uno de distancia y uno de puntos por escenario | Propuesta, pendiente de Fangusk |
@@ -127,7 +137,7 @@ de salida en [proceso](proceso.md):
 
 ## Pendiente de Fangusk
 
-- Confirmar los valores de los recolectables cuando juegue el prototipo.
+- Probar la nueva velocidad y los obstáculos en el aire, y dar su visto bueno al prototipo para pasar a M2 (QA-03).
 - Si los récords van por escenario o son uno general (propuesta: por escenario).
 - Los teléfonos donde se jugará y la cuenta de Apple, al llegar a la instalación (TEC-13).
 - Las referencias de Caro, los recolectables y los escenarios, al empezar M2.

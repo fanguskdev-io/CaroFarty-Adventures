@@ -83,10 +83,12 @@ class CaroTest {
 
     @Test
     fun theSpeedGrowsWithTheDistanceTowardsItsMaximum() {
-        assertEquals(120f, config.speedAt(0.0), 0.01f)
-        assertEquals(178.9f, config.speedAt(600.0), 0.1f)
+        assertEquals(160f, config.speedAt(0.0), 0.01f)
+        assertEquals(254.8f, config.speedAt(600.0), 0.1f)
+        val speeds = (0..20_000 step 500).map { config.speedAt(it.toDouble()) }
+        assertTrue(speeds.zipWithNext().all { (a, b) -> b > a }, "it keeps rising the whole run")
         assertTrue(config.speedAt(100_000.0) <= config.maxSpeed)
-        assertTrue(config.speedAt(100_000.0) > 199.9f)
+        assertTrue(config.speedAt(100_000.0) > 359.9f)
     }
 
     @Test

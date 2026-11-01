@@ -27,13 +27,17 @@ data class GameConfig(
 /** How Caro runs and jumps (GDD-05, ADR 0002). */
 @Serializable
 data class MovementConfig(
-    val startSpeed: Float = 120f,
-    val maxSpeed: Float = 200f,
     /**
-     * How many metres it takes the speed to cover about two thirds of the way from [startSpeed] to [maxSpeed]: quick at
-     * first and slower and slower, so it is near the top after 90 to 120 s of running (guía 1 de GameMaster).
+     * The speed rises the whole run, which is where the difficulty comes from (Fangusk, 2026-11-01: «se hace lento, parece
+     * un paseo, estaría mejor que la velocidad fuese subiendo conforme avanza»): quickly from [startSpeed] towards
+     * [quickSpeed] in the first [quickRampMeters], and from there on slower and slower towards [maxSpeed], over
+     * [slowRampMeters]. Each ramp covers about two thirds of its way in its metres.
      */
-    val speedRampMeters: Float = 450f,
+    val startSpeed: Float = 160f,
+    val quickSpeed: Float = 240f,
+    val maxSpeed: Float = 360f,
+    val quickRampMeters: Float = 300f,
+    val slowRampMeters: Float = 2500f,
     val jumpSpeed: Float = 230f,
     /** The gravity while the finger stays down, the jump is rising and [holdWindow] has not run out. */
     val holdGravity: Float = 300f,
@@ -47,7 +51,11 @@ data class MovementConfig(
     val hitboxHeight: Float = 20f,
 ) {
     /** The running speed after [meters] of the run. */
-    fun speedAt(meters: Double): Float = (maxSpeed - (maxSpeed - startSpeed) * exp(-meters / speedRampMeters)).toFloat()
+    fun speedAt(meters: Double): Float {
+        val quick = (quickSpeed - startSpeed) * (1 - exp(-meters / quickRampMeters))
+        val slow = (maxSpeed - quickSpeed) * (1 - exp(-meters / slowRampMeters))
+        return (startSpeed + quick + slow).toFloat()
+    }
 }
 
 /** How the course is generated (GDD-07, ADR 0004). Lengths and heights in tiles. */
@@ -82,7 +90,7 @@ data class CourseConfig(
     val validatorAttempts: Int = 8,
 )
 
-/** The points (GDD-10, GDD-13). The values of the collectibles are a proposal until Fangusk confirms them. */
+/** The points (GDD-10, GDD-13). Fangusk accepted the values of the collectibles on 2026-11-01. */
 @Serializable
 data class ScoreConfig(
     val startPoints: Int = 10,

@@ -189,7 +189,7 @@ class CourseGeneratorTest {
     private companion object {
         const val FNV_OFFSET = -3750763034362895579L
         const val FNV_PRIME = 1099511628211L
-        const val SAME_RUN = -319429965984655224L
+        const val SAME_RUN = -1073845633597531411L
 
         /** How high a quick tap of 3 steps goes (docs/movimiento.md), and how far from its obstacle a long jump's top can be. */
         const val QUICK_TAP_HEIGHT = 24

@@ -86,7 +86,8 @@ class Course : Terrain {
     override fun wallAhead(fromRight: Double, toRight: Double, feet: Float): Int? {
         for (i in 0 until grounds.size) {
             val ground = grounds[i]
-            if (ground.start > fromRight && ground.start <= toRight && ground.top > feet + CORNER_TOLERANCE) return ground.start
+            // A wall right at her front edge still stops her: she is pressed against it, not past it.
+            if (ground.start >= fromRight && ground.start <= toRight && ground.top > feet + CORNER_TOLERANCE) return ground.start
         }
         return null
     }

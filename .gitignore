@@ -33,3 +33,6 @@ render.experimental.xml
 *.keystore
 google-services.json
 *.hprof
+
+# Los worktrees de los subagentes de Claude Code
+.claude/

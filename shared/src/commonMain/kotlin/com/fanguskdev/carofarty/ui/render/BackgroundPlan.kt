@@ -3,7 +3,6 @@ package com.fanguskdev.carofarty.ui.render
 import com.fanguskdev.carofarty.engine.PixelViewport
 import kotlin.math.ceil
 import kotlin.math.floor
-import kotlin.math.max
 import kotlin.random.Random
 
 /**
@@ -14,11 +13,12 @@ internal class PlanLayer(val speed: Double, val width: Int, val variants: List<I
 
 /**
  * When the far and the middle layer show one of their variants instead of their base. Fangusk, of the cabin of the snow:
- * «intercala aleatoriamente entre cercana y lejana». So: one at a time, never in two layers at once, in one or the other at
- * random, the next one [MIN_SECONDS] to [MAX_SECONDS] after the last one came in and never before it has gone. A variant
- * takes a whole round of its layer's strip, a lap, and the plan is made with the run's [seed] as the camera goes forward,
- * so the same run shows the same. [speedAt] says how fast the camera goes where it is, in pixels a second, and
- * [restCamera] is the camera at the start, as the layers are drawn (paintScenery).
+ * «intercala aleatoriamente entre cercana y lejana». The rule GameMaster's agent proposed with the art: one at a time; the
+ * first [FIRST_MIN] to [FIRST_MAX] seconds after the start; then, once one has left the screen, a pause of [PAUSE_MIN] to
+ * [PAUSE_MAX] seconds; near or far at random, never three times running in the same layer. A variant takes a whole round
+ * of its layer's strip, a lap, the next one coming in on the right, so it never appears at once. The plan is made with the
+ * run's [seed] as the camera goes forward, so the same run shows the same. [speedAt] says how fast the camera goes where
+ * it is, in pixels a second, and [restCamera] is the camera at the start, as the layers are drawn (paintScenery).
  */
 internal class BackgroundPlan(
     seed: Long,
@@ -39,6 +39,8 @@ internal class BackgroundPlan(
     private val choices = layers.indices.filter { layers[it].variants.isNotEmpty() }
     private var lastEnter = restCamera
     private var lastExit = restCamera
+    private var lastLayer = -1
+    private var sameLayer = 0
 
     /** Plans far enough ahead of [camera] and forgets what has gone behind it. */
     fun reach(camera: Double) {
@@ -60,9 +62,13 @@ internal class BackgroundPlan(
     fun windows(): List<ClosedFloatingPointRange<Double>> = planned.map { it.enter..it.exit }
 
     private fun planNext() {
-        val gap = MIN_SECONDS + random.nextDouble() * (MAX_SECONDS - MIN_SECONDS)
-        val start = max(lastEnter + gap * speedAt(lastEnter), lastExit + MARGIN_SECONDS * speedAt(lastExit))
-        val layer = choices[random.nextInt(choices.size)]
+        val first = lastLayer < 0
+        val pause = if (first) between(FIRST_MIN, FIRST_MAX) else between(PAUSE_MIN, PAUSE_MAX)
+        val start = lastExit + pause * speedAt(lastExit)
+        var layer = choices[random.nextInt(choices.size)]
+        if (layer == lastLayer && sameLayer >= 2 && choices.size > 1) layer = choices.first { it != lastLayer }
+        sameLayer = if (layer == lastLayer) sameLayer + 1 else 1
+        lastLayer = layer
         val variants = layers[layer].variants
         val variant = random.nextInt(variants.size)
         val speed = layers[layer].speed
@@ -78,16 +84,14 @@ internal class BackgroundPlan(
         lastExit = exit
     }
 
-    private companion object {
-        /**
-         * The time from one variant coming in to planning the next. A variant waits for the next round of its strip, up to
-         * some 3 s more, so they come every 8 to 15 seconds, as GameMaster proposed.
-         */
-        const val MIN_SECONDS = 8.0
-        const val MAX_SECONDS = 12.0
+    private fun between(low: Double, high: Double): Double = low + random.nextDouble() * (high - low)
 
-        /** At least this long between one variant going and the next coming in. */
-        const val MARGIN_SECONDS = 1.0
+    private companion object {
+        /** When the first comes in, in seconds from the start, and the pause from one leaving to the next coming in. */
+        const val FIRST_MIN = 3.0
+        const val FIRST_MAX = 8.0
+        const val PAUSE_MIN = 8.0
+        const val PAUSE_MAX = 16.0
 
         /** The widest screen, in game pixels: a variant is on the screen from its first column reaching its right edge. */
         const val SCREEN = PixelViewport.MAX_WIDTH.toDouble()

@@ -188,7 +188,9 @@ día.
   "fondo-medio-cabana.png"}, "lejano": {...}}`): la misma tira con algo más, del mismo tamaño y con los mismos colores, que
   el juego pone de vez en cuando en lugar de una vuelta de la tira. Fangusk, de la cabaña de la nieve: «intercala
   aleatoriamente entre cercana y lejana». El juego saca dónde está lo añadido comparando la variante con su base, y lo
-  planea con la semilla: una cada 8 a 15 s, en una capa u otra al azar y nunca en las dos a la vez.
+  planea con la semilla, con la regla que propuso el agente de GameMaster: una sola a la vez; la primera, de 3 a 8 s
+  después de empezar; cuando una sale de la pantalla, una pausa de 8 a 16 s; cerca o lejos al azar, nunca tres veces
+  seguidas en la misma capa; y siempre en la vuelta siguiente de la tira, que entra por la derecha. Sale una cada unos 20 s.
 - **La decoración** (`decoracion-<nombre>` en `tiles.json`, opcional): si el dibujo llega a la fila de abajo de su tile,
   se planta en el suelo, encima de más o menos una de cada seis piezas de superficie que no sean borde (la mata del
   bosque, el matojo del desierto); si no, llena el aire en mosaico a tresbolillo, con la fase cambiada en cada pieza,

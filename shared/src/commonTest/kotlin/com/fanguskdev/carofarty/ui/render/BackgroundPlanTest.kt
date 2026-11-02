@@ -22,16 +22,37 @@ class BackgroundPlanTest {
     }
 
     @Test
-    fun theCabinComesEveryEightToFifteenSecondsAndNeverInBothLayersAtOnce() {
+    fun oneCabinAtATimeTheFirstSoonAndThenAPauseAfterEach() {
         for (seed in 1L..5L) {
             val windows = windows(seed, until = 300_000.0)
-            assertTrue(windows.size > 50, "seed $seed: only ${windows.size} cabins")
-            assertTrue((windows.first().start + 96) / speed >= 8.0, "the first one, not before 8 s")
+            assertTrue(windows.size > 30, "seed $seed: only ${windows.size} cabins")
+            assertTrue((windows.first().start + 96) / speed >= 3.0, "the first one, not before 3 s")
             for (i in 1 until windows.size) {
-                assertTrue(windows[i].start > windows[i - 1].endInclusive, "seed $seed: two at once at ${windows[i].start}")
-                val seconds = (windows[i].start - windows[i - 1].start) / speed
-                assertTrue(seconds >= 8.0, "seed $seed: only $seconds s from one to the next")
+                val pause = (windows[i].start - windows[i - 1].endInclusive) / speed
+                assertTrue(pause >= 8.0, "seed $seed: only $pause s from one leaving to the next")
             }
+        }
+    }
+
+    @Test
+    fun neverThreeTimesRunningInTheSameLayer() {
+        val plan = BackgroundPlan(7, layers, restCamera = -96.0, speedAt = { speed })
+        val seen = mutableListOf<Int>()
+        var camera = -96.0
+        while (camera < 400_000) {
+            plan.reach(camera)
+            for (layer in layers.indices) {
+                for (lap in 0L..3_000L) {
+                    if (plan.variant(layer, lap) >= 0 && (seen.isEmpty() || seen.last() != layer * 10_000 + lap.toInt())) {
+                        seen += layer * 10_000 + lap.toInt()
+                    }
+                }
+            }
+            camera += 2_000
+        }
+        val layersInOrder = seen.distinct().map { it / 10_000 }
+        for (i in 2 until layersInOrder.size) {
+            assertTrue(layersInOrder[i] != layersInOrder[i - 1] || layersInOrder[i] != layersInOrder[i - 2], "three running at $i")
         }
     }
 

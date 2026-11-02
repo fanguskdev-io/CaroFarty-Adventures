@@ -48,8 +48,27 @@ Fangusk pasará al empezar M2 (PRD-11), siempre dibujado desde cero ([propiedad 
 | Particularidad jugable | Ninguna en la primera versión. Una idea, si Fangusk la quisiera: arenas que frenan un poco al aterrizar |
 | Cuándo | M3, con la pantalla para elegir escenario |
 
+## Con su arte (beta del 2026-11-02)
+
+Los tres llegaron la misma noche, diseñados por GameMaster con sus agentes (`arte/<escenario>/`, con vistas previas en
+`previas/`), en vez de esperar al hito de cada uno. Lo que el juego dibuja de cada uno, en [arte](arte.md):
+
+| | Bosque | Nieve | Desierto |
+|---|---|---|---|
+| Suelo | Roca anaranjada con césped | Nieve sobre piedra azul | Arena sobre tierra |
+| Bloque en el aire | Un tocón | Una caja de madera con nieve | Un sillar de arenisca |
+| Fondos | Troncos azulados y bruma verde | Montañas lavanda, abetos nevados y una cabaña | Dunas rosas y lilas y cactus |
+| Decoración | Matas en el suelo | Copos que caen | Matojos que se mecen |
+
+Lo que GameMaster dejó para que decida Fangusk (en su resumen de la mañana): el color de las dunas, si la cabaña de la
+nieve se queda, cuánta nieve cae, el tono de la nieve del fondo y la bruma del bosque.
+
+## Elegir escenario
+
+En el panel de inicio y en el de fin, tres botones sobre el panel con el nombre de cada escenario; el elegido, en amarillo,
+y el mundo de detrás ya es ese (UI-20). El juego recuerda el último elegido. Es la versión sencilla de la pantalla del
+[ADR 0006](adr/0006-tres-escenarios-a-elegir.md): la de una vista de cada escenario queda para más adelante.
+
 ## En el prototipo en gris (M1)
 
-Los tres existen ya con la misma lógica y una paleta gris distinta cada uno. La versión de depuración deja cambiar de
-escenario antes de empezar tocando la esquina inferior izquierda con las herramientas de depuración abiertas; la pantalla
-para elegirlo llega en M3 (UI-20).
+Sin arte, los tres se dibujan con la misma lógica y una paleta gris distinta cada uno.

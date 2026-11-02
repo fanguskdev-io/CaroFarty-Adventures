@@ -1,6 +1,7 @@
 package com.fanguskdev.carofarty.ui.render
 
 import androidx.compose.ui.graphics.FilterQuality
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
@@ -18,7 +19,8 @@ import kotlin.math.roundToLong
 /**
  * The ground of [scenery] in its tiles (TEC-18): the surface on top and the fill under it, alternating two of each so it
  * does not look repeated, and the edges where a ground ends over a gap or rises above its neighbour, so a gap reads at any
- * speed. In the low resolution buffer, like paintWorld; [base] is the buffer row of the world's y = 0.
+ * speed; and the scenery's plant here and there on top. In the low resolution buffer, like paintWorld; [base] is the
+ * buffer row of the world's y = 0.
  */
 internal fun DrawScope.paintGroundTiles(
     run: GameRun,
@@ -27,6 +29,7 @@ internal fun DrawScope.paintGroundTiles(
     cameraBottom: Int,
     width: Int,
     base: Int,
+    millis: Long,
 ) {
     val grounds = run.course.grounds
     for (i in 0 until grounds.size) {
@@ -55,6 +58,11 @@ internal fun DrawScope.paintGroundTiles(
                 drawFrame(scenery.tiles, frame, left, base - top)
                 row++
                 top = bottom
+            }
+            val plant = scenery.plant
+            if (plant != null && column > 0 && column < columns - 1 && variation(x / TILE, PLANT_ROW) % PLANT_EVERY == 0) {
+                val time = millis + variation(x / TILE, PLANT_ROW + 1) % OUT_OF_STEP_MILLIS
+                drawFrame(scenery.tiles, plant.frameAt(time, loops = true), left, base - ground.top - TILE)
             }
             column++
         }
@@ -161,6 +169,7 @@ internal fun DrawScope.paintScenery(
     cameraBottom: Int,
     viewport: PixelViewport,
     groundLine: Int,
+    millis: Long,
 ) {
     val scale = viewport.scale
     val sky = scenery.sky
@@ -176,6 +185,37 @@ internal fun DrawScope.paintScenery(
     }
     scenery.far?.let { paintLayer(it, FAR_SPEED, camera, restCamera, cameraBottom, viewport, groundLine) }
     scenery.mid?.let { paintLayer(it, MID_SPEED, camera, restCamera, cameraBottom, viewport, groundLine) }
+    scenery.weather?.let { paintWeather(it.at(millis), camera, restCamera, cameraBottom, viewport) }
+}
+
+/** The mosaic of a decoration in the air over the whole screen, at [WEATHER_SPEED] of the camera. */
+private fun DrawScope.paintWeather(
+    image: ImageBitmap,
+    camera: Double,
+    restCamera: Double,
+    cameraBottom: Int,
+    viewport: PixelViewport,
+) {
+    val scale = viewport.scale
+    val shift = (camera - restCamera) * WEATHER_SPEED + floor(restCamera * WEATHER_SPEED)
+    val period = image.width.toLong() * scale
+    val first = floor(cameraBottom * WEATHER_SPEED).toInt().mod(image.height) - image.height
+    var x = -(shift * scale).roundToLong().mod(period)
+    while (x < viewport.width.toLong() * scale) {
+        var y = first
+        while (y < viewport.height) {
+            drawImage(
+                image,
+                IntOffset.Zero,
+                IntSize(image.width, image.height),
+                IntOffset(viewport.offsetX + x.toInt(), viewport.offsetY + y * scale),
+                IntSize(image.width * scale, image.height * scale),
+                filterQuality = FilterQuality.None,
+            )
+            y += image.height
+        }
+        x += period
+    }
 }
 
 private fun DrawScope.paintLayer(
@@ -249,3 +289,10 @@ private const val OUT_OF_STEP_MILLIS = 1000L
 private const val REST_MILLIS = 1000L
 private const val FAR_SPEED = 0.3
 private const val MID_SPEED = 0.6
+
+/** The decoration in the air moves with the ground, as GameMaster made it. */
+private const val WEATHER_SPEED = 1.0
+
+/** One surface tile in this many, more or less, has the scenery's plant on it. */
+private const val PLANT_EVERY = 6
+private const val PLANT_ROW = 7

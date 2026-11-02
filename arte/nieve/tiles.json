@@ -1,0 +1,297 @@
+{
+ "paleta": "nieve",
+ "tamaño": [
+  16,
+  16
+ ],
+ "ancla": [
+  0,
+  0
+ ],
+ "animaciones": {
+  "superficie-1": {
+   "ms": 0,
+   "fotogramas": [
+    [
+     "..llll..lllll...",
+     "llllllllllllllll",
+     "lllmmlllllllmlll",
+     "llllllllllmmllll",
+     "llmlllllmlllllll",
+     "lmmllllmmllllmll",
+     "mlmmllmmmmllmmmm",
+     "mmmmmmmmmlmmnmlm",
+     "mnnmlnmnnmmmmnmm",
+     "nnnnmmnnnnnmnnnn",
+     "qnnnnnqnnnnpnnnq",
+     "qqnppnqqqnnppnqq",
+     "qqqrrqqqqqqrrrqq",
+     "qqqqqqqqqqqqqqqq",
+     "qqqqqqopqqqqqqoq",
+     "qqqqqqqrrqqqqqqq"
+    ]
+   ]
+  },
+  "superficie-2": {
+   "ms": 0,
+   "fotogramas": [
+    [
+     "..lll..llll..ll.",
+     "llllllllllllllll",
+     "llmllllmmllllmll",
+     "lllllllllllllmll",
+     "lllllmllllmlllll",
+     "llmmlllmmmllllml",
+     "mmmmmlmmmmmllmmm",
+     "mlmnmlmmmmlmmmmm",
+     "mmnnmmmnnnmmmnmm",
+     "nnnnnmnnnnmmnnnn",
+     "qnnnpnnnnrnnnrnn",
+     "qqnqqrnrrqqnqqnq",
+     "qqqqqqqqqqqqqqqq",
+     "qopqqqqqqqqqopqq",
+     "qqrrqqqqqqqqqrrq",
+     "qqqqqqqqqqqqqqqq"
+    ]
+   ]
+  },
+  "relleno-1": {
+   "ms": 0,
+   "fotogramas": [
+    [
+     "qqqqqqqqqqqqqqqq",
+     "qqqooopqqqqqqqqq",
+     "qqoopppprqqqqqqq",
+     "qooppppprqqqopqq",
+     "qopppppprqqopprq",
+     "qqppppprqqqqprrq",
+     "qqqrrrrqqqqqrrqq",
+     "qqqqqqqqqqqqqqqq",
+     "qqqqqqqqqqoopqqq",
+     "qqqqqqqqqooppprq",
+     "qqqopqqqqopppprq",
+     "qqopprqqqqppprqq",
+     "qqqrrqqqqqqrrrqq",
+     "qqqqqqqqqqqqqqqq",
+     "qqqqqqopqqqqqqoq",
+     "qqqqqqqrrqqqqqqq"
+    ]
+   ]
+  },
+  "relleno-2": {
+   "ms": 0,
+   "fotogramas": [
+    [
+     "qqqqqqqqqqqqqqqq",
+     "qqqqqqqqqqoopqqq",
+     "qqopqqqqqooppprq",
+     "qopprqqqqopppprq",
+     "qqrrqqqqqqppprqq",
+     "qqqqqqqqqqqrrrqq",
+     "qqqqqooopqqqqqqq",
+     "qqqqoopppprqqqqq",
+     "qqqooppppprqqopq",
+     "qqqopppppprqoppr",
+     "qqqqppppprqqqrrq",
+     "qqqqqrrrrqqqqqqq",
+     "qqqqqqqqqqqqqqqq",
+     "qopqqqqqqqqqopqq",
+     "qqrrqqqqqqqqqrrq",
+     "qqqqqqqqqqqqqqqq"
+    ]
+   ]
+  },
+  "borde-izq": {
+   "ms": 0,
+   "fotogramas": [
+    [
+     "....l..llll..ll.",
+     ".lllllllllllllll",
+     "lllllllmmllllmll",
+     "lllllllllllllmll",
+     "lllllmllllmlllll",
+     "llmmlllmmmllllml",
+     "lmmmmlmmmmmllmmm",
+     ".lmnmlmmmmlmmmmm",
+     "..nnnmmnnnmmmnmm",
+     ".nlm0rrnnnmmnnnn",
+     "..mo0rrnnrnnnrnn",
+     "..m.orrrrqqnqqnq",
+     "..o.orrqqqqqqqqq",
+     "....orrqqqqqopqq",
+     "...orrqqqqqqqrrq",
+     "...orrqqqqqqqqqq"
+    ]
+   ]
+  },
+  "borde-der": {
+   "ms": 0,
+   "fotogramas": [
+    [
+     "..llll..llll....",
+     "llllllllllllllm.",
+     "lllmmllllllllllm",
+     "llllllllllmmlllm",
+     "llmlllllmlllllmm",
+     "lmmllllmmllllmmn",
+     "mlmmllmmmmllmmnn",
+     "mmmmmmmmmlmmmnn.",
+     "mnnmlnmnnmmnnn..",
+     "nnnnmmnnnrr0mln.",
+     "qnnnnnqnnrr0om..",
+     "qqnppnqqqrrp.m..",
+     "qqqrrqqqqrrp.o..",
+     "qqqqqqqqqrrp....",
+     "qqqqqqopqqrrp...",
+     "qqqqqqqrrqrrp..."
+    ]
+   ]
+  },
+  "relleno-izq": {
+   "ms": 0,
+   "fotogramas": [
+    [
+     "...orrqqqqqqqqqq",
+     "...orrqqqqoopqqq",
+     "...orrqqqooppprq",
+     "..orrqqqqopppprq",
+     "...orrqqqqppprqq",
+     "...orrqqqqqrrrqq",
+     "...orrqopqqqqqqq",
+     "....orrqpprqqqqq",
+     "....orrqpprqqopq",
+     "...orrqppprqoppr",
+     "...orrqpprqqqrrq",
+     "...orrrrrqqqqqqq",
+     "..orrqqqqqqqqqqq",
+     "...orrqqqqqqopqq",
+     "...orrqqqqqqqrrq",
+     "...orrqqqqqqqqqq"
+    ]
+   ]
+  },
+  "relleno-der": {
+   "ms": 0,
+   "fotogramas": [
+    [
+     "qqqqqqqqqqrrp...",
+     "qqqooopqqqrrp...",
+     "qqoopppprqrrp...",
+     "qooppppprqqrrp..",
+     "qopppppprqrrp...",
+     "qqppppprqqrrp...",
+     "qqqrrrrqqqrrp...",
+     "qqqqqqqqqrrp....",
+     "qqqqqqqqqrrp....",
+     "qqqqqqqqqrrp....",
+     "qqqopqqqqqrrp...",
+     "qqopprqqqqrrp...",
+     "qqqrrqqqqqqrrp..",
+     "qqqqqqqqqqrrp...",
+     "qqqqqqopqqrrp...",
+     "qqqqqqqrrqrrp..."
+    ]
+   ]
+  },
+  "bloque": {
+   "ms": 0,
+   "fotogramas": [
+    [
+     "..000000000000..",
+     ".0llllllllllll0.",
+     "0lllllllllllllm0",
+     "0llllllllllllmm0",
+     "0mllllmmllllmmn0",
+     "0nmmmmnnmmmmnnn0",
+     "0snnnssnnsssnnu0",
+     "0sssssssssssssu0",
+     "0stuuuuuuuusstu0",
+     "0stutttttssuutu0",
+     "0stutttssuutttu0",
+     "0stutssuutttttu0",
+     "0stssuutttttttu0",
+     "0sttttttttttttu0",
+     "0uuuuuuuuuuuuuu0",
+     "0000000000000000"
+    ]
+   ]
+  },
+  "decoracion-copos": {
+   "ms": 250,
+   "fotogramas": [
+    [
+     "...m............",
+     "..mlm...........",
+     "...m............",
+     "................",
+     "................",
+     "...........lm...",
+     "................",
+     "................",
+     "..m.............",
+     "................",
+     ".......lm.......",
+     "................",
+     "............m...",
+     "...........mlm..",
+     "............m...",
+     "................"
+    ],
+    [
+     "...........m....",
+     "..........mlm...",
+     "...........m....",
+     "................",
+     "....m...........",
+     "...mlm..........",
+     "....m...........",
+     "................",
+     "................",
+     "...........lm...",
+     "................",
+     "................",
+     "..m.............",
+     "................",
+     "........lm......",
+     "................"
+    ],
+    [
+     "...m............",
+     "................",
+     ".......lm.......",
+     "................",
+     "...........m....",
+     "..........mlm...",
+     "...........m....",
+     "................",
+     "....m...........",
+     "...mlm..........",
+     "....m...........",
+     "................",
+     "................",
+     "..........lm....",
+     "................",
+     "................"
+    ],
+    [
+     "................",
+     "..........lm....",
+     "................",
+     "................",
+     "...m............",
+     "................",
+     "......lm........",
+     "................",
+     "............m...",
+     "...........mlm..",
+     "............m...",
+     "................",
+     "...m............",
+     "..mlm...........",
+     "...m............",
+     "................"
+    ]
+   ]
+  }
+ }
+}

@@ -1,12 +1,17 @@
 package com.fanguskdev.carofarty.ui.render
 
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Canvas
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.drawscope.CanvasDrawScope
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.withTransform
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.LayoutDirection
 import carofarty.shared.generated.resources.Res
 import com.fanguskdev.carofarty.game.Reaction
 import com.fanguskdev.carofarty.game.Scenario
@@ -108,6 +113,9 @@ internal class SpriteSet(
     val breeds: List<String>,
 ) {
     fun animation(name: String): Animation? = animations[name]
+
+    /** The first animation whose name starts with [prefix], in the order of the art. */
+    fun firstAnimation(prefix: String): Animation? = animations.entries.firstOrNull { it.key.startsWith(prefix) }?.value
 
     /** The same sheet in the colours of the variant [name] of [family]: "" for those without a family, like Caro's clothes. */
     fun variant(family: String, name: String): Sheet? = variants.firstOrNull { it.family == family && it.name == name }?.sheet
@@ -233,7 +241,11 @@ internal class Breed(val walk: Animation, val still: Animation, val sheet: Sheet
 /** A layer of the background that repeats sideways, with [belowGround] of its rows under the line of the ground. */
 internal class Layer(val image: ImageBitmap, val belowGround: Int)
 
-/** A scenario: the tiles of its ground (frames of [tiles]), its block in the air, its sky and its far and middle layers. */
+/**
+ * A scenario: the tiles of its ground (frames of [tiles]), its block in the air, its sky and its far and middle layers,
+ * and its decoration if it has one: [plant], drawn on the ground here and there, or [weather], a mosaic of it in front of
+ * the background and behind everything else, with each piece at another moment of the animation (GameMaster's copos).
+ */
 internal class ScenarioArt private constructor(
     val tiles: Sheet,
     val surface: IntArray,
@@ -246,6 +258,8 @@ internal class ScenarioArt private constructor(
     val sky: ImageBitmap?,
     val far: Layer?,
     val mid: Layer?,
+    val plant: Animation?,
+    val weather: Weather?,
 ) {
     companion object {
         /** The scenario's art, or null without its surface and its fill. */
@@ -259,6 +273,9 @@ internal class ScenarioArt private constructor(
             val surface = listOfNotNull(tile("superficie-1"), tile("superficie-2"))
             val fill = listOfNotNull(tile("relleno-1"), tile("relleno-2"))
             if (surface.isEmpty() || fill.isEmpty()) return null
+            // A decoration that reaches the bottom of its tile stands on the ground; one that does not floats in the air.
+            val decoration = set.firstAnimation(DECORATION)
+            val planted = decoration != null && decoration.emptyBelow == 0
             return ScenarioArt(
                 tiles = set.sheet,
                 surface = surface.toIntArray(),
@@ -271,8 +288,54 @@ internal class ScenarioArt private constructor(
                 sky = sky,
                 far = far,
                 mid = mid,
+                plant = if (planted) decoration else null,
+                weather = if (decoration != null && !planted) Weather.of(set.sheet, decoration) else null,
             )
         }
+
+        private const val DECORATION = "decoracion-"
+    }
+}
+
+/**
+ * A decoration in the air as a mosaic, as GameMaster draws the copos: staggered, every other tile in a row and the next
+ * row shifted, each row nudged a few pixels and every tile at another phase so the grid does not show. One image of
+ * [CELLS] × [CELLS] tiles for each moment of its animation, made once when the art loads, so drawing it takes a few images
+ * a frame and not hundreds of tiles.
+ */
+internal class Weather private constructor(private val moments: Array<ImageBitmap>, private val frameMillis: Long) {
+    val size: Int get() = moments[0].width
+
+    /** The mosaic at [millis]. */
+    fun at(millis: Long): ImageBitmap = moments[((millis / frameMillis) % moments.size).toInt()]
+
+    companion object {
+        private const val CELLS = 8
+
+        fun of(sheet: Sheet, animation: Animation): Weather {
+            val across = CELLS * sheet.width
+            val tall = CELLS * sheet.height
+            val moments = Array(animation.size) { moment ->
+                val image = ImageBitmap(across, tall)
+                CanvasDrawScope().draw(Density(1f), LayoutDirection.Ltr, Canvas(image), Size(across.toFloat(), tall.toFloat())) {
+                    for (row in 0 until CELLS) {
+                        val nudge = (row * NUDGE_STEP) % sheet.width
+                        for (column in row % 2 until CELLS step 2) {
+                            val frame = animation.frame(moment + column + PHASE_ROW * row)
+                            val x = column * sheet.width + nudge
+                            drawFrame(sheet, frame, x, row * sheet.height)
+                            // What goes out on the right comes in on the left, so the mosaic repeats without a seam.
+                            if (x + sheet.width > across) drawFrame(sheet, frame, x - across, row * sheet.height)
+                        }
+                    }
+                }
+                image
+            }
+            return Weather(moments, (animation.duration / animation.size).toLong().coerceAtLeast(1L))
+        }
+
+        private const val PHASE_ROW = 3
+        private const val NUDGE_STEP = 5
     }
 }
 

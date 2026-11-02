@@ -1,0 +1,297 @@
+{
+ "paleta": "bosque",
+ "tamaño": [
+  16,
+  16
+ ],
+ "ancla": [
+  0,
+  0
+ ],
+ "animaciones": {
+  "superficie-1": {
+   "ms": 0,
+   "fotogramas": [
+    [
+     "jjijjjjjijjjjijj",
+     "ijjihjijjihjijji",
+     "hihgihighigihigh",
+     "ggfggfggfggfggfg",
+     "fegfefgefgfefgef",
+     "elfelelfeleflele",
+     "lnelnlnlfmlenlnl",
+     "lmlnmmmmelllonnn",
+     "mllmmmmllppnnnnm",
+     "llllllllnoonnnnm",
+     "lpppppllonnnnnml",
+     "poooonolmmmnnnml",
+     "onnnnnmllllmmmml",
+     "onnmmmllppllmmll",
+     "mmmmmmlpoonmlkkm",
+     "lllllllmnmmlllll"
+    ]
+   ]
+  },
+  "superficie-2": {
+   "ms": 0,
+   "fotogramas": [
+    [
+     "jjjjijjjjjijjjij",
+     "jihijjihijijhiji",
+     "ighighigihgighig",
+     "gfggfggfgggfgfgg",
+     "fgefgfefgefgfeff",
+     "elfelelfelefelle",
+     "lnelmflleklelnnl",
+     "lmlmkepnllklnonn",
+     "mk11kloomllnnnnm",
+     "lk11mmmmmlpnnnnm",
+     "lpppklmmllonnnml",
+     "poononlkknnnnnml",
+     "onnnnmlklllmmmml",
+     "onmmmmllppllmmll",
+     "mmmmmmlpoonmlkkm",
+     "lllllllmnmmlllll"
+    ]
+   ]
+  },
+  "relleno-1": {
+   "ms": 0,
+   "fotogramas": [
+    [
+     "lpppppllmlllpppo",
+     "loooooppllppoonm",
+     "looonnnnlloonnml",
+     "ponnnnnnmllmnmml",
+     "onnnmnnnnmllmmml",
+     "onnnnnnnmmmlllll",
+     "mnnnnnnmmmllpppl",
+     "lmmnmmmmlllpoono",
+     "mllmmmmllpponnnm",
+     "llllllllpoonnnnm",
+     "lpppppllonnnnnml",
+     "poooonolmmmnnnml",
+     "onnnnnmllllmmmml",
+     "onnmmmllppllmmll",
+     "mmmmmmlpoonmlkkm",
+     "lllllllmnmmlllll"
+    ]
+   ]
+  },
+  "relleno-2": {
+   "ms": 0,
+   "fotogramas": [
+    [
+     "lpppplklmlllppoo",
+     "looonmklllppoonm",
+     "llmmmllpplonnmml",
+     "plllllpoonllmmml",
+     "opppllonnmmlllll",
+     "ooonmllnmmlkllll",
+     "mnmmmllllkllpppl",
+     "lmmmklppolkpoono",
+     "mk11kpoomllonnnm",
+     "lk11mmmmmlpnnnnm",
+     "lpppklmmllonnnml",
+     "poononlkknnnnnml",
+     "onnnnmlklllmmmml",
+     "onmmmmllppllmmll",
+     "mmmmmmlpoonmlkkm",
+     "lllllllmnmmlllll"
+    ]
+   ]
+  },
+  "borde-izq": {
+   "ms": 0,
+   "fotogramas": [
+    [
+     ".jijjjjjijjjjijj",
+     "jijihjijjihjijji",
+     "ihhgihighigihigh",
+     "ggfggfggfggfggfg",
+     "gfgfefgefgfefgef",
+     "fefelelfeleflele",
+     "feelnlnlfmlenlnl",
+     "eltnmmmmelllonnn",
+     "ektmmmmllppnnnnm",
+     "0kltllllnoonnnnm",
+     "0motppllonnnnnml",
+     "0mtoonolmmmnnnml",
+     "0lmnnnmllllmmmml",
+     "0lmmmmllppllmmll",
+     "0llmmmlpoonmlkkm",
+     "0klllllmnmmlllll"
+    ]
+   ]
+  },
+  "borde-der": {
+   "ms": 0,
+   "fotogramas": [
+    [
+     "jjjjijjjjjijjjj.",
+     "jihijjihijijhiij",
+     "ighighigihgighhi",
+     "gfggfggfgggfgfgg",
+     "fgefgfefgefgfefg",
+     "elfelelfelefelef",
+     "lnelmflleklelmef",
+     "lmlmkepnllklntle",
+     "mk11kloomllnntle",
+     "lk11mmmmmlpntml0",
+     "lpppklmmllontml0",
+     "poononlkknnnnml0",
+     "onnnnmlklllmmll0",
+     "onmmmmllppllmlk0",
+     "mmmmmmlpoonmlkk0",
+     "lllllllmnmmlllk0"
+    ]
+   ]
+  },
+  "relleno-izq": {
+   "ms": 0,
+   "fotogramas": [
+    [
+     "0mopppllmlllpppo",
+     "0mnoooppllppoonm",
+     "0mnonnnnlloonnml",
+     "0mmnnnnnmllmnmml",
+     "0lmnmnnnnmllmmml",
+     "0lmnnnnnmmmlllll",
+     "0lmnnnnmmmllpppl",
+     "0llnmmmmlllpoono",
+     "0klmmmmllpponnnm",
+     "0kllllllpoonnnnm",
+     "0mopppllonnnnnml",
+     "0mnoonolmmmnnnml",
+     "0lmnnnmllllmmmml",
+     "0lmmmmllppllmmll",
+     "0llmmmlpoonmlkkm",
+     "0klllllmnmmlllll"
+    ]
+   ]
+  },
+  "relleno-der": {
+   "ms": 0,
+   "fotogramas": [
+    [
+     "lpppplklmlllpom0",
+     "looonmklllpponl0",
+     "llmmmllpplonnll0",
+     "plllllpoonllmll0",
+     "opppllonnmmlllk0",
+     "ooonmllnmmlkllk0",
+     "mnmmmllllkllpom0",
+     "lmmmklppolkponl0",
+     "mk11kpoomllonml0",
+     "lk11mmmmmlpnnml0",
+     "lpppklmmllonnml0",
+     "poononlkknnnnml0",
+     "onnnnmlklllmmll0",
+     "onmmmmllppllmlk0",
+     "mmmmmmlpoonmlkk0",
+     "lllllllmnmmlllk0"
+    ]
+   ]
+  },
+  "bloque": {
+   "ms": 0,
+   "fotogramas": [
+    [
+     "...0000000000...",
+     ".00uuuuuuuuuu00.",
+     "0uuuttttttttuuu0",
+     "0uutuuuuuuuutuu0",
+     "0utuuuuttuuuutu0",
+     "0uutuuuuuuuutuq0",
+     "0suuttttttttuuq0",
+     "0ssuuuuuuuuuuqq0",
+     "0ssrrsrrrqrrqqq0",
+     "0srrrsrrqrrrrqq0",
+     "0srsrrrrqrsrrqq0",
+     "0srsrrqrrrsrrqq0",
+     "0srrrrqrrrrrrqq0",
+     "0srrrrqrrqrrrqq0",
+     "0qqqqqqqqqqqqqq0",
+     "0000000000000000"
+    ]
+   ]
+  },
+  "decoracion-mata": {
+   "ms": 250,
+   "fotogramas": [
+    [
+     "................",
+     "................",
+     "................",
+     ".......j........",
+     ".......j........",
+     "..j....j....j...",
+     "..jj...i...jj...",
+     "...ji..if..i....",
+     "....i..iff.i...j",
+     "....iff.ifif..jj",
+     "ji...if.ifif.ii.",
+     ".iifjiffififjif.",
+     "...ifiheheheif..",
+     "....ifheheefeiii",
+     "iifffhheheeeif..",
+     "...iffeeeefeiii."
+    ],
+    [
+     "................",
+     "................",
+     "................",
+     "........j.......",
+     "........j.......",
+     "...j....j....j..",
+     "...jj...i...jj..",
+     "....j...if..i...",
+     "....i...if.i....",
+     ".....if.ifiif..j",
+     "jji..if.ifif.ii.",
+     "..iffiffififjjf.",
+     "...ifiheheheff..",
+     "....ifheheefeiii",
+     "jifffhheheeeif..",
+     "...iffeeeefeiiii"
+    ],
+    [
+     "................",
+     "................",
+     "................",
+     ".......j........",
+     ".......j........",
+     "..j....j....j...",
+     "..jj...i...jj...",
+     "...ji..if..i....",
+     "....i..iff.i...j",
+     "....iff.ifif..jj",
+     "ji...if.ifif.ii.",
+     ".iifjiffififjif.",
+     "...ifiheheheif..",
+     "....ifheheefeiii",
+     "iifffhheheeeif..",
+     "...iffeeeefeiii."
+    ],
+    [
+     "................",
+     "................",
+     "................",
+     "......j.........",
+     "......j.........",
+     ".j.....j...j....",
+     ".jj....i...j....",
+     "..ji...if.ii....",
+     "...ii..if.i...jj",
+     "....if.if.if.ij.",
+     "j...iff.ififiif.",
+     ".iijjiffififif..",
+     "..ifiiheheheif..",
+     "....ifheheefeiii",
+     "iifffhheheeeif..",
+     "..iiffeeeefeiii."
+    ]
+   ]
+  }
+ }
+}

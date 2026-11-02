@@ -1,0 +1,35 @@
+GIMP Palette
+Name: nieve
+Columns: 8
+#
+ 11  12  21	contorno
+ 52 165 222	cielo 1
+ 69 171 233	cielo 2
+ 87 178 241	cielo 3
+104 186 246	cielo 4
+122 195 249	cielo 5
+238 246 255	nube
+188 214 248	nube sombra
+146 181 234	monte lejano
+152 161 205	monte lavanda
+100 151 179	roca azul
+145 139 160	roca malva
+164 193 255	nieve azul
+125 166 217	nieve azul sombra
+ 79 122 118	abeto claro
+ 63 101 100	abeto
+ 47  87  84	abeto oscuro
+154 132 120	madera cabaña
+110  92  98	madera cabaña sombra
+255 211 106	ventana
+133 128 138	roca
+247 251 255	nieve
+195 220 247	nieve clara
+111 147 216	nieve sombra
+134 162 210	piedra clara
+ 70  98 156	piedra
+ 42  63 120	piedra oscura
+ 26  37  80	piedra honda
+201 127  74	madera clara
+142  77  45	madera
+ 86  40  33	madera oscura

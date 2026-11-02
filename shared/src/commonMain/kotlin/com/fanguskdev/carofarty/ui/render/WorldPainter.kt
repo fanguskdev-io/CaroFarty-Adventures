@@ -40,7 +40,7 @@ internal fun DrawScope.paintWorld(
     drawRect(Color.Transparent, Offset.Zero, Size(width.toFloat(), height.toFloat()), blendMode = BlendMode.Clear)
     val scenery = art?.scenario(run.scenario)
     if (scenery != null) {
-        paintGroundTiles(run, scenery, cameraLeft, cameraBottom, width, base)
+        paintGroundTiles(run, scenery, cameraLeft, cameraBottom, width, base, millis)
         paintBlockTiles(run, scenery, cameraLeft, width, base)
     } else {
         paintGrounds(run, cameraLeft, width, base, palette)
@@ -66,13 +66,14 @@ internal fun DrawScope.paintBackground(
     palette: GreyPalette,
     scenery: ScenarioArt?,
     groundLine: Int,
+    millis: Long,
 ) {
     val scale = viewport.scale
     val left = viewport.offsetX.toFloat()
     val top = viewport.offsetY.toFloat()
     drawRect(palette.sky, Offset(left, top), Size((viewport.width * scale).toFloat(), (viewport.height * scale).toFloat()))
     if (scenery != null) {
-        paintScenery(scenery, camera, restCamera, cameraBottom, viewport, groundLine)
+        paintScenery(scenery, camera, restCamera, cameraBottom, viewport, groundLine, millis)
         return
     }
     val far = (camera - restCamera) * FAR_SPEED + floor(restCamera * FAR_SPEED)

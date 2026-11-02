@@ -1,0 +1,35 @@
+GIMP Palette
+Name: bosque
+Columns: 8
+#
+ 13  25  32	contorno
+ 12  34  43	vacío
+ 10  46  55	sombra profunda
+ 39  75  58	verde noche
+ 63  92  57	musgo
+ 86 109  58	oliva
+105 126  69	oliva claro
+116 140  70	bruma
+130 155 103	bruma clara
+ 29  61  71	tronco sombra
+ 38  79  88	tronco oscuro
+ 54  99 105	tronco
+ 80 121 122	tronco claro
+110 143 138	tronco luz
+ 23  65  44	hoja sombra
+ 41  85  43	hoja oscura
+ 62 108  43	hoja
+ 90 130  55	hoja clara
+114 157  59	hierba
+162 190  74	hierba clara
+ 50  24  29	grieta
+ 87  38  38	roca sombra
+121  56  46	roca oscura
+156  76  54	roca
+183 102  69	roca clara
+199 127  84	roca luz
+ 92  68  54	corteza oscura
+120  94  72	corteza
+150 125  96	corteza clara
+188 148 105	anillo
+221 195 154	madera

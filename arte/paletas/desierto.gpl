@@ -1,0 +1,36 @@
+GIMP Palette
+Name: desierto
+Columns: 8
+#
+ 42  20  32	contorno
+ 44  58 156	cielo índigo
+ 50 100 212	cielo azul intenso
+ 58 142 232	cielo azur
+ 60 184 252	cielo celeste
+ 72 204 240	cielo turquesa
+ 80 220 236	cielo cian
+ 80 228 216	cielo aguamarina
+213 160 203	duna lejana luz
+199 156 197	duna lejana
+185 151 188	duna lejana sombra
+225 151 165	duna media clara
+214 144 160	duna media luz
+196 136 155	duna media
+176 125 147	duna media sombra
+158 113 139	duna media sombra honda
+122 168 136	cactus luz
+ 94 142 120	cactus
+ 78 122 108	cactus sombra
+ 26  20  56	vacío
+ 16  12  40	vacío hondo
+255 242 176	arena brillo
+252 210 122	arena clara
+240 160  76	arena
+204 108  56	arena tostada
+142  64  48	tierra rojiza
+ 90  42  40	tierra
+ 60  26  32	tierra oscura
+255 246 220	sillar luz
+240 214 160	sillar
+216 176 120	sillar medio
+168 116  72	sillar sombra

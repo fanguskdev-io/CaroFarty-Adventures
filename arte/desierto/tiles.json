@@ -1,0 +1,297 @@
+{
+ "paleta": "desierto",
+ "tamaño": [
+  16,
+  16
+ ],
+ "ancla": [
+  0,
+  0
+ ],
+ "animaciones": {
+  "superficie-1": {
+   "ms": 0,
+   "fotogramas": [
+    [
+     "llllllllllllllll",
+     "llmmlllmmlllmmll",
+     "mmmmmmmmmmmmmmmm",
+     "mmmmmmmmmmnmmmmm",
+     "nnnnnmnnnnnnnnnn",
+     "nnnnnnnnonnnmnnn",
+     "nmnnnnnnnnnnnnon",
+     "nnnonnnnnnnnnnnn",
+     "oonnnnnooonnnooo",
+     "rronnnorrrooorrr",
+     "pprooorpqqrrrppq",
+     "qqqrrrqqqqqqqqqq",
+     "qqqqqqqqqqqqqqqq",
+     "qqqqqqqqqqqrpqqq",
+     "qqqqrqqqqqqqqqqq",
+     "qqqqqqqqqqqqqqqq"
+    ]
+   ]
+  },
+  "superficie-2": {
+   "ms": 0,
+   "fotogramas": [
+    [
+     "llllllllllllllll",
+     "llmmlllmmlllmmll",
+     "mmmmmnmmmmmmmmmm",
+     "mmmmmmmmmmmmmmmm",
+     "nnmnnnnnonnnnnnn",
+     "nnnnnnnnnnmnnnnn",
+     "nonnnnnnnnnnnnmn",
+     "nnnnnnnnnnnnonnn",
+     "onnnoonnnnnnoooo",
+     "rooorronnnnorrrr",
+     "qrrrpproooorpqqp",
+     "qqqqqqqrrrrqqqqq",
+     "qqqqqqqqqqqqqqqq",
+     "qqrpqqqqqqqqqqqq",
+     "qqqqqqqqqqqqqrqq",
+     "qqqqqqqqqqqqqqqq"
+    ]
+   ]
+  },
+  "relleno-1": {
+   "ms": 0,
+   "fotogramas": [
+    [
+     "qqqqqqqqqqqqqqqq",
+     "qqqqqqqqqqqqqqqq",
+     "qqqrqqqqqqqqqqqq",
+     "qqqqqqqqqqqqpqqq",
+     "qqqqqqqqqqqqqrqq",
+     "qqqqqqqqqqqqqqqq",
+     "qqqqqqrrrqqqqqqq",
+     "qqqqqqqqqqqqqqqq",
+     "qqqqqqqqqqqqqqqq",
+     "qpqqqqqqqqqqqqqq",
+     "qqrqqqqqqqqqrqqq",
+     "qqqqqqqqqqqqqqqq",
+     "qqqqqqqqqqqqqqqq",
+     "qqqqqqqpqqqqqqqq",
+     "qqqqqqqqrqqqqqqq",
+     "qqqqqqqqqqqqqqqq"
+    ]
+   ]
+  },
+  "relleno-2": {
+   "ms": 0,
+   "fotogramas": [
+    [
+     "qqqqqqqqqqqqqqqq",
+     "qqqqqqqqqrqqqqqq",
+     "qqqqqqqqqqqqqqqq",
+     "qqpqqqqqqqqqqqqq",
+     "qqqrqqqqqqqqqqqq",
+     "qqqqqqqqqqqqqqqq",
+     "qqqqqqqqqqqpqqqq",
+     "qqqqqqqqqqqqrqqq",
+     "qqqqqqqqqqqqqqqq",
+     "qqqqqqqqqqqqqqqq",
+     "qqqqrrrqqqqqqqqq",
+     "qqqqqqqqqqqqqqqq",
+     "qqqqqqqqqqqqqqpq",
+     "qqqqqqqqqqqqqqqr",
+     "qqqqqqrqqqqqqqqq",
+     "qqqqqqqqqqqqqqqq"
+    ]
+   ]
+  },
+  "borde-der": {
+   "ms": 0,
+   "fotogramas": [
+    [
+     "lllllllllllllll.",
+     "llmmlllmmlllmmlm",
+     "mmmmmmmmmmmmmmmn",
+     "mmmmmmmmmmnmmmmn",
+     "nnnnnmnnnnnnnnnn",
+     "nnnnnnnnonnnmnno",
+     "nmnnnnnnnnnnnnoo",
+     "nnnonnnnnnnnnnno",
+     "oonnnnnooonnnnno",
+     "rronnnorrroonnor",
+     "pprooorpqqrroor0",
+     "qqqrrrqqqqqqrrr0",
+     "qqqqqqqqqqqqqqr0",
+     "qqqqqqqqqqqrpqr0",
+     "qqqqrqqqqqqqqqr0",
+     "qqqqqqqqqqqqqqr0"
+    ]
+   ]
+  },
+  "relleno-der": {
+   "ms": 0,
+   "fotogramas": [
+    [
+     "qqqqqqqqqqqqqqr0",
+     "qqqqqqqqqqqqqrr0",
+     "qqqrqqqqqqqqqqr0",
+     "qqqqqqqqqqqqpqr0",
+     "qqqqqqqqqqqqqrr0",
+     "qqqqqqqqqqqqqqr0",
+     "qqqqqqrrrqqqqqq0",
+     "qqqqqqqqqqqqqpr0",
+     "qqqqqqqqqqqqqrr0",
+     "qpqqqqqqqqqqqqr0",
+     "qqrqqqqqqqqqrqr0",
+     "qqqqqqqqqqqqqqq0",
+     "qqqqqqqqqqqqqqr0",
+     "qqqqqqqpqqqqqpr0",
+     "qqqqqqqqrqqqqrr0",
+     "qqqqqqqqqqqqqqr0"
+    ]
+   ]
+  },
+  "borde-izq": {
+   "ms": 0,
+   "fotogramas": [
+    [
+     ".lllllllllllllll",
+     "lllmmlllmmlllmml",
+     "lmmmmnmmmmmmmmmm",
+     "mmmmmmmmmmmmmmmm",
+     "mnnnnnnnonnnnnnn",
+     "nnnnnnnnnnmnnnnn",
+     "nonnnnnnnnnnnnmn",
+     "nnnnnnnnnnnnonnn",
+     "onnnoonnnnnnoooo",
+     "oonorronnnnorrrr",
+     "0porpproooorpqqp",
+     "0prrqqqrrrrqqqqq",
+     "0ppqqqqqqqqqqqqq",
+     "0rqpqqqqqqqqqqqq",
+     "0rpqqqqqqqqqqrqq",
+     "0pqqqqqqqqqqqqqq"
+    ]
+   ]
+  },
+  "relleno-izq": {
+   "ms": 0,
+   "fotogramas": [
+    [
+     "0pqqqqqqqqqqqqqq",
+     "0ppqqqqqqrqqqqqq",
+     "0rqqqqqqqqqqqqqq",
+     "0rpqqqqqqqqqqqqq",
+     "0pqrqqqqqqqqqqqq",
+     "0qqqqqqqqqqqqqqq",
+     "0ppqqqqqqqqpqqqq",
+     "0rqqqqqqqqqqrqqq",
+     "0rpqqqqqqqqqqqqq",
+     "0pqqqqqqqqqqqqqq",
+     "0qqqrrrqqqqqqqqq",
+     "0ppqqqqqqqqqqqqq",
+     "0rqqqqqqqqqqqqpq",
+     "0rpqqqqqqqqqqqqr",
+     "0pqqqqrqqqqqqqqq",
+     "0qqqqqqqqqqqqqqq"
+    ]
+   ]
+  },
+  "bloque": {
+   "ms": 0,
+   "fotogramas": [
+    [
+     ".00000000000000.",
+     "0ssssssssssssss0",
+     "0sssssssssssssu0",
+     "0ssttttttttttuu0",
+     "0ssttuttttsttuu0",
+     "0ssttttttttttuu0",
+     "0sststttuttttuu0",
+     "0ssttttttttutuu0",
+     "0ssttuttsttttuu0",
+     "0ssttttttttttuu0",
+     "0sstuttutttutuu0",
+     "0ssuttuuttuutuu0",
+     "0ssuutuuuuutuuu0",
+     "0svvvvvvvvvvvvu0",
+     "0vvvvvvvvvvvvvv0",
+     ".00000000000000."
+    ]
+   ]
+  },
+  "decoracion-matojo": {
+   "ms": 250,
+   "fotogramas": [
+    [
+     "................",
+     "................",
+     "................",
+     "................",
+     "................",
+     "................",
+     "......u...u.....",
+     "..u...uu.uu..u..",
+     "...uu..uvu..uu..",
+     ".u..uuvuvvuvu..u",
+     "..uu.vuvvvvv.uu.",
+     "...vuvvvvvpvvv..",
+     "..vvvvpvvpvvvpv.",
+     "...vpvvppvpvpv..",
+     "....pvppvppvp...",
+     ".....pppppppp..."
+    ],
+    [
+     "................",
+     "................",
+     "................",
+     "................",
+     "................",
+     "................",
+     ".......u...u....",
+     "...u...uu.uu..u.",
+     "....uu..uvu..uu.",
+     "..u..uuvuvvuvu..",
+     "...uu.vuvvvvv.uu",
+     "...vuvvvvvpvvv..",
+     "..vvvvpvvpvvvpv.",
+     "...vpvvppvpvpv..",
+     "....pvppvppvp...",
+     ".....pppppppp..."
+    ],
+    [
+     "................",
+     "................",
+     "................",
+     "................",
+     "................",
+     "................",
+     "......u...u.....",
+     "..u...uu.uu..u..",
+     "...uu..uvu..uu..",
+     ".u..uuvuvvuvu..u",
+     "..uu.vuvvvvv.uu.",
+     "...vuvvvvvpvvv..",
+     "..vvvvpvvpvvvpv.",
+     "...vpvvppvpvpv..",
+     "....pvppvppvp...",
+     ".....pppppppp..."
+    ],
+    [
+     "................",
+     "................",
+     "................",
+     "................",
+     "................",
+     "................",
+     ".....u...u......",
+     ".u...uu.uu..u...",
+     "..uu..uvu..uu...",
+     "u..uuvuvvuvu..u.",
+     ".uu.vuvvvvv.uu..",
+     "...vuvvvvvpvvv..",
+     "..vvvvpvvpvvvpv.",
+     "...vpvvppvpvpv..",
+     "....pvppvppvp...",
+     ".....pppppppp..."
+    ]
+   ]
+  }
+ }
+}

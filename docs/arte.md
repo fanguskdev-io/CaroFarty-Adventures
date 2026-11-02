@@ -176,4 +176,9 @@ variantes y razas. La puerta de calidad (`scripts/verificar.sh`) falla si alguie
 - **Los fondos**: el cielo, quieto y apoyado abajo; el lejano al 30 % de la cámara y el medio al 60 %, repetidos de lado y
   con su borde de abajo en la línea del suelo más bajo (32 px sobre el borde de la pantalla), menos las
   `filas-bajo-el-suelo`, que se ven dentro de los barrancos.
+- **La decoración** (`decoracion-<nombre>` en `tiles.json`, opcional): si el dibujo llega a la fila de abajo de su tile,
+  se planta en el suelo, encima de más o menos una de cada seis piezas de superficie que no sean borde (la mata del
+  bosque, el matojo del desierto); si no, llena el aire en mosaico a tresbolillo, con la fase cambiada en cada pieza,
+  delante de los fondos y detrás del suelo, de Caro y de los recolectables, moviéndose con el suelo (los copos de la
+  nieve). Las dos, detrás de lo que se recoge.
 

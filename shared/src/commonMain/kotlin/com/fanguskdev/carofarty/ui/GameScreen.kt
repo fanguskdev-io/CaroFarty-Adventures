@@ -158,7 +158,7 @@ private fun DrawScope.drawGame(session: GameSession, world: PixelBuffer, viewpor
     val scale = viewport.scale.toFloat()
     clipRect(left, top, left + viewport.width * scale, top + viewport.height * scale) {
         val groundLine = run.config.course.minGroundTop * TILE
-        paintBackground(camera, REST_CAMERA, cameraBottom, viewport, palette, art?.scenario(run.scenario), groundLine)
+        paintBackground(camera, REST_CAMERA, cameraBottom, viewport, palette, art?.scenario(run.scenario), groundLine, millis)
         val shift = (fraction * viewport.scale).roundToInt()
         drawImage(
             image = image,

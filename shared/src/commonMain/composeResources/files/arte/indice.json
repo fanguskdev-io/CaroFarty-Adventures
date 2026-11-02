@@ -784,7 +784,389 @@
    },
    "variantes": [],
    "razas": []
+  },
+  "bosque-tiles": {
+   "hoja": "bosque-tiles.png",
+   "tamaño": [
+    16,
+    16
+   ],
+   "ancla": [
+    0,
+    0
+   ],
+   "columnas": 16,
+   "animaciones": {
+    "superficie-1": {
+     "fotogramas": [
+      0
+     ],
+     "ms": [
+      0
+     ],
+     "vacias-abajo": 0
+    },
+    "superficie-2": {
+     "fotogramas": [
+      1
+     ],
+     "ms": [
+      0
+     ],
+     "vacias-abajo": 0
+    },
+    "relleno-1": {
+     "fotogramas": [
+      2
+     ],
+     "ms": [
+      0
+     ],
+     "vacias-abajo": 0
+    },
+    "relleno-2": {
+     "fotogramas": [
+      3
+     ],
+     "ms": [
+      0
+     ],
+     "vacias-abajo": 0
+    },
+    "borde-izq": {
+     "fotogramas": [
+      4
+     ],
+     "ms": [
+      0
+     ],
+     "vacias-abajo": 0
+    },
+    "borde-der": {
+     "fotogramas": [
+      5
+     ],
+     "ms": [
+      0
+     ],
+     "vacias-abajo": 0
+    },
+    "relleno-izq": {
+     "fotogramas": [
+      6
+     ],
+     "ms": [
+      0
+     ],
+     "vacias-abajo": 0
+    },
+    "relleno-der": {
+     "fotogramas": [
+      7
+     ],
+     "ms": [
+      0
+     ],
+     "vacias-abajo": 0
+    },
+    "bloque": {
+     "fotogramas": [
+      8
+     ],
+     "ms": [
+      0
+     ],
+     "vacias-abajo": 0
+    },
+    "decoracion-mata": {
+     "fotogramas": [
+      9,
+      10,
+      11,
+      12
+     ],
+     "ms": [
+      250,
+      250,
+      250,
+      250
+     ],
+     "vacias-abajo": 0
+    }
+   },
+   "variantes": [],
+   "razas": []
+  },
+  "nieve-tiles": {
+   "hoja": "nieve-tiles.png",
+   "tamaño": [
+    16,
+    16
+   ],
+   "ancla": [
+    0,
+    0
+   ],
+   "columnas": 16,
+   "animaciones": {
+    "superficie-1": {
+     "fotogramas": [
+      0
+     ],
+     "ms": [
+      0
+     ],
+     "vacias-abajo": 0
+    },
+    "superficie-2": {
+     "fotogramas": [
+      1
+     ],
+     "ms": [
+      0
+     ],
+     "vacias-abajo": 0
+    },
+    "relleno-1": {
+     "fotogramas": [
+      2
+     ],
+     "ms": [
+      0
+     ],
+     "vacias-abajo": 0
+    },
+    "relleno-2": {
+     "fotogramas": [
+      3
+     ],
+     "ms": [
+      0
+     ],
+     "vacias-abajo": 0
+    },
+    "borde-izq": {
+     "fotogramas": [
+      4
+     ],
+     "ms": [
+      0
+     ],
+     "vacias-abajo": 0
+    },
+    "borde-der": {
+     "fotogramas": [
+      5
+     ],
+     "ms": [
+      0
+     ],
+     "vacias-abajo": 0
+    },
+    "relleno-izq": {
+     "fotogramas": [
+      6
+     ],
+     "ms": [
+      0
+     ],
+     "vacias-abajo": 0
+    },
+    "relleno-der": {
+     "fotogramas": [
+      7
+     ],
+     "ms": [
+      0
+     ],
+     "vacias-abajo": 0
+    },
+    "bloque": {
+     "fotogramas": [
+      8
+     ],
+     "ms": [
+      0
+     ],
+     "vacias-abajo": 0
+    },
+    "decoracion-copos": {
+     "fotogramas": [
+      9,
+      10,
+      11,
+      12
+     ],
+     "ms": [
+      250,
+      250,
+      250,
+      250
+     ],
+     "vacias-abajo": 1
+    }
+   },
+   "variantes": [],
+   "razas": []
+  },
+  "desierto-tiles": {
+   "hoja": "desierto-tiles.png",
+   "tamaño": [
+    16,
+    16
+   ],
+   "ancla": [
+    0,
+    0
+   ],
+   "columnas": 16,
+   "animaciones": {
+    "superficie-1": {
+     "fotogramas": [
+      0
+     ],
+     "ms": [
+      0
+     ],
+     "vacias-abajo": 0
+    },
+    "superficie-2": {
+     "fotogramas": [
+      1
+     ],
+     "ms": [
+      0
+     ],
+     "vacias-abajo": 0
+    },
+    "relleno-1": {
+     "fotogramas": [
+      2
+     ],
+     "ms": [
+      0
+     ],
+     "vacias-abajo": 0
+    },
+    "relleno-2": {
+     "fotogramas": [
+      3
+     ],
+     "ms": [
+      0
+     ],
+     "vacias-abajo": 0
+    },
+    "borde-der": {
+     "fotogramas": [
+      4
+     ],
+     "ms": [
+      0
+     ],
+     "vacias-abajo": 0
+    },
+    "relleno-der": {
+     "fotogramas": [
+      5
+     ],
+     "ms": [
+      0
+     ],
+     "vacias-abajo": 0
+    },
+    "borde-izq": {
+     "fotogramas": [
+      6
+     ],
+     "ms": [
+      0
+     ],
+     "vacias-abajo": 0
+    },
+    "relleno-izq": {
+     "fotogramas": [
+      7
+     ],
+     "ms": [
+      0
+     ],
+     "vacias-abajo": 0
+    },
+    "bloque": {
+     "fotogramas": [
+      8
+     ],
+     "ms": [
+      0
+     ],
+     "vacias-abajo": 0
+    },
+    "decoracion-matojo": {
+     "fotogramas": [
+      9,
+      10,
+      11,
+      12
+     ],
+     "ms": [
+      250,
+      250,
+      250,
+      250
+     ],
+     "vacias-abajo": 0
+    }
+   },
+   "variantes": [],
+   "razas": []
   }
  },
- "escenarios": {}
+ "escenarios": {
+  "bosque": {
+   "tiles": "bosque-tiles",
+   "cielo": {
+    "hoja": "bosque-cielo.png",
+    "bajo-el-suelo": 0
+   },
+   "lejano": {
+    "hoja": "bosque-fondo-lejano.png",
+    "bajo-el-suelo": 0
+   },
+   "medio": {
+    "hoja": "bosque-fondo-medio.png",
+    "bajo-el-suelo": 96
+   }
+  },
+  "nieve": {
+   "tiles": "nieve-tiles",
+   "cielo": {
+    "hoja": "nieve-cielo.png",
+    "bajo-el-suelo": 0
+   },
+   "lejano": {
+    "hoja": "nieve-fondo-lejano.png",
+    "bajo-el-suelo": 0
+   },
+   "medio": {
+    "hoja": "nieve-fondo-medio.png",
+    "bajo-el-suelo": 96
+   }
+  },
+  "desierto": {
+   "tiles": "desierto-tiles",
+   "cielo": {
+    "hoja": "desierto-cielo.png",
+    "bajo-el-suelo": 0
+   },
+   "lejano": {
+    "hoja": "desierto-fondo-lejano.png",
+    "bajo-el-suelo": 0
+   },
+   "medio": {
+    "hoja": "desierto-fondo-medio.png",
+    "bajo-el-suelo": 96
+   }
+  }
+ }
 }

@@ -5,7 +5,7 @@ import com.fanguskdev.carofarty.game.Scenario
 
 /** Every word on the screens, in Spanish and in capitals, as the pixel font draws them. */
 internal object Texts {
-    const val HOLD_HINT = "MANTÉN EL DEDO PARA SALTAR MÁS"
+    const val HOLD_HINT = "MANTÉN"
     const val POINTS = "PUNTOS"
     const val PAUSE = "PAUSA"
     const val TAP_TO_RESUME = "TOCA PARA SEGUIR"
@@ -17,19 +17,21 @@ internal object Texts {
     const val AGAIN = "OTRA VEZ"
     const val HOME = "INICIO"
     const val RECORDS_TITLE = "RÉCORDS"
-    const val NO_RECORDS = "TODAVÍA NO HAS JUGADO AQUÍ"
+    const val NO_RECORDS = "AÚN NO HAS JUGADO AQUÍ"
+    const val METERS = "METROS"
+    const val DAY = "FECHA"
     const val NEXT = "SIGUIENTE"
-    const val PREVIOUS = "ATRÁS"
     const val PLAY = "¡A JUGAR!"
+    const val UNDERSTOOD = "¡ENTENDIDO!"
 
     const val HOW_TO_TITLE = "CÓMO SE JUEGA"
 
-    /** The two lines of each page of how to play. */
-    fun howTo(page: Int): List<String> = when (page) {
-        0 -> listOf("TOCA PARA SALTAR", "MANTÉN EL DEDO PARA SALTAR MÁS ALTO Y MÁS LEJOS")
-        1 -> listOf("RESCATA PERRITOS Y GATITOS", "CADA UNO SUMA 1 PUNTO")
-        2 -> listOf("EVITA EL HUEVO FRITO Y EL PESCADO", "EL HUEVO RESTA 2 PUNTOS Y EL PESCADO 3")
-        else -> listOf("LA PARTIDA SE ACABA SI CAES A UN BARRANCO", "O SI TE QUEDAS SIN PUNTOS")
+    /** The two lines under each scene of how to play (GameMaster's mockup). */
+    fun howTo(scene: Int): List<String> = when (scene) {
+        0 -> listOf("TOCA PARA SALTAR", "MANTÉN PARA SALTAR MÁS")
+        1 -> listOf("RESCATA PERRITOS", "Y GATITOS: +1")
+        2 -> listOf("EVITA EL HUEVO: -2", "Y EL PESCADO: -3")
+        else -> listOf("SE ACABA SI CAES", "O SI LLEGAS A 0 PUNTOS")
     }
 
     /** Where a run got in among the best of its scenario, when it is not the first. */

@@ -106,6 +106,56 @@ def leer_sprites(ruta, origen):
     return datos, base, animaciones, variantes_de(datos, origen, base)
 
 
+def rejilla_png(rejilla, ancho, alto, paleta, donde):
+    """Una rejilla comprobada como imagen RGBA: las piezas de la interfaz, que no son animaciones."""
+    if len(rejilla) != alto:
+        raise ArteMal(f"{donde}: {len(rejilla)} filas y la pieza mide {alto}")
+    imagen = Image.new("RGBA", (ancho, alto), (0, 0, 0, 0))
+    pixeles = imagen.load()
+    for y, fila in enumerate(rejilla):
+        if len(fila) != ancho:
+            raise ArteMal(f"{donde}, fila {y}: {len(fila)} píxeles y la pieza mide {ancho}")
+        for x, c in enumerate(fila):
+            if c == TRANSPARENTE:
+                continue
+            if c not in INDICES or INDICES.index(c) >= len(paleta):
+                raise ArteMal(f"{donde}, ({x}, {y}): «{c}» no es un índice de su paleta")
+            r, g, b = paleta[INDICES.index(c)]
+            pixeles[x, y] = (r, g, b, 255)
+    return imagen
+
+
+def convertir_ui(origen, salida, indice):
+    """
+    La interfaz (UI-02): las piezas de ui.json (paneles, botones, pestañas, marcos, tarjetas y cinta en 9-slice, y las
+    fijas), los colores del texto, las hojas de iconos, cifras, medallas, puntos y medidor, y el título.
+    """
+    carpeta = origen / "ui"
+    datos = json.loads((carpeta / "ui.json").read_text(encoding="utf-8"))
+    paleta = buscar_paleta(origen, datos["paleta"])
+    piezas = {}
+    for nombre, pieza in datos.get("piezas", {}).items():
+        ancho, alto = pieza["tamaño"]
+        imagen = rejilla_png(pieza["rejilla"], ancho, alto, paleta, f"ui/ui.json, «{nombre}»")
+        hoja_pieza = f"ui-{nombre}.png"
+        salida[hoja_pieza] = png(imagen)
+        entrada = {"hoja": hoja_pieza, "tamaño": [ancho, alto]}
+        for clave in ("9-slice", "contenido", "alto-fijo", "icono"):
+            if clave in pieza:
+                entrada[clave] = pieza[clave]
+        piezas[nombre] = entrada
+    entrada_ui = {"piezas": piezas, "texto": datos.get("texto", {})}
+    for grupo in ("iconos", "cifras", "medallas", "puntos", "medidor"):
+        ruta = carpeta / f"{grupo}.json"
+        if ruta.exists():
+            convertir_sprites(f"ui-{grupo}", ruta, origen, salida, indice)
+    if (carpeta / "titulo.png").exists():
+        titulo = convertir_fondo(carpeta / "titulo.png", buscar_paleta(origen, "titulo"), "ui/titulo.png")
+        salida["ui-titulo.png"] = png(titulo)
+        entrada_ui["titulo"] = "ui-titulo.png"
+    indice["ui"] = entrada_ui
+
+
 def hoja(animaciones, ancho, alto, paleta):
     """Todos los fotogramas en una hoja de COLUMNAS de ancho, en el orden de las animaciones."""
     total = sum(len(f) for f, _ in animaciones.values())
@@ -154,6 +204,10 @@ def convertir_sprites(nombre, ruta, origen, salida, indice):
         "variantes": [],
         "razas": datos.get("razas", []),
     }
+    # Lo que algunas hojas de la interfaz añaden: los caracteres de las cifras y su avance, la yema del dedo.
+    for clave in ("caracteres", "avance", "yema"):
+        if clave in datos:
+            entrada[clave] = datos[clave]
     n = 0
     for anim, (fotogramas, ms) in animaciones.items():
         entrada["animaciones"][anim] = {
@@ -223,6 +277,8 @@ def generar(origen):
                     salida[hoja_variante] = png(variante)
                     entrada[clave].setdefault("variantes", {})[nombre] = hoja_variante
         indice["escenarios"][escenario] = entrada
+    if (origen / "ui" / "ui.json").exists():
+        convertir_ui(origen, salida, indice)
     salida["indice.json"] = (json.dumps(indice, ensure_ascii=False, indent=1) + "\n").encode("utf-8")
     return salida
 

@@ -35,22 +35,27 @@
       6,
       7,
       8,
-      9
+      9,
+      10,
+      11
      ],
      "ms": [
-      67,
-      67,
-      67,
-      67,
-      67,
-      67
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50
      ],
-     "vacias-abajo": 0
+     "vacias-abajo": 0,
+     "ciclo-tiles": 4
     },
     "salta": {
      "fotogramas": [
-      10,
-      11
+      12,
+      13
      ],
      "ms": [
       70,
@@ -60,7 +65,7 @@
     },
     "apice": {
      "fotogramas": [
-      12
+      14
      ],
      "ms": [
       150
@@ -69,8 +74,8 @@
     },
     "cae": {
      "fotogramas": [
-      13,
-      14
+      15,
+      16
      ],
      "ms": [
       70,
@@ -80,8 +85,8 @@
     },
     "aterriza": {
      "fotogramas": [
-      15,
-      16
+      17,
+      18
      ],
      "ms": [
       50,
@@ -91,27 +96,32 @@
     },
     "corre-rapido": {
      "fotogramas": [
-      17,
-      18,
       19,
       20,
       21,
-      22
+      22,
+      23,
+      24,
+      25,
+      26
      ],
      "ms": [
-      40,
-      40,
-      40,
-      40,
-      40,
-      40
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50
      ],
-     "vacias-abajo": 0
+     "vacias-abajo": 0,
+     "ciclo-tiles": 6
     },
     "al-barranco": {
      "fotogramas": [
-      23,
-      24
+      27,
+      28
      ],
      "ms": [
       100,
@@ -121,10 +131,10 @@
     },
     "sin-puntos": {
      "fotogramas": [
-      25,
-      26,
-      27,
-      28
+      29,
+      30,
+      31,
+      32
      ],
      "ms": [
       150,
@@ -136,10 +146,10 @@
     },
     "record": {
      "fotogramas": [
-      29,
-      30,
-      31,
-      32
+      33,
+      34,
+      35,
+      36
      ],
      "ms": [
       120,
@@ -149,48 +159,69 @@
      ],
      "vacias-abajo": 0
     },
-    "corre-contenta": {
+    "retroceso": {
      "fotogramas": [
-      33,
-      34,
-      35,
-      36,
       37,
       38
      ],
      "ms": [
-      67,
-      67,
-      67,
-      67,
-      67,
-      67
+      100,
+      200
      ],
      "vacias-abajo": 0
     },
-    "corre-asco": {
+    "corre-contenta": {
      "fotogramas": [
       39,
       40,
       41,
       42,
       43,
-      44
+      44,
+      45,
+      46
      ],
      "ms": [
-      67,
-      67,
-      67,
-      67,
-      67,
-      67
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50
      ],
-     "vacias-abajo": 0
+     "vacias-abajo": 0,
+     "ciclo-tiles": 4
+    },
+    "corre-asco": {
+     "fotogramas": [
+      47,
+      48,
+      49,
+      50,
+      51,
+      52,
+      53,
+      54
+     ],
+     "ms": [
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50
+     ],
+     "vacias-abajo": 0,
+     "ciclo-tiles": 4
     },
     "salta-contenta": {
      "fotogramas": [
-      45,
-      46
+      55,
+      56
      ],
      "ms": [
       70,
@@ -200,8 +231,8 @@
     },
     "salta-asco": {
      "fotogramas": [
-      47,
-      48
+      57,
+      58
      ],
      "ms": [
       70,
@@ -211,7 +242,7 @@
     },
     "apice-contenta": {
      "fotogramas": [
-      49
+      59
      ],
      "ms": [
       150
@@ -220,7 +251,7 @@
     },
     "apice-asco": {
      "fotogramas": [
-      50
+      60
      ],
      "ms": [
       150
@@ -229,8 +260,8 @@
     },
     "cae-contenta": {
      "fotogramas": [
-      51,
-      52
+      61,
+      62
      ],
      "ms": [
       70,
@@ -240,8 +271,8 @@
     },
     "cae-asco": {
      "fotogramas": [
-      53,
-      54
+      63,
+      64
      ],
      "ms": [
       70,
@@ -251,8 +282,8 @@
     },
     "aterriza-contenta": {
      "fotogramas": [
-      55,
-      56
+      65,
+      66
      ],
      "ms": [
       50,
@@ -262,8 +293,8 @@
     },
     "aterriza-asco": {
      "fotogramas": [
-      57,
-      58
+      67,
+      68
      ],
      "ms": [
       50,
@@ -273,41 +304,51 @@
     },
     "corre-rapido-contenta": {
      "fotogramas": [
-      59,
-      60,
-      61,
-      62,
-      63,
-      64
+      69,
+      70,
+      71,
+      72,
+      73,
+      74,
+      75,
+      76
      ],
      "ms": [
-      40,
-      40,
-      40,
-      40,
-      40,
-      40
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50
      ],
-     "vacias-abajo": 0
+     "vacias-abajo": 0,
+     "ciclo-tiles": 6
     },
     "corre-rapido-asco": {
      "fotogramas": [
-      65,
-      66,
-      67,
-      68,
-      69,
-      70
+      77,
+      78,
+      79,
+      80,
+      81,
+      82,
+      83,
+      84
      ],
      "ms": [
-      40,
-      40,
-      40,
-      40,
-      40,
-      40
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50
      ],
-     "vacias-abajo": 0
+     "vacias-abajo": 0,
+     "ciclo-tiles": 6
     }
    },
    "variantes": [
@@ -1120,6 +1161,302 @@
    },
    "variantes": [],
    "razas": []
+  },
+  "ui-iconos": {
+   "hoja": "ui-iconos.png",
+   "tamaño": [
+    16,
+    16
+   ],
+   "ancla": [
+    0,
+    0
+   ],
+   "columnas": 16,
+   "animaciones": {
+    "pausa": {
+     "fotogramas": [
+      0
+     ],
+     "ms": [
+      0
+     ],
+     "vacias-abajo": 2
+    },
+    "sonido-si": {
+     "fotogramas": [
+      1
+     ],
+     "ms": [
+      0
+     ],
+     "vacias-abajo": 1
+    },
+    "sonido-no": {
+     "fotogramas": [
+      2
+     ],
+     "ms": [
+      0
+     ],
+     "vacias-abajo": 2
+    },
+    "records": {
+     "fotogramas": [
+      3
+     ],
+     "ms": [
+      0
+     ],
+     "vacias-abajo": 1
+    },
+    "ayuda": {
+     "fotogramas": [
+      4
+     ],
+     "ms": [
+      0
+     ],
+     "vacias-abajo": 1
+    },
+    "volver": {
+     "fotogramas": [
+      5
+     ],
+     "ms": [
+      0
+     ],
+     "vacias-abajo": 2
+    },
+    "reintentar": {
+     "fotogramas": [
+      6
+     ],
+     "ms": [
+      0
+     ],
+     "vacias-abajo": 0
+    },
+    "dedo-toca": {
+     "fotogramas": [
+      7,
+      8
+     ],
+     "ms": [
+      450,
+      300
+     ],
+     "vacias-abajo": 0
+    },
+    "dedo-mantiene": {
+     "fotogramas": [
+      9,
+      10
+     ],
+     "ms": [
+      300,
+      300
+     ],
+     "vacias-abajo": 0
+    }
+   },
+   "variantes": [],
+   "razas": [],
+   "yema": [
+    6,
+    4
+   ]
+  },
+  "ui-cifras": {
+   "hoja": "ui-cifras.png",
+   "tamaño": [
+    8,
+    10
+   ],
+   "ancla": [
+    0,
+    0
+   ],
+   "columnas": 16,
+   "animaciones": {
+    "suma": {
+     "fotogramas": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11
+     ],
+     "ms": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "vacias-abajo": 0
+    },
+    "resta": {
+     "fotogramas": [
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23
+     ],
+     "ms": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "vacias-abajo": 0
+    }
+   },
+   "variantes": [],
+   "razas": [],
+   "caracteres": "+−0123456789",
+   "avance": 7
+  },
+  "ui-medallas": {
+   "hoja": "ui-medallas.png",
+   "tamaño": [
+    10,
+    12
+   ],
+   "ancla": [
+    0,
+    0
+   ],
+   "columnas": 16,
+   "animaciones": {
+    "oro": {
+     "fotogramas": [
+      0
+     ],
+     "ms": [
+      0
+     ],
+     "vacias-abajo": 1
+    },
+    "plata": {
+     "fotogramas": [
+      1
+     ],
+     "ms": [
+      0
+     ],
+     "vacias-abajo": 1
+    },
+    "bronce": {
+     "fotogramas": [
+      2
+     ],
+     "ms": [
+      0
+     ],
+     "vacias-abajo": 1
+    }
+   },
+   "variantes": [],
+   "razas": []
+  },
+  "ui-puntos": {
+   "hoja": "ui-puntos.png",
+   "tamaño": [
+    7,
+    7
+   ],
+   "ancla": [
+    0,
+    0
+   ],
+   "columnas": 16,
+   "animaciones": {
+    "activo": {
+     "fotogramas": [
+      0
+     ],
+     "ms": [
+      0
+     ],
+     "vacias-abajo": 0
+    },
+    "inactivo": {
+     "fotogramas": [
+      1
+     ],
+     "ms": [
+      0
+     ],
+     "vacias-abajo": 0
+    }
+   },
+   "variantes": [],
+   "razas": []
+  },
+  "ui-medidor": {
+   "hoja": "ui-medidor.png",
+   "tamaño": [
+    7,
+    24
+   ],
+   "ancla": [
+    0,
+    0
+   ],
+   "columnas": 16,
+   "animaciones": {
+    "vacio": {
+     "fotogramas": [
+      0
+     ],
+     "ms": [
+      0
+     ],
+     "vacias-abajo": 1
+    },
+    "lleno": {
+     "fotogramas": [
+      1
+     ],
+     "ms": [
+      0
+     ],
+     "vacias-abajo": 1
+    }
+   },
+   "variantes": [],
+   "razas": []
   }
  },
  "escenarios": {
@@ -1174,5 +1511,225 @@
     "bajo-el-suelo": 96
    }
   }
+ },
+ "ui": {
+  "piezas": {
+   "panel": {
+    "hoja": "ui-panel.png",
+    "tamaño": [
+     16,
+     16
+    ],
+    "9-slice": [
+     6,
+     6,
+     6,
+     6
+    ],
+    "contenido": [
+     6,
+     6,
+     6,
+     6
+    ]
+   },
+   "boton": {
+    "hoja": "ui-boton.png",
+    "tamaño": [
+     16,
+     22
+    ],
+    "9-slice": [
+     3,
+     4,
+     3,
+     5
+    ],
+    "contenido": [
+     2,
+     2,
+     2,
+     5
+    ]
+   },
+   "boton-pulsado": {
+    "hoja": "ui-boton-pulsado.png",
+    "tamaño": [
+     16,
+     22
+    ],
+    "9-slice": [
+     3,
+     4,
+     3,
+     5
+    ],
+    "contenido": [
+     2,
+     4,
+     2,
+     3
+    ]
+   },
+   "pestana": {
+    "hoja": "ui-pestana.png",
+    "tamaño": [
+     16,
+     16
+    ],
+    "9-slice": [
+     3,
+     5,
+     3,
+     4
+    ],
+    "contenido": [
+     2,
+     2,
+     2,
+     2
+    ]
+   },
+   "pestana-inactiva": {
+    "hoja": "ui-pestana-inactiva.png",
+    "tamaño": [
+     16,
+     16
+    ],
+    "9-slice": [
+     3,
+     5,
+     3,
+     4
+    ],
+    "contenido": [
+     2,
+     4,
+     2,
+     2
+    ]
+   },
+   "marco": {
+    "hoja": "ui-marco.png",
+    "tamaño": [
+     12,
+     12
+    ],
+    "9-slice": [
+     4,
+     4,
+     4,
+     4
+    ],
+    "contenido": [
+     4,
+     4,
+     4,
+     4
+    ]
+   },
+   "tarjeta": {
+    "hoja": "ui-tarjeta.png",
+    "tamaño": [
+     12,
+     23
+    ],
+    "9-slice": [
+     4,
+     14,
+     4,
+     5
+    ],
+    "contenido": [
+     4,
+     14,
+     4,
+     5
+    ]
+   },
+   "tarjeta-pulsada": {
+    "hoja": "ui-tarjeta-pulsada.png",
+    "tamaño": [
+     12,
+     23
+    ],
+    "9-slice": [
+     4,
+     16,
+     4,
+     3
+    ],
+    "contenido": [
+     4,
+     16,
+     4,
+     3
+    ]
+   },
+   "cinta": {
+    "hoja": "ui-cinta.png",
+    "tamaño": [
+     21,
+     17
+    ],
+    "9-slice": [
+     7,
+     8,
+     7,
+     8
+    ],
+    "contenido": [
+     6,
+     2,
+     6,
+     4
+    ],
+    "alto-fijo": true
+   },
+   "boton-pequeno": {
+    "hoja": "ui-boton-pequeno.png",
+    "tamaño": [
+     20,
+     20
+    ],
+    "icono": [
+     2,
+     1
+    ]
+   },
+   "boton-pequeno-pulsado": {
+    "hoja": "ui-boton-pequeno-pulsado.png",
+    "tamaño": [
+     20,
+     20
+    ],
+    "icono": [
+     2,
+     3
+    ]
+   },
+   "nube-grande": {
+    "hoja": "ui-nube-grande.png",
+    "tamaño": [
+     50,
+     16
+    ]
+   },
+   "nube-pequena": {
+    "hoja": "ui-nube-pequena.png",
+    "tamaño": [
+     26,
+     11
+    ]
+   }
+  },
+  "texto": {
+   "color": "#fff6e5",
+   "sombra": "#24161c",
+   "secundario": "#ffa9c6",
+   "aviso": "#ff5b5b",
+   "record": "#ffcc47"
+  },
+  "titulo": "ui-titulo.png"
  }
 }

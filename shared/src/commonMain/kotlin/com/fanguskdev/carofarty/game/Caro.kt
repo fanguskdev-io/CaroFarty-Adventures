@@ -70,6 +70,9 @@ class Caro(private val config: MovementConfig) {
     /** Whether the push back of an egg or a fish is going on. */
     val knockedBack: Boolean get() = knockback > 0f
 
+    /** How much of the longest hold her last jump has had, from 0 to 1: the meter of the hint fills with it. */
+    val holdShare: Float get() = (holdTime / config.holdWindow).coerceIn(0f, 1f)
+
     /**
      * How far behind where she would be without the push back she is, in pixels: half of it shows on the screen as her
      * going back, and comes back quickly ([cameraLag]); with [previousLag], the one of the step before, for the drawing.

@@ -59,7 +59,7 @@ import com.fanguskdev.carofarty.ui.render.paintRecordCelebration
 import com.fanguskdev.carofarty.ui.render.paintRecords
 import com.fanguskdev.carofarty.ui.render.paintTitle
 import com.fanguskdev.carofarty.ui.render.paintWorld
-import com.fanguskdev.carofarty.ui.render.panelBottom
+import com.fanguskdev.carofarty.ui.render.panelBox
 import kotlinx.coroutines.isActive
 import kotlin.math.ceil
 import kotlin.math.floor
@@ -194,15 +194,28 @@ private fun DrawScope.drawGame(session: GameSession, world: PixelBuffer, viewpor
             } else if (shown) {
                 paintCaro(screenX, feet, caro.state, stride = (caro.meters * STRIDES_PER_METER).toInt() % 2 == 0)
             }
+            val ui = art?.ui
+            val pressed = session.pressed
             if (run.phase != RunPhase.Ready) {
-                paintHud(session.pointsText, session.metersText, session.layout, session.soundOn, warn = session.lowPoints)
+                paintHud(session.pointsText, session.metersText, session.layout, ui, session.soundOn, session.lowPoints, pressed)
             }
-            if (session.hint) paintHint(Texts.HOLD_HINT, session.layout)
-            if (session.panel.isNotEmpty()) paintPanel(session.panel, viewport.width, viewport.height)
-            for (i in session.panelButtons.indices) paintButton(session.panelButtons[i], session.panelButtonTexts[i], lit = i == 0)
+            if (session.hint) paintHint(Texts.HOLD_HINT, screenX, feet, session.hintFill, ui, millis)
+            if (session.panel.isNotEmpty()) paintPanel(session.panel, viewport.width, viewport.height, ui)
+            for (i in session.panelButtons.indices) {
+                val box = session.panelButtons[i]
+                paintButton(
+                    box,
+                    session.panelButtonTexts[i],
+                    ui,
+                    session.panelButtonIcons.getOrNull(i),
+                    pressed = box == pressed,
+                    lit =
+                    i == 0,
+                )
+            }
             if (caroArt != null && run.phase == RunPhase.Over && session.result?.newRecord == true) {
-                val bottom = panelBottom(session.panel, viewport.height)
-                paintRecordCelebration(caroArt, run.scenario, session.millis, viewport.width, bottom)
+                val panel = panelBox(session.panel, viewport.width, viewport.height, ui)
+                paintRecordCelebration(caroArt, run.scenario, session.millis, panel, viewport.width)
             }
             if (session.showDebug) paintDebug(session.debugLines, viewport.height, session.insets)
         }
@@ -210,8 +223,8 @@ private fun DrawScope.drawGame(session: GameSession, world: PixelBuffer, viewpor
 }
 
 /**
- * The screens around the runs (UI-01, UI-07, UI-20): the start screen, the records and how to play, over the scenario she
- * chose standing still, on the same pixel grid as the game.
+ * The screens around the runs (UI-01, UI-07, UI-20): the start screen, the records and how to play, on the same pixel grid
+ * as the game; over the day sky of the interface's art or, in the grey prototype, over the scenario she chose, still.
  */
 private fun DrawScope.drawMenu(session: GameSession, world: PixelBuffer, viewport: PixelViewport) {
     val art = session.art
@@ -224,21 +237,27 @@ private fun DrawScope.drawMenu(session: GameSession, world: PixelBuffer, viewpor
     val top = viewport.offsetY.toFloat()
     val scale = viewport.scale.toFloat()
     clipRect(left, top, left + viewport.width * scale, top + viewport.height * scale) {
-        val groundLine = session.run.config.course.minGroundTop * TILE
-        paintBackground(REST_CAMERA, REST_CAMERA, 0, viewport, palette, scenery, groundLine, millis, null)
+        val ui = art?.ui
+        if (ui == null) {
+            val groundLine = session.run.config.course.minGroundTop * TILE
+            paintBackground(REST_CAMERA, REST_CAMERA, 0, viewport, palette, scenery, groundLine, millis, null)
+        }
         withTransform({
             translate(left, top)
             scale(scale, scale, Offset.Zero)
         }) {
-            paintMenuGround(scenery, palette, viewport.width, viewport.height)
+            if (ui == null) paintMenuGround(scenery, palette, viewport.width, viewport.height)
+            val pressed = session.pressed
             when (session.screen) {
-                Screen.Title -> paintTitle(session.layout, art, session.scenarioNames, session.scenario, session.soundOn, millis)
+                Screen.Title -> paintTitle(session.layout, art, session.scenarioNames, session.scenario, session.soundOn, millis, pressed)
                 Screen.Records -> paintRecords(
                     session.layout,
                     session.scenarioNames,
                     session.recordsScenario,
                     session.recordRuns,
                     RECORD_TEXTS,
+                    ui,
+                    pressed,
                 )
                 Screen.HowTo -> paintHowTo(session, world)
                 Screen.Game -> Unit
@@ -248,7 +267,7 @@ private fun DrawScope.drawMenu(session: GameSession, world: PixelBuffer, viewpor
     }
 }
 
-private val RECORD_TEXTS = RecordTexts(Texts.RECORDS_TITLE, Texts.NO_RECORDS, Texts.POINTS) { dayText(it) }
+private val RECORD_TEXTS = RecordTexts(Texts.RECORDS_TITLE, Texts.NO_RECORDS, Texts.METERS, Texts.POINTS, Texts.DAY) { dayText(it) }
 
 /** What the game reads before its first frame: the settings and the art, which may be missing. */
 private class Loaded(val config: GameConfig, val art: Art?)

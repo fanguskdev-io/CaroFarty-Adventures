@@ -76,8 +76,10 @@ class RecordsTest {
     }
 
     @Test
-    fun aDayAsSpanishWritesIt() {
-        assertEquals("02/11/2026", dayText(20261102))
+    fun aDayAsTheRecordsShowIt() {
+        assertEquals("2 NOV 2026", dayText(20261102))
+        assertEquals("31 OCT 2026", dayText(20261031))
+        assertEquals("1 ENE 2027", dayText(20270101))
         assertEquals("-", dayText(0))
         assertTrue(today() > 20_000_000, "today is a day of this century")
     }

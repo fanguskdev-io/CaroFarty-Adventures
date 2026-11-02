@@ -1,0 +1,34 @@
+GIMP Palette
+Name: ui
+Columns: 8
+#
+ 36  22  28	contorno
+255 246 229	crema
+ 58  26  52	ciruela oscura
+ 84  37  72	ciruela
+110  52  92	ciruela clara
+255 169 198	frambuesa luz
+229  84 138	frambuesa
+178  58 108	frambuesa sombra
+122  36  83	frambuesa oscura
+255 241 168	oro luz
+255 204  71	oro
+232 149  42	oro sombra
+166  90  31	oro oscuro
+201 209 224	plata
+128 137 166	plata sombra
+217 137  79	bronce
+147  80  44	bronce sombra
+166 205 255	azul luz
+ 90 143 240	azul
+ 56 102 204	azul sombra
+ 33  65 143	azul oscuro
+205 185 255	violeta luz
+142 107 216	violeta
+ 88  61 150	violeta oscuro
+248 217 196	piel
+236 185 159	piel media
+207 145 122	piel sombra
+255  91  91	aviso
+214 235 255	cielo claro
+189 211 242	nube sombra

@@ -25,7 +25,12 @@ import org.jetbrains.compose.resources.decodeToImageBitmap
  * collectibles and each scenario's tiles and backgrounds. Whatever is missing is drawn as the grey prototype, so the game
  * always starts, with or without art.
  */
-internal class Art(val caro: CaroArt?, val items: ItemArt?, private val scenarios: Array<ScenarioArt?>) {
+internal class Art(
+    val caro: CaroArt?,
+    val items: ItemArt?,
+    private val scenarios: Array<ScenarioArt?>,
+    val ui: UiArt? = null,
+) {
     fun scenario(scenario: Scenario): ScenarioArt? = scenarios[scenario.ordinal]
 
     companion object {
@@ -49,7 +54,16 @@ internal class Art(val caro: CaroArt?, val items: ItemArt?, private val scenario
                     .filterValues { it.frames.isNotEmpty() && it.frames.size == it.millis.size }
                     .mapValues { (_, it) -> Animation(it.frames.toIntArray(), it.millis.toIntArray(), it.emptyBelow, it.cycleTiles) }
                 val sheet = Sheet(image(entry.sheet), width, height, entry.columns)
-                return SpriteSet(sheet, entry.anchor[0], entry.anchor[1], animations, variants, entry.breeds)
+                return SpriteSet(
+                    sheet,
+                    entry.anchor[0],
+                    entry.anchor[1],
+                    animations,
+                    variants,
+                    entry.breeds,
+                    entry.characters,
+                    entry.advance,
+                )
             }
 
             val scenarios = arrayOfNulls<ScenarioArt>(Scenario.entries.size)
@@ -67,7 +81,19 @@ internal class Art(val caro: CaroArt?, val items: ItemArt?, private val scenario
             }
             val caro = set("caro")?.let { CaroArt.of(it) }
             val items = set("recolectables")?.let { ItemArt(it, set("efectos")) }
-            return Art(caro, items, scenarios)
+            val ui = index.ui?.let { entry ->
+                UiArt(
+                    pieces = entry.pieces.mapValues { (_, it) -> UiPiece(image(it.sheet), it.slices, it.content, it.icon) },
+                    colors = UiColors.of(entry.text),
+                    icons = set("ui-iconos"),
+                    digits = set("ui-cifras"),
+                    medals = set("ui-medallas"),
+                    dots = set("ui-puntos"),
+                    meter = set("ui-medidor"),
+                    title = entry.title?.let { image(it) },
+                )
+            }
+            return Art(caro, items, scenarios, ui)
         }
     }
 }
@@ -121,6 +147,9 @@ internal class SpriteSet(
     private val animations: Map<String, Animation>,
     private val variants: List<Variant>,
     val breeds: List<String>,
+    /** For a sheet of characters (the digits of the interface): which character each frame is, and how far apart. */
+    val characters: String = "",
+    val advance: Int = 0,
 ) {
     fun animation(name: String): Animation? = animations[name]
 
@@ -383,6 +412,22 @@ internal class Weather private constructor(private val moments: Array<ImageBitma
 private class ArtIndex(
     @SerialName("conjuntos") val sets: Map<String, SetEntry> = emptyMap(),
     @SerialName("escenarios") val scenarios: Map<String, ScenarioEntry> = emptyMap(),
+    val ui: UiEntry? = null,
+)
+
+@Serializable
+private class UiEntry(
+    @SerialName("piezas") val pieces: Map<String, PieceEntry> = emptyMap(),
+    @SerialName("texto") val text: Map<String, String> = emptyMap(),
+    @SerialName("titulo") val title: String? = null,
+)
+
+@Serializable
+private class PieceEntry(
+    @SerialName("hoja") val sheet: String,
+    @SerialName("9-slice") val slices: List<Int>? = null,
+    @SerialName("contenido") val content: List<Int>? = null,
+    @SerialName("icono") val icon: List<Int>? = null,
 )
 
 @Serializable
@@ -394,6 +439,8 @@ private class SetEntry(
     @SerialName("animaciones") val animations: Map<String, AnimationEntry> = emptyMap(),
     @SerialName("variantes") val variants: List<VariantEntry> = emptyList(),
     @SerialName("razas") val breeds: List<String> = emptyList(),
+    @SerialName("caracteres") val characters: String = "",
+    @SerialName("avance") val advance: Int = 0,
 )
 
 @Serializable

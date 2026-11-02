@@ -16,7 +16,7 @@ colores de su paleta de vuelta a rejilla.
 
 | Qué | Carpeta |
 |---|---|
-| Lo que se entrega (definiciones y paletas) | `arte/` en la raíz del repositorio, una carpeta por grupo: `arte/paletas/`, `arte/caro/`, `arte/recolectables/`, `arte/bosque/`, `arte/nieve/`, `arte/desierto/` |
+| Lo que se entrega (definiciones y paletas) | `arte/` en la raíz del repositorio, una carpeta por grupo: `arte/paletas/`, `arte/caro/`, `arte/recolectables/`, `arte/bosque/`, `arte/nieve/`, `arte/desierto/`, `arte/ui/` |
 | Vistas previas en PNG para que Fangusk las mire, si se hacen | `arte/<grupo>/previas/`, que el juego no lee |
 | Lo que genera el script y carga el juego | `shared/src/commonMain/composeResources/files/arte/`: no se edita a mano |
 
@@ -165,6 +165,26 @@ variantes y razas. La compilación lo ejecuta sola antes de preparar los recurso
 `shared/build.gradle.kts`), así que cambiar un sprite y compilar basta para verlo; si la entrega no cumple el formato, la
 compilación falla diciendo qué y dónde. Y la puerta de calidad (`scripts/verificar.sh`) comprueba que lo generado está al
 día.
+
+## La interfaz
+
+El arte de los menús y del marcador (UI-02), en `arte/ui/` con la paleta `ui.gpl`, lo hizo GameMaster con las maquetas
+que eligió Fangusk ([pantallas](pantallas.md)):
+
+- **`ui.json`**: los colores del texto (`texto`: `color`, `sombra`, `secundario`, `aviso` y `record`, en `#rrggbb`) y las
+  `piezas`, cada una con su `tamaño` y su `rejilla`. Las que se estiran llevan `9-slice` (las columnas y filas de cada
+  lado, izquierda, arriba, derecha y abajo, que quedan como están mientras el medio se repite: nunca se escalan) y
+  `contenido` (lo que dejar en cada lado para lo que va dentro: el texto, la vista de una tarjeta, una escena); la cinta,
+  además, `alto-fijo`. Los botones pequeños, sin 9-slice, dicen dónde va su icono (`icono`). Son el panel, el botón, la
+  pestaña, el marco, la tarjeta, la cinta, el botón pequeño, cada uno con su versión pulsada o inactiva si la tiene, y
+  las dos nubes del fondo.
+- **Los juegos de sprites**, con el formato de siempre: `iconos.json` (los de los botones y los dedos del tutorial, con
+  `yema`, la punta del dedo), `cifras.json` (los números flotantes: `caracteres` y `avance`, en dorado para sumar y en
+  violeta para restar), `medallas.json`, `puntos.json` (los de página) y `medidor.json` (vacío y lleno).
+- **`titulo.png`**, el título ya dibujado, con los colores de `titulo.gpl`: el script comprueba que no usa otros.
+
+El script lo convierte en `ui-<pieza>.png`, `ui-iconos.png` y los demás, y `ui-titulo.png`, con su sección `ui` en el
+índice.
 
 ## Cómo lo coloca el juego
 

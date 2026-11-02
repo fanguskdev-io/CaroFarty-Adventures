@@ -12,7 +12,7 @@ import kotlin.test.assertTrue
 class TutorialTest {
     private val config = GameConfig()
 
-    private fun scene(page: Int) = TutorialScene(page, config, Scenario.Bosque) { CaroLook() }
+    private fun scene(index: Int) = TutorialScene(index, config, Scenario.Bosque) { CaroLook() }
 
     /** Steps [scene] for [seconds], telling what [watch] saw on each step. */
     private fun play(scene: TutorialScene, seconds: Float, watch: (TutorialScene) -> Unit = {}) {
@@ -23,12 +23,12 @@ class TutorialTest {
     }
 
     @Test
-    fun theJumpingPageClearsItsTwoGapsOverAndOver() {
+    fun theJumpingSceneClearsItsTwoGapsOverAndOver() {
         val scene = scene(TutorialScene.JUMPING)
         var longest = 0
         var holding = 0
         play(scene, seconds = 30f) {
-            assertTrue(it.run.caro.state != CaroState.Fallen, "she fell on the page of jumping")
+            assertTrue(it.run.caro.state != CaroState.Fallen, "she fell in the scene of jumping")
             holding = if (it.held) holding + 1 else 0
             longest = maxOf(longest, holding)
         }
@@ -36,7 +36,7 @@ class TutorialTest {
     }
 
     @Test
-    fun theRescuingPagePicksUpTheFourAnimals() {
+    fun theRescuingScenePicksUpTheFourAnimals() {
         val scene = scene(TutorialScene.RESCUING)
         var seen = 0
         play(scene, seconds = 3.2f) { seen = maxOf(seen, it.run.points) }
@@ -45,13 +45,35 @@ class TutorialTest {
     }
 
     @Test
-    fun theAvoidingPageNeverTouchesTheEggNorTheFish() {
+    fun theAvoidingSceneShowsWhatTheEggAndTheFishTakeAway() {
         val scene = scene(TutorialScene.AVOIDING)
-        play(scene, seconds = 20f) { assertEquals(config.score.startPoints, it.run.points, "she touched something") }
+        var fewest = config.score.startPoints
+        val texts = mutableSetOf<String>()
+        var again = false
+        play(scene, seconds = 12f) {
+            fewest = minOf(fewest, it.run.points)
+            it.floating.forEach { floating -> texts += floating.text }
+            if (fewest < config.score.startPoints && it.run.points == config.score.startPoints) again = true
+        }
+        assertEquals(config.score.startPoints - 5, fewest, "the egg takes 2 and the fish 3")
+        assertEquals(setOf("-2", "-3"), texts)
+        assertTrue(again, "it started again")
     }
 
     @Test
-    fun theEndingPageFallsAndStartsAgain() {
+    fun theFingerTellsATapFromAHold() {
+        val scene = scene(TutorialScene.JUMPING)
+        var tapped = false
+        var held = false
+        play(scene, seconds = 10f) {
+            if (it.touching > 0f && it.heldFor <= TutorialScene.TAP_SECONDS) tapped = true
+            if (it.heldFor > TutorialScene.TAP_SECONDS) held = true
+        }
+        assertTrue(tapped && held, "a tap and a hold: $tapped, $held")
+    }
+
+    @Test
+    fun theEndingSceneFallsAndStartsAgain() {
         val scene = scene(TutorialScene.ENDING)
         var fell = false
         var again = false

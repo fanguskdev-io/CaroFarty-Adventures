@@ -33,10 +33,11 @@ import com.fanguskdev.carofarty.ui.render.BackgroundPlan
 import com.fanguskdev.carofarty.ui.render.Box
 import com.fanguskdev.carofarty.ui.render.CaroLook
 import com.fanguskdev.carofarty.ui.render.CaroPose
-import com.fanguskdev.carofarty.ui.render.GreyPalette
+import com.fanguskdev.carofarty.ui.render.Icon
 import com.fanguskdev.carofarty.ui.render.MenuLayout
 import com.fanguskdev.carofarty.ui.render.PanelLine
 import com.fanguskdev.carofarty.ui.render.SafeInsets
+import com.fanguskdev.carofarty.ui.render.Tone
 import com.fanguskdev.carofarty.ui.render.backgroundPlan
 import com.fanguskdev.carofarty.ui.render.panelBottom
 import kotlinx.coroutines.CoroutineScope
@@ -63,6 +64,8 @@ internal enum class Screen {
  *
  * The way through the screens (Fangusk, after playing the beta): the game opens on how to play the first time and on the
  * start screen after; a card there starts a run in its scenario; the end of a run offers another one or the start screen.
+ * A button shows pressed while the finger is on it and does its thing when the finger goes up, as GameMaster's pressed
+ * pieces ask; only the jump goes with the finger down.
  */
 internal class GameSession(
     private val config: GameConfig,
@@ -141,17 +144,24 @@ internal class GameSession(
     var recordRuns: List<RecordRun> = emptyList()
         private set
 
-    /** The page of how to play that shows, from 0, and its small run. */
+    /** The page of how to play that shows, from 0, and its two small runs. */
     var howToPage = 0
         private set
-    var tutorial: TutorialScene? = null
+    var tutorial: List<TutorialScene> = emptyList()
         private set
 
-    /** The buttons under the panel of the pause or of the end of a run: the start screen, and another run at the end. */
+    /** The buttons under the panel of the pause or of the end of a run: another run at the end, and the start screen. */
     var panelButtons: List<Box> = emptyList()
         private set
     var panelButtonTexts: List<String> = emptyList()
         private set
+    var panelButtonIcons: List<Icon?> = emptyList()
+        private set
+
+    /** The button under the finger, drawn pressed, and what it does when the finger goes up. */
+    var pressed: Box? = null
+        private set
+    private var onRelease: (() -> Unit)? = null
 
     /** The time of the animations, in milliseconds: it stops in the pause. */
     val millis: Long get() = (animationTime * MILLIS).toLong()
@@ -161,8 +171,12 @@ internal class GameSession(
     var metersText = ""
         private set
 
-    /** Whether the hint to hold the finger shows: before the first gaps of her first runs (GDD-17, UI-12). */
+    /** Whether the hint to hold the finger shows: at the first gaps of her first runs (GDD-17, UI-12). */
     var hint = false
+        private set
+
+    /** How full the meter of the hint is, from 0 to 1: how much of the longest hold her jump has had. */
+    var hintFill = 0f
         private set
 
     /**
@@ -198,7 +212,7 @@ internal class GameSession(
 
     init {
         audio?.muted = !soundOn
-        if (screen == Screen.HowTo) tutorial = TutorialScene(0, config, scenario) { lookOf(art) }
+        if (screen == Screen.HowTo) tutorial = scenesOf(0)
         if (this.autopilot) startRun(scenario) else audio?.music(scenario)
     }
 
@@ -212,7 +226,7 @@ internal class GameSession(
         if (!paused) {
             when (screen) {
                 Screen.Game -> alpha = clock.advance(elapsed) { step() }
-                Screen.HowTo -> alpha = clock.advance(elapsed) { tutorial?.step() }
+                Screen.HowTo -> alpha = clock.advance(elapsed) { for (i in tutorial.indices) tutorial[i].step() }
                 else -> input.consumePress()
             }
             animationTime += elapsed
@@ -235,6 +249,8 @@ internal class GameSession(
             if (debugBuild) showDebug = !showDebug
             return
         }
+        pressed = null
+        onRelease = null
         when (screen) {
             Screen.Title -> titleTap(gameX, gameY)
             Screen.Records -> recordsTap(gameX, gameY)
@@ -243,13 +259,26 @@ internal class GameSession(
         }
     }
 
-    fun fingersUp() = input.release()
+    /** The fingers went up: the jump ends and the button that was pressed, if any, does its thing. */
+    fun fingersUp() {
+        input.release()
+        val action = onRelease ?: return
+        pressed = null
+        onRelease = null
+        action()
+    }
 
-    /** The back button of the phone: the pause in a run, and from anywhere else the start screen. */
+    /** [box] shows pressed until the finger goes up, and then [action] happens. */
+    private fun press(box: Box?, action: () -> Unit) {
+        pressed = box
+        onRelease = action
+    }
+
+    /** The back button of the phone: the pause in a run, a page back in how to play, and else the start screen. */
     fun back() {
         when {
             screen == Screen.Game && run.phase == RunPhase.Running && !paused -> pause()
-            screen == Screen.HowTo -> closeHowTo()
+            screen == Screen.HowTo -> goBackInHowTo()
             screen != Screen.Title -> goHome()
         }
     }
@@ -261,6 +290,7 @@ internal class GameSession(
         input.clear()
         panel = pausePanel()
         panelButtonTexts = listOf(Texts.HOME)
+        panelButtonIcons = listOf(null)
         panelButtons = layout.row(panelButtonTexts, panelBottom(panel, viewport.height) + MenuLayout.GAP)
         audio?.pause()
     }
@@ -279,48 +309,58 @@ internal class GameSession(
     private fun titleTap(x: Float, y: Float) {
         val layout = layout
         when {
-            layout.corner.contains(x, y) -> toggleSound()
-            layout.recordsButton.contains(x, y) -> openRecords()
-            layout.howToButton.contains(x, y) -> openHowTo()
+            layout.titleSound.contains(x, y) -> press(layout.titleSound) { toggleSound() }
+            layout.recordsButton.contains(x, y) -> press(layout.recordsButton) { openRecords() }
+            layout.howToButton.contains(x, y) -> press(layout.howToButton) { openHowTo() }
             else -> {
-                val card = layout.cards.indexOfFirst { it.contains(x, y) }
-                if (card >= 0) startRun(Scenario.entries[card])
+                val card = layout.cards.indexOfFirst { it.contains(x, y, slack = 0) }
+                if (card >= 0) press(layout.cards[card]) { startRun(Scenario.entries[card]) }
             }
         }
     }
 
     private fun recordsTap(x: Float, y: Float) {
         if (layout.back.contains(x, y)) {
-            goHome()
+            press(layout.back) { goHome() }
             return
         }
-        val tab = layout.tabs(scenarioNames).indexOfFirst { it.contains(x, y) }
+        val tab = layout.tabs(scenarioNames).indexOfFirst { it.contains(x, y, slack = 0) }
         if (tab >= 0 && tab != recordsScenario.ordinal) {
-            audio?.play(Sound.Tap)
-            recordsScenario = Scenario.entries[tab]
-            recordRuns = records.best(recordsScenario)
+            press(null) {
+                audio?.play(Sound.Tap)
+                recordsScenario = Scenario.entries[tab]
+                recordRuns = records.best(recordsScenario)
+            }
         }
     }
 
+    /** How to play: the way back, the button forward, or forward too from a tap anywhere else. */
     private fun howToTap(x: Float, y: Float) {
         val layout = layout
-        val buttons = howToButtons()
+        val forward = layout.forward(forwardText())
         when {
-            layout.back.contains(x, y) -> closeHowTo()
-            buttons.size > 1 && buttons[0].contains(x, y) -> turnPage(-1)
-            else -> turnPage(+1)
+            layout.back.contains(x, y) -> press(layout.back) { goBackInHowTo() }
+            forward.contains(x, y) -> press(forward) { turnPage() }
+            else -> press(null) { turnPage() }
         }
     }
 
     private fun gameTap(x: Float, y: Float) {
         if (paused) {
-            if (panelButtons.firstOrNull()?.contains(x, y) == true) goHome() else resume()
+            val home = panelButtons.firstOrNull()
+            if (home != null && home.contains(x, y)) press(home) { goHome() } else press(null) { resume() }
             return
         }
         if (run.phase == RunPhase.Over) {
             if (time - overAt < RETRY_DELAY) return
-            // The start screen, or another run in the same scenario from a tap anywhere else (UI-06).
-            if (panelButtons.getOrNull(1)?.contains(x, y) == true) goHome() else restart()
+            // Another run in the same scenario, from its button or a tap anywhere else (UI-06), or the start screen.
+            val again = panelButtons.getOrNull(0)
+            val home = panelButtons.getOrNull(1)
+            when {
+                home != null && home.contains(x, y) -> press(home) { goHome() }
+                again != null && again.contains(x, y) -> press(again) { restart() }
+                else -> press(null) { restart() }
+            }
             return
         }
         // With the debugging tools open, a tap on the points takes some away, to see the end of a run without points.
@@ -331,12 +371,14 @@ internal class GameSession(
         }
         val layout = layout
         if (run.phase == RunPhase.Running && layout.hudSound.contains(x, y)) {
-            toggleSound()
+            press(layout.hudSound) { toggleSound() }
             return
         }
         if (run.phase == RunPhase.Running && layout.corner.contains(x, y)) {
-            audio?.play(Sound.Tap)
-            pause()
+            press(layout.corner) {
+                if (run.phase == RunPhase.Running) audio?.play(Sound.Tap)
+                pause()
+            }
             return
         }
         input.press()
@@ -358,39 +400,51 @@ internal class GameSession(
 
     private fun openHowTo() {
         audio?.play(Sound.Tap)
-        howToPage = 0
-        tutorial = TutorialScene(0, config, scenario) { lookOf(art) }
+        showPage(0)
         clock.reset()
         show(Screen.HowTo)
     }
 
-    /** How to play, a page back or forward; past the last one, it has been seen and the start screen comes. */
-    private fun turnPage(by: Int) {
-        val page = howToPage + by
-        if (page < 0) return
+    /** How to play, a page forward; past the last one, it has been seen and the start screen comes. */
+    private fun turnPage() {
         audio?.play(Sound.Tap)
-        if (page >= TutorialScene.PAGES) {
+        if (howToPage + 1 >= TutorialScene.PAGES) closeHowTo() else showPage(howToPage + 1)
+    }
+
+    /** How to play, a page back; from the first one, the start screen. */
+    private fun goBackInHowTo() {
+        if (howToPage == 0) {
             closeHowTo()
             return
         }
-        howToPage = page
-        tutorial = TutorialScene(page, config, scenario) { lookOf(art) }
+        audio?.play(Sound.Back)
+        showPage(howToPage - 1)
     }
+
+    private fun showPage(page: Int) {
+        howToPage = page
+        tutorial = scenesOf(page)
+    }
+
+    /** The two scenes of a [page] of how to play, each from its start. */
+    private fun scenesOf(page: Int): List<TutorialScene> =
+        List(TutorialScene.PER_PAGE) { TutorialScene(page * TutorialScene.PER_PAGE + it, config, scenario) { lookOf(art) } }
 
     private fun closeHowTo() {
         choices.tutorialSeen = true
-        tutorial = null
+        tutorial = emptyList()
         goHome()
     }
 
-    /** The texts of the buttons of how to play: back, from the second page, and forward. */
-    fun howToButtonTexts(): List<String> {
-        val forward = if (howToPage == TutorialScene.PAGES - 1) Texts.PLAY else Texts.NEXT
-        return if (howToPage == 0) listOf(forward) else listOf(Texts.PREVIOUS, forward)
+    /**
+     * The text of the button forward of how to play (GameMaster's proposal): on, until the last page; there, «¡A JUGAR!»
+     * the first time and «¡ENTENDIDO!» when she opened it from the start screen.
+     */
+    fun forwardText(): String = when {
+        howToPage < TutorialScene.PAGES - 1 -> Texts.NEXT
+        choices.tutorialSeen -> Texts.UNDERSTOOD
+        else -> Texts.PLAY
     }
-
-    /** Where the buttons of how to play go: at the bottom. */
-    fun howToButtons(): List<Box> = layout.row(howToButtonTexts(), viewport.height - MenuLayout.MARGIN - MenuLayout.BUTTON_HEIGHT)
 
     private fun show(next: Screen) {
         screen = next
@@ -464,15 +518,17 @@ internal class GameSession(
         look.step(JumpLab.STEP, run, result?.newRecord == true)
         if (pose != CaroPose.AlBarranco && look.pose == CaroPose.AlBarranco) audio?.play(Sound.IntoTheGap)
         hint = hintNow()
+        hintFill = if (hint && !caro.state.grounded) caro.holdShare else 0f
     }
 
     /**
-     * Whether to show the hint to hold the finger: in her first [HINT_RUNS] runs, as she comes to each of the first
-     * [HINT_GAPS] gaps of the run, until she leaves the ground.
+     * Whether to show the hint to hold the finger (GameMaster's storyboard): in her first [HINT_RUNS] runs, from a moment
+     * before each of the first [HINT_GAPS] gaps of the run, over Caro, and on with her in the air until she lands.
      */
     private fun hintNow(): Boolean {
         if (choices.runsPlayed >= HINT_RUNS || run.phase != RunPhase.Running) return false
         val caro = run.caro
+        if (!caro.state.grounded) return hint
         val grounds = run.course.grounds
         var gap = Int.MIN_VALUE
         for (i in 0 until grounds.size - 1) {
@@ -527,7 +583,8 @@ internal class GameSession(
         if (!autopilot) choices.runsPlayed = choices.runsPlayed + 1
         panel = overPanel(ended)
         panelButtonTexts = listOf(Texts.AGAIN, Texts.HOME)
-        panelButtons = layout.row(panelButtonTexts, panelBottom(panel, viewport.height) + MenuLayout.GAP)
+        panelButtonIcons = listOf(Icon.Again, null)
+        panelButtons = layout.row(panelButtonTexts, panelBottom(panel, viewport.height) + MenuLayout.GAP, panelButtonIcons)
         // The music stops: the sound of the end, and a moment later its jingle, of a record if there is one.
         if (cause == EndCause.NoPoints) audio?.play(Sound.NoPoints)
         audio?.end(scenario, ended.newRecord, JINGLE_DELAY_MILLIS)
@@ -585,7 +642,7 @@ internal class GameSession(
     private fun refreshTexts() {
         if (run.points != shownPoints) {
             shownPoints = run.points
-            pointsText = "${Texts.POINTS} $shownPoints"
+            pointsText = "$shownPoints"
         }
         val meters = run.meters.toInt()
         if (meters != shownMeters) {
@@ -608,13 +665,13 @@ internal class GameSession(
     private fun overPanel(result: RunResult): List<PanelLine> {
         val lines = mutableListOf(
             PanelLine(Texts.GAME_OVER, size = 2),
-            PanelLine(Texts.cause(run.endCause), GreyPalette.bad),
+            PanelLine(Texts.cause(run.endCause), Tone.Warning),
             PanelLine("${Texts.DISTANCE} ${result.meters} M · ${Texts.RECORD} ${result.bestMeters} M"),
             PanelLine("${Texts.MAX_POINTS} ${result.maxPoints}"),
         )
         when {
-            result.newRecord -> lines += PanelLine(Texts.NEW_RECORD, GreyPalette.record, size = 2)
-            result.place > 1 -> lines += PanelLine(Texts.place(result.place, Records.SIZE), GreyPalette.record)
+            result.newRecord -> lines += PanelLine(Texts.NEW_RECORD, Tone.Record, size = 2)
+            result.place > 1 -> lines += PanelLine(Texts.place(result.place, Records.SIZE), Tone.Record)
         }
         return lines
     }

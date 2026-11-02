@@ -130,10 +130,20 @@ class SnapshotsTest {
     fun howToPlayTheFirstTimeTheGameOpens() {
         val image = render("como-se-juega-1", 2400, 1080, Script(frames = 90))
         assertPixelGrid(image, "como-se-juega")
-        val next = Tap(hold = 2, at = Offset(2400 * 0.8f, 1080 * 0.97f))
+        val next = Tap(hold = 2, at = at(2400, 1080) { it.forward("SIGUIENTE") })
         render("como-se-juega-2", 2400, 1080, Script(frames = 150, taps = mapOf(30 to next)))
-        render("como-se-juega-3", 2400, 1080, Script(frames = 150, taps = mapOf(30 to next, 50 to next)))
-        render("como-se-juega-4", 2400, 1080, Script(frames = 150, taps = mapOf(30 to next, 50 to next, 70 to next)))
+        // From the start screen, the last page ends in «¡ENTENDIDO!»; and the button forward, pressed.
+        val open = Tap(hold = 2, at = at(2400, 1080) { it.howToButton })
+        val held = Tap(hold = 100, at = at(2400, 1080) { it.forward("SIGUIENTE") })
+        render("como-se-juega-desde-inicio", 2400, 1080, Script(frames = 120, taps = mapOf(10 to open, 30 to next)), seen())
+        render("como-se-juega-pulsado", 2400, 1080, Script(frames = 40, taps = mapOf(10 to open, 30 to held)), seen())
+    }
+
+    @Test
+    fun theStartScreenWithAButtonPressed() {
+        val held = Tap(hold = 100, at = at(2400, 1080) { it.cards[1] })
+        render("inicio-pulsado", 2400, 1080, Script(frames = 30, taps = mapOf(10 to held)), seen())
+        render("inicio-320x180", 320 * 3, 180 * 3, Script(frames = 30), seen())
     }
 
     @Test
@@ -142,9 +152,17 @@ class SnapshotsTest {
         val records = Records(store)
         records.submit(Scenario.Nieve, meters = 1234, maxPoints = 56, day = 20261102)
         records.submit(Scenario.Nieve, meters = 321, maxPoints = 18, day = 20261101)
-        records.submit(Scenario.Nieve, meters = 87, maxPoints = 12)
+        records.submit(Scenario.Nieve, meters = 87, maxPoints = 12, day = 20261031)
+        for ((i, meters) in listOf(2410, 977, 742, 615, 403, 120).withIndex()) {
+            records.submit(Scenario.Bosque, meters = meters, maxPoints = 30 - i, day = 20261102 - i)
+        }
         val open = mapOf(10 to Tap(hold = 2, at = at(2400, 1080) { it.recordsButton }))
         render("records", 2400, 1080, Script(frames = 40, taps = open), store)
+        val names = Scenario.entries.map { Texts.scenario(it) }
+        for (scenario in listOf(Scenario.Bosque, Scenario.Desierto)) {
+            val tab = Tap(hold = 2, at = at(2400, 1080) { it.tabs(names)[scenario.ordinal] })
+            render("records-${scenario.name.lowercase()}", 2400, 1080, Script(frames = 40, taps = open + mapOf(20 to tab)), store)
+        }
     }
 
     @Test

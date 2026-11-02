@@ -308,21 +308,23 @@ private fun stillFrame(animation: Animation, time: Long, item: Item): Int {
 }
 
 /**
- * Caro celebrating a new record at both ends of the end panel, facing us (the record animation GameMaster drew for that
- * panel): one on each side of the text, her feet on the panel's bottom edge, [bottom] in game pixels from the top.
+ * Caro celebrating a new record at both sides of the end [panel], facing us (the record animation GameMaster drew for
+ * that panel), her feet on its bottom edge; where the panel goes from side to side of the screen [width] wide, over it.
  */
 internal fun DrawScope.paintRecordCelebration(
     art: CaroArt,
     scenario: Scenario,
     millis: Long,
+    panel: Box,
     width: Int,
-    bottom: Int,
 ) {
     val animation = art.animation(CaroPose.Record, Reaction.None)
     val frame = animation.frameAt(millis, loops = true)
     val sheet = art.sheet(scenario)
-    drawFrame(sheet, frame, CELEBRATION_X - art.anchorX, bottom - art.anchorY)
-    drawFrame(sheet, frame, width - CELEBRATION_X - art.anchorX, bottom - art.anchorY, flip = true)
+    val left = if (panel.left >= CELEBRATION_ROOM) panel.left - CELEBRATION_BESIDE else CELEBRATION_X
+    val right = if (width - panel.right >= CELEBRATION_ROOM) panel.right + CELEBRATION_BESIDE else width - CELEBRATION_X
+    drawFrame(sheet, frame, left - art.anchorX, panel.bottom - art.anchorY)
+    drawFrame(sheet, frame, right - art.anchorX, panel.bottom - art.anchorY, flip = true)
 }
 
 /** A fixed shift of each collectible's animations, so a row of them does not move all at once. */
@@ -339,6 +341,10 @@ private fun variation(column: Int, row: Int): Int {
 /** How far from each side of the screen Caro celebrates a record, in game pixels. */
 private const val CELEBRATION_X = 34
 
+/** Beside a panel: from its edge to her middle, and the room she needs there. */
+private const val CELEBRATION_BESIDE = 20
+private const val CELEBRATION_ROOM = 36
+
 /** How far above its centre the smell sits over the egg and the fish, in game pixels. */
 private const val SMELL_ABOVE = 6
 private const val OUT_OF_STEP_MILLIS = 1000L
@@ -349,7 +355,7 @@ private const val FAR = 0
 private const val MID = 1
 
 /** How fast each layer moves with the camera: the far one at 30 %, the middle one at 60 %. */
-private val LAYER_SPEEDS = doubleArrayOf(0.3, 0.6)
+internal val LAYER_SPEEDS = doubleArrayOf(0.3, 0.6)
 
 /** The decoration in the air moves with the ground, as GameMaster made it. */
 private const val WEATHER_SPEED = 1.0

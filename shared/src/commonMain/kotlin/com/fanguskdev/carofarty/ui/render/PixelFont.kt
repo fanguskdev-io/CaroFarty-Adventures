@@ -115,6 +115,21 @@ internal object PixelFont {
         drawLine(text, x, y, color, size)
     }
 
+    /** [text] as [drawText] draws it, in [color], with an [outline] one pixel wide all around it instead of a shadow. */
+    fun DrawScope.drawOutlined(
+        text: String,
+        x: Int,
+        y: Int,
+        color: Color,
+        outline: Color,
+        size: Int = 1,
+    ) {
+        for (dy in -1..1) {
+            for (dx in -1..1) if (dx != 0 || dy != 0) drawLine(text, x + dx, y + dy, outline, size)
+        }
+        drawLine(text, x, y, color, size)
+    }
+
     private fun DrawScope.drawLine(
         text: String,
         x: Int,

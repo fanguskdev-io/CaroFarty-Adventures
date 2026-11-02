@@ -1,12 +1,15 @@
 package com.fanguskdev.carofarty.ui.render
 
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.clipRect
 import com.fanguskdev.carofarty.game.CaroState
 import com.fanguskdev.carofarty.game.Reaction
 import com.fanguskdev.carofarty.game.Scenario
 import com.fanguskdev.carofarty.game.TILE
+import com.fanguskdev.carofarty.ui.render.PixelFont.drawOutlined
 import com.fanguskdev.carofarty.ui.render.PixelFont.drawText
+import kotlin.math.max
 
 /**
  * What happens in the scenario of the title screen (UI-07), all of it from the time alone, so it costs nothing to keep
@@ -59,77 +62,106 @@ internal object IntroShow {
 
 /**
  * The title screen (UI-07), the animated title Fangusk chose, as GameMaster described it: the title over the sky of the
- * menus with the clouds of the kit drifting; along the bottom, the scenario she played last ([scenario]) going by slowly
- * with Caro running in it in its clothes and the animals of [IntroShow]; and in the middle [prompt], «TOCA PARA EMPEZAR»,
- * blinking. Without the interface's art, over the dark veil of the prototype's menus, and Caro in grey.
+ * menus with the clouds of the kit drifting, and under it [subtitle] in the ribbon of the kit, «SALVANDO EL MUNDO, PATITA
+ * A PATITA» (Fangusk chose it); along the bottom, the scenario she played last ([scenario]) going by slowly, seen under
+ * GameMaster's bank of clouds, with Caro running in it in its clothes and the animals of [IntroShow]; and in the middle
+ * [prompt], «TOCA PARA EMPEZAR», blinking, in raspberry with an outline, as Fangusk chose. Without the interface's art,
+ * over the dark veil of the prototype's menus, and Caro in grey.
  */
 internal fun DrawScope.paintIntro(
     layout: MenuLayout,
     art: Art?,
     scenario: Scenario,
+    subtitle: String,
     prompt: String,
     millis: Long,
 ) {
     val ui = art?.ui
     if (ui == null) paintShade(layout.width, layout.height) else paintMenuSky(layout.width, layout.height, ui, driftMillis = millis)
-    paintIntroScene(layout, art, scenario, millis)
+    val show = millis + IntroShow.START_MILLIS
+    val box = layout.introScene
+    clipRect(box.left.toFloat(), box.top.toFloat(), box.right.toFloat(), box.bottom.toFloat()) {
+        val travelled = show * IntroShow.SPEED / IntroShow.SECOND
+        val palette = GreyPalette.of(scenario)
+        paintMiniScenery(box, art?.scenario(scenario), palette, layout.introGround, travelled.toDouble(), withGround = true)
+    }
+    ui?.piece(CLOUD_BANK)?.let { paintCloudBank(it, layout, millis) }
+    paintIntroCast(layout, art, scenario, millis, show)
     paintTitleImage(layout.title, ui)
+    val ribbon = layout.subtitle(subtitle)
+    if (ui != null) {
+        paintRibbon(ribbon, subtitle, ui)
+    } else {
+        drawCentred(subtitle, ribbon, GreyPalette.text, GreyPalette.shadow)
+    }
     if (millis % BLINK_MILLIS < SHOWN_MILLIS) {
-        val box = layout.prompt(prompt)
-        val text = ui?.colors?.text ?: GreyPalette.text
-        val shadow = ui?.colors?.shadow ?: GreyPalette.shadow
-        drawText(prompt, box.left, box.top, text, shadow, MenuLayout.PROMPT_SIZE)
+        val text = layout.prompt(prompt)
+        if (ui != null) {
+            drawOutlined(prompt, text.left, text.top, RASPBERRY, ui.colors.shadow, MenuLayout.PROMPT_SIZE)
+        } else {
+            drawText(prompt, text.left, text.top, GreyPalette.text, GreyPalette.shadow, MenuLayout.PROMPT_SIZE)
+        }
     }
 }
 
-/** The scenario along the bottom of the title screen, its layers at their own pace, with Caro and the animals on its ground. */
-private fun DrawScope.paintIntroScene(
+/**
+ * GameMaster's bank of clouds over the joint of the sky of the menus and the scenario's: repeated from side to side, its
+ * row [MenuLayout.CLOUD_BANK_ABOVE] on the joint, drifting to the left with the clouds, so the scenario is seen under it.
+ */
+private fun DrawScope.paintCloudBank(piece: UiPiece, layout: MenuLayout, millis: Long) {
+    val top = layout.introScene.top - MenuLayout.CLOUD_BANK_ABOVE
+    var x = -(millis * CLOUD_BANK_SPEED / IntroShow.SECOND).mod(piece.width.toLong()).toInt()
+    while (x < layout.width) {
+        drawPiece(piece, Box(x, top, piece.width, piece.height))
+        x += piece.width
+    }
+}
+
+/**
+ * The animals and Caro on the ground of the scenario of the title screen, in front of the bank of clouds, and the «+1» of
+ * her last rescue floating up over her, a little ahead, as in how to play, never into the prompt.
+ */
+private fun DrawScope.paintIntroCast(
     layout: MenuLayout,
     art: Art?,
     scenario: Scenario,
     millis: Long,
+    show: Long,
 ) {
-    val box = layout.introScene
     val ground = layout.introGround
     val caroX = layout.introCaroX
-    val show = millis + IntroShow.START_MILLIS
     val travelled = show * IntroShow.SPEED / IntroShow.SECOND
-    clipRect(box.left.toFloat(), box.top.toFloat(), box.right.toFloat(), box.bottom.toFloat()) {
-        paintMiniScenery(box, art?.scenario(scenario), GreyPalette.of(scenario), ground, travelled.toDouble(), withGround = true)
-        val items = art?.items
-        val next = IntroShow.next(show)
-        if (items != null) {
-            for (k in next until next + IntroShow.AT_ONCE) {
-                val x = IntroShow.x(k, show, caroX)
-                if (x - ANIMAL_HALF < box.right) paintAnimal(items, k, x, ground, millis)
-            }
-        }
-        val caro = art?.caro
-        if (caro != null) {
-            val reaction = if (IntroShow.sinceRescue(show) in 0 until IntroShow.HAPPY_MILLIS) Reaction.Happy else Reaction.None
-            val animation = caro.animation(CaroPose.Corre, reaction)
-            val cycle = animation.cycleTiles
-            val frame = if (cycle != null && cycle > 0f) {
-                animation.frame((travelled * animation.size / (cycle * TILE)).toInt())
-            } else {
-                animation.frameAt(millis, loops = true)
-            }
-            drawFrame(caro.sheet(scenario), frame, caroX - caro.anchorX, ground - caro.anchorY)
-        } else {
-            paintCaro(caroX, ground, CaroState.Running, stride = travelled / STRIDE % 2 == 0L)
+    val items = art?.items
+    val next = IntroShow.next(show)
+    if (items != null) {
+        for (k in next until next + IntroShow.AT_ONCE) {
+            val x = IntroShow.x(k, show, caroX)
+            if (x - ANIMAL_HALF < layout.width) paintAnimal(items, k, x, ground, millis)
         }
     }
-    // The «+1» of the last rescue, floating up over her, a little ahead, as in how to play; out of the scenario if it rises
-    // that far.
-    val since = IntroShow.sinceRescue(show)
-    if (since in 0 until IntroShow.FLOAT_MILLIS) {
-        val top = ground - CARO_HEIGHT - FLOAT_UP - (since * RISE / IntroShow.SECOND).toInt()
-        val digits = art?.ui?.digits
-        if (digits != null) {
-            drawDigits(digits, RESCUE, adding = true, x = caroX + FLOAT_AHEAD - digitsWidth(digits, RESCUE) / 2, y = top)
+    val caro = art?.caro
+    if (caro != null) {
+        val reaction = if (IntroShow.sinceRescue(show) in 0 until IntroShow.HAPPY_MILLIS) Reaction.Happy else Reaction.None
+        val animation = caro.animation(CaroPose.Corre, reaction)
+        val cycle = animation.cycleTiles
+        val frame = if (cycle != null && cycle > 0f) {
+            animation.frame((travelled * animation.size / (cycle * TILE)).toInt())
         } else {
-            drawText(RESCUE, caroX + FLOAT_AHEAD - PixelFont.width(RESCUE) / 2, top, GreyPalette.good, GreyPalette.shadow)
+            animation.frameAt(millis, loops = true)
         }
+        drawFrame(caro.sheet(scenario), frame, caroX - caro.anchorX, ground - caro.anchorY)
+    } else {
+        paintCaro(caroX, ground, CaroState.Running, stride = travelled / STRIDE % 2 == 0L)
+    }
+    val since = IntroShow.sinceRescue(show)
+    if (since !in 0 until IntroShow.FLOAT_MILLIS) return
+    val highest = layout.promptBottom + FLOAT_CLEAR
+    val top = max(highest, ground - CARO_HEIGHT - FLOAT_UP - (since * RISE / IntroShow.SECOND).toInt())
+    val digits = art?.ui?.digits
+    if (digits != null) {
+        drawDigits(digits, RESCUE, adding = true, x = caroX + FLOAT_AHEAD - digitsWidth(digits, RESCUE) / 2, y = top)
+    } else {
+        drawText(RESCUE, caroX + FLOAT_AHEAD - PixelFont.width(RESCUE) / 2, top, GreyPalette.good, GreyPalette.shadow)
     }
 }
 
@@ -157,6 +189,16 @@ private fun DrawScope.paintAnimal(
 /** «TOCA PARA EMPEZAR» shows this long of every round of its blinking. */
 private const val BLINK_MILLIS = 1200L
 private const val SHOWN_MILLIS = 800L
+
+/** «TOCA PARA EMPEZAR» in raspberry, «F» of the interface's palette (Fangusk chose it, with an outline). */
+private val RASPBERRY = Color(0xFFE5548A)
+
+/** GameMaster's bank of clouds, by its name in ui.json, and how fast it drifts, in pixels a second, as the big clouds. */
+private const val CLOUD_BANK = "banco-nubes"
+private const val CLOUD_BANK_SPEED = 5L
+
+/** How far under the prompt the «+1» stops rising. */
+private const val FLOAT_CLEAR = 2
 
 /** Half an animal's drawing: one this far past the right edge has not come in yet. */
 private const val ANIMAL_HALF = 8

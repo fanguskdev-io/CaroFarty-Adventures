@@ -43,6 +43,7 @@ class MenusTest {
                 layout.forward(Texts.UNDERSTOOD),
                 layout.ribbon(Texts.HOW_TO_TITLE),
                 layout.introScene,
+                layout.subtitle(Texts.SUBTITLE),
                 layout.prompt(Texts.TAP_TO_START),
             ) + layout.cards + layout.frames + layout.tabs(names)
             for (box in boxes) assertTrue(layout.has(box), "$box on ${layout.width} × ${layout.height}, ${layout.insets}")
@@ -65,7 +66,7 @@ class MenusTest {
             assertFalse(layout.ribbon(Texts.RECORDS_TITLE).overlaps(layout.tabs(names).first()), "the ribbon and the tabs")
             assertFalse(layout.frames[0].overlaps(layout.frames[1]), "the two frames of how to play")
             assertFalse(layout.hudSound.overlaps(layout.corner), "the sound and the pause")
-            val intro = listOf(layout.title, layout.prompt(Texts.TAP_TO_START), layout.introScene)
+            val intro = listOf(layout.title, layout.subtitle(Texts.SUBTITLE), layout.prompt(Texts.TAP_TO_START), layout.introScene)
             for (i in intro.indices) {
                 for (j in i + 1 until intro.size) assertFalse(intro[i].overlaps(intro[j]), "${intro[i]} and ${intro[j]}, ${layout.height}")
             }
@@ -73,11 +74,14 @@ class MenusTest {
     }
 
     @Test
-    fun caroFitsInTheScenarioOfTheTitleScreen() {
+    fun theTitleScreenLeavesItsPromptClear() {
         for (layout in layouts()) {
-            val scene = layout.introScene
-            assertTrue(layout.introGround - CARO_HEIGHT > scene.top, "her head under the sky of the menus on ${layout.height}")
-            assertTrue(layout.introGround < scene.bottom, "the ground on the screen")
+            val prompt = layout.prompt(Texts.TAP_TO_START)
+            // The outline of the prompt clear of the ribbon above and of GameMaster's bank of clouds below.
+            assertTrue(layout.subtitle(Texts.SUBTITLE).bottom < prompt.top - 1, "the ribbon and the prompt on ${layout.height}")
+            assertTrue(layout.promptBottom < layout.introScene.top - MenuLayout.CLOUD_BANK_ABOVE, "the clouds and the prompt")
+            assertTrue(layout.introGround - CARO_HEIGHT > layout.promptBottom, "her head under the prompt on ${layout.height}")
+            assertTrue(layout.introGround < layout.introScene.bottom, "the ground on the screen")
         }
     }
 

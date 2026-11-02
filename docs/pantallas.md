@@ -38,18 +38,28 @@ flowchart LR
 
 ## Presentación
 
-Lo primero al abrir el juego, el título animado que eligió Fangusk (UI-07), como lo describió GameMaster: arriba, el
-título en el mismo sitio que en el inicio, sobre el cielo de los menús con sus nubes moviéndose despacio hacia la
-izquierda (las pequeñas, más despacio, como más lejos). Abajo, de lado a lado y justo bajo la segunda franja del cielo,
-el escenario de la última fase jugada: su cielo, sus fondos con su parallax y su suelo pasan a 60 px/s, el paso de las
-tarjetas, con Caro corriendo a un cuarto de la pantalla con su ropa de esa fase. Cada 5 s alcanza a un animal, por
-turnos un gatito sentado y un perrito que pasea hacia donde ella corre, más despacio; lo rescata como en una partida: el
-animal se va, a ella se le pone la cara contenta un momento y sube su «+1». En medio, «TOCA PARA EMPEZAR» en letras
-dobles, parpadeando (0,8 s sí y 0,4 s no). Suena el bucle de la última fase jugada, el mismo que sigue en el inicio.
+Lo primero al abrir el juego, el título animado que eligió Fangusk (UI-07), como lo describió GameMaster:
+
+- **Arriba**, el título en el mismo sitio que en el inicio, sobre el cielo de los menús con sus nubes moviéndose despacio
+  hacia la izquierda (las pequeñas, más despacio, como más lejos). Debajo, a 4 px, el subtítulo que eligió Fangusk,
+  «SALVANDO EL MUNDO, PATITA A PATITA», en la cinta del kit (en crema con su sombra).
+- **En medio**, «TOCA PARA EMPEZAR» en letras dobles, en frambuesa con un contorno de 1 px, como eligió Fangusk,
+  parpadeando (0,8 s sí y 0,4 s no).
+- **Abajo**, de lado a lado, el escenario de la última fase jugada: su cielo, sus fondos con su parallax y su suelo pasan
+  a 60 px/s, el paso de las tarjetas, con Caro corriendo a un cuarto de la pantalla con su ropa de esa fase. La junta entre
+  los dos cielos la tapa el banco de nubes de GameMaster, repetido de lado a lado y moviéndose a la izquierda a 5 px/s: el
+  escenario se ve por debajo de una capa de nubes. Empieza bajo la segunda franja del cielo o, en una pantalla baja, lo
+  justo para que las nubes no toquen «TOCA PARA EMPEZAR».
+- **Animales**: cada 5 s Caro alcanza a uno, por turnos un gatito sentado y un perrito que pasea hacia donde ella corre,
+  más despacio. Los rescata como en una partida: el animal se va, a ella se le pone la cara contenta un momento y sube su
+  «+1», que se para antes de llegar al texto. Fue idea del agente, para que no los atraviese sin más; GameMaster se lo
+  consulta a Fangusk.
+- **Música**: suena el bucle de la última fase jugada, el mismo que sigue en el inicio.
 
 Un toque en cualquier sitio suena a «ui-pulsar» y pasa, sin transición, a «Cómo se juega» la primera vez y al inicio
-después: el título se queda en su sitio y aparecen las tarjetas. Al volver de una partida se va al inicio, nunca a la
-presentación. Todo lo que pasa en ella sale del tiempo, así que no guarda nada ni cuesta nada mantenerla.
+después: el título se queda en su sitio, la cinta y el texto se van y aparecen las tarjetas. Al volver de una partida se
+va al inicio, nunca a la presentación. Todo lo que pasa en ella sale del tiempo, así que no guarda nada ni cuesta nada
+mantenerla.
 
 ## Inicio
 

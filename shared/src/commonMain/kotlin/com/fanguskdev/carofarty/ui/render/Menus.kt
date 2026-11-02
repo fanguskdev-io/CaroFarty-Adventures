@@ -107,18 +107,33 @@ internal class MenuLayout(val width: Int, val height: Int, val insets: SafeInset
 
     /**
      * The title screen (UI-07, the animated title Fangusk chose): the title where the start screen has it, so it stays in
-     * its place from one to the other; the scenario along the bottom, from side to side, under the second band of the sky
-     * of the menus, with its ground [introGround]; and Caro running in it at [introCaroX].
+     * its place from one to the other, with the subtitle under it in the ribbon (Fangusk chose it) and «TOCA PARA EMPEZAR»;
+     * and the scenario along the bottom, from side to side, from under the second band of the sky of the menus or lower,
+     * so that GameMaster's bank of clouds over the joint leaves the prompt clear, with its ground [introGround]; and Caro
+     * running in it at [introCaroX].
      */
-    val introScene = minOf(menuSkySecondBandEnd(height), height - INTRO_SCENE_MIN).let { Box(0, it, width, height - it) }
+    private val subtitleTop = title.bottom + SUBTITLE_GAP
+    private val subtitleBottom = subtitleTop + RIBBON_HEIGHT
+    private val promptTall = PixelFont.HEIGHT * PROMPT_SIZE
+    val introScene = max(menuSkySecondBandEnd(height), subtitleBottom + 2 * PROMPT_GAP + promptTall + CLOUD_BANK_ABOVE)
+        .let { Box(0, it, width, height - it) }
     val introGround = height - INTRO_GROUND
     val introCaroX = width / INTRO_CARO_PART
+    private val promptTop = (subtitleBottom + introScene.top - CLOUD_BANK_ABOVE - promptTall) / 2
 
-    /** «TOCA PARA EMPEZAR», [text] in big letters, centred between the title and the scenario. */
+    /** Where «TOCA PARA EMPEZAR» ends, its outline included: nothing of the scenario goes up past it. */
+    val promptBottom = promptTop + promptTall + 1
+
+    /** The subtitle of the title screen in the ribbon of the kit, under the title: [text] decides its width. */
+    fun subtitle(text: String): Box {
+        val across = PixelFont.width(text) + RIBBON_SIDES
+        return Box(centred(across), subtitleTop, across, RIBBON_HEIGHT)
+    }
+
+    /** «TOCA PARA EMPEZAR», [text] in big letters, centred between the subtitle and the bank of clouds. */
     fun prompt(text: String): Box {
         val across = PixelFont.width(text, PROMPT_SIZE)
-        val tall = PixelFont.HEIGHT * PROMPT_SIZE
-        return Box(centred(across), (title.bottom + introScene.top - tall) / 2, across, tall)
+        return Box(centred(across), promptTop, across, promptTall)
     }
 
     /** The panel of the records, with its tabs over it, in the middle of what the header leaves. */
@@ -233,13 +248,16 @@ internal class MenuLayout(val width: Int, val height: Int, val insets: SafeInset
         private const val DOTS_SPACE = 4 + 7
 
         /**
-         * The title screen: the scenario never less tall than enough for Caro over its ground, its ground the two tiles of
-         * the start of a run, Caro a quarter of the way in, as in the cards, and the prompt in letters twice the size.
+         * The title screen: the ground of the scenario the two tiles of the start of a run, Caro a quarter of the way in,
+         * as in the cards; the subtitle 4 px under the title (GameMaster's mockup) and the prompt in letters twice the size,
+         * with room for its outline around it; and the rows of GameMaster's bank of clouds over the joint of the two skies.
          */
-        private const val INTRO_SCENE_MIN = 80
         private const val INTRO_GROUND = 32
         private const val INTRO_CARO_PART = 4
+        private const val SUBTITLE_GAP = 4
+        private const val PROMPT_GAP = 3
         const val PROMPT_SIZE = 2
+        const val CLOUD_BANK_ABOVE = 13
 
         /** The texts of the buttons whose size the layout needs. */
         const val RECORDS_TEXT = "RÉCORDS"

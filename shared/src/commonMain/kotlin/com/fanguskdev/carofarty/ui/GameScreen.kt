@@ -259,7 +259,7 @@ private fun DrawScope.drawMenu(session: GameSession, scenes: List<PixelBuffer>, 
             if (ui == null) paintMenuGround(scenery, palette, viewport.width, viewport.height)
             val pressed = session.pressed
             when (session.screen) {
-                Screen.Intro -> paintIntro(session.layout, art, session.scenario, Texts.TAP_TO_START, millis)
+                Screen.Intro -> paintIntro(session.layout, art, session.scenario, Texts.SUBTITLE, Texts.TAP_TO_START, millis)
                 Screen.Title -> {
                     paintTitle(
                         session.layout,

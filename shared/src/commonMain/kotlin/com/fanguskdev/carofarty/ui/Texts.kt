@@ -10,6 +10,9 @@ internal object Texts {
     const val PAUSE = "PAUSA"
     const val TAP_TO_RESUME = "TOCA PARA SEGUIR"
     const val TAP_TO_START = "TOCA PARA EMPEZAR"
+
+    /** The subtitle of the title screen, which Fangusk chose. */
+    const val SUBTITLE = "SALVANDO EL MUNDO, PATITA A PATITA"
     const val GAME_OVER = "FIN DE LA PARTIDA"
     const val NEW_RECORD = "¡NUEVO RÉCORD!"
     const val DISTANCE = "DISTANCIA"

@@ -1910,6 +1910,13 @@
      26,
      11
     ]
+   },
+   "banco-nubes": {
+    "hoja": "ui-banco-nubes.png",
+    "tamaño": [
+     128,
+     24
+    ]
    }
   },
   "texto": {

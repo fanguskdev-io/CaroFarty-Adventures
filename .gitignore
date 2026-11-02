@@ -20,3 +20,16 @@ node_modules/
 
 # Los APK de la beta se generan y se copian aquí; no se versionan
 entregas/*.apk
+
+# Del .gitignore con el que GitHub creó el repositorio (plantilla de Android), lo que no estaba ya arriba
+*.log
+*.aab
+*.apk
+output-metadata.json
+misc.xml
+deploymentTargetDropDown.xml
+render.experimental.xml
+*.jks
+*.keystore
+google-services.json
+*.hprof

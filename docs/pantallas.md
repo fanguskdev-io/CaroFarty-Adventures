@@ -8,8 +8,9 @@ juego se ve como el prototipo gris, con los mismos sitios.
 
 ```mermaid
 flowchart LR
-    A[Se abre el juego] -->|la primera vez| B[Cómo se juega]
-    A -->|después| C[Inicio]
+    A[Se abre el juego] --> T[Presentación]
+    T -->|un toque, la primera vez| B[Cómo se juega]
+    T -->|un toque, después| C[Inicio]
     B -->|«¡A jugar!», «¡Entendido!» o volver| C
     C -->|una fase| D[Partida]
     C -->|«Récords»| E[Récords]
@@ -27,13 +28,28 @@ flowchart LR
 ## Lo común
 
 - **El fondo de los menús**: el cielo de día, tres franjas de azul más claras hacia abajo, con las nubes del kit siempre en
-  los mismos sitios de la pantalla.
+  los mismos sitios de la pantalla; en la presentación, se mueven.
 - **Los botones pequeños** (volver, sonido, pausa): de 20 × 20, a 7 píxeles del borde de arriba y a 8 del de al lado, más
   la zona segura; así libran una esquina redondeada.
 - **Pulsar**: un botón se ve pulsado mientras el dedo está encima y hace lo suyo al levantarlo, como piden las piezas
   pulsadas de GameMaster. Solo el salto va con el dedo al bajar.
 - **Lo que queda centrado** se centra en la parte útil de la pantalla (sin márgenes ni zona segura) y, si no cabe en ella,
   en la pantalla.
+
+## Presentación
+
+Lo primero al abrir el juego, el título animado que eligió Fangusk (UI-07), como lo describió GameMaster: arriba, el
+título en el mismo sitio que en el inicio, sobre el cielo de los menús con sus nubes moviéndose despacio hacia la
+izquierda (las pequeñas, más despacio, como más lejos). Abajo, de lado a lado y justo bajo la segunda franja del cielo,
+el escenario de la última fase jugada: su cielo, sus fondos con su parallax y su suelo pasan a 60 px/s, el paso de las
+tarjetas, con Caro corriendo a un cuarto de la pantalla con su ropa de esa fase. Cada 5 s alcanza a un animal, por
+turnos un gatito sentado y un perrito que pasea hacia donde ella corre, más despacio; lo rescata como en una partida: el
+animal se va, a ella se le pone la cara contenta un momento y sube su «+1». En medio, «TOCA PARA EMPEZAR» en letras
+dobles, parpadeando (0,8 s sí y 0,4 s no). Suena el bucle de la última fase jugada, el mismo que sigue en el inicio.
+
+Un toque en cualquier sitio suena a «ui-pulsar» y pasa, sin transición, a «Cómo se juega» la primera vez y al inicio
+después: el título se queda en su sitio y aparecen las tarjetas. Al volver de una partida se va al inicio, nunca a la
+presentación. Todo lo que pasa en ella sale del tiempo, así que no guarda nada ni cuesta nada mantenerla.
 
 ## Inicio
 
@@ -81,7 +97,7 @@ con sus dos líneas debajo:
 
 Arriba, volver (en la segunda página, a la primera), el título en la cinta y el botón para seguir: «Siguiente» y, en la
 última página, «¡A jugar!» la primera vez y «¡Entendido!» desde el inicio. Un toque en cualquier otro sitio también sigue.
-Debajo del panel, los puntos de página. Sale sola la primera vez que se abre el juego; después, desde «Cómo se juega».
+Debajo del panel, los puntos de página. Sale sola la primera vez, tras la presentación; después, desde «Cómo se juega».
 
 ## El sonido
 
@@ -89,5 +105,5 @@ El botón de sonido silencia la música y los efectos. Viene encendido la primer
 
 ## El botón de atrás de Android
 
-En una partida, la pausa; en «Cómo se juega», una página atrás; en cualquier otra pantalla, vuelve al inicio; en el
-inicio, sale del juego.
+En una partida, la pausa; en «Cómo se juega», una página atrás; en los récords, vuelve al inicio; en el inicio y en la
+presentación, sale del juego.

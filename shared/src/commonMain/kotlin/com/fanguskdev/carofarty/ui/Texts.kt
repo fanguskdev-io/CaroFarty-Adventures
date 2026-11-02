@@ -9,6 +9,7 @@ internal object Texts {
     const val POINTS = "PUNTOS"
     const val PAUSE = "PAUSA"
     const val TAP_TO_RESUME = "TOCA PARA SEGUIR"
+    const val TAP_TO_START = "TOCA PARA EMPEZAR"
     const val GAME_OVER = "FIN DE LA PARTIDA"
     const val NEW_RECORD = "¡NUEVO RÉCORD!"
     const val DISTANCE = "DISTANCIA"

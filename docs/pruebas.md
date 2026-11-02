@@ -66,7 +66,7 @@ xcrun simctl launch booted com.fanguskdev.carofarty.CaroFarty -debug -autopilot
 - [ ] Del fin de una partida a la siguiente, un toque y menos de 2 s.
 - [ ] Las pantallas: el emulador (20:9), el iPhone con isla dinámica y el iPad; nada cortado y píxel perfecto.
 - [ ] El rendimiento, con el piloto 10 min: 60 FPS, menos del 1 % de fotogramas lentos y la memoria sin crecer.
-- [ ] Fangusk juega el prototipo y da su visto bueno (QA-02, QA-03).
+- [x] Fangusk juega el prototipo y da su visto bueno (QA-02, QA-03): «Sí, para una primera versión es correcto».
 
 ### M2 · Caro, recolectables y Bosque
 
@@ -75,7 +75,7 @@ xcrun simctl launch booted com.fanguskdev.carofarty.CaroFarty -debug -autopilot
 - [ ] El Bosque: capas a distinta velocidad, sin costuras al repetirse, legible con los recolectables delante.
 - [ ] La lista de comprobación de [propiedad intelectual](propiedad-intelectual.md) en cada pieza.
 - [ ] El rendimiento de M1 se mantiene con el arte final.
-- [ ] Fangusk lo juega y lo valida (QA-04).
+- [x] Fangusk lo juega y lo valida (QA-04): «Sí», tras la beta 6 en su Nothing.
 
 ### M3 · Nieve y Desierto
 
@@ -95,7 +95,7 @@ xcrun simctl launch booted com.fanguskdev.carofarty.CaroFarty -debug -autopilot
 - [ ] El título, la pausa, los récords, los ajustes y el icono.
 - [ ] La primera vez que se abre: sin récords ni datos previos.
 - [ ] En modo avión: todo funciona igual ([ADR 0005](adr/0005-un-regalo-sin-conexion.md)).
-- [ ] Instalada en sus teléfonos y probada allí de principio a fin.
+- [x] Instalada en su teléfono y probada allí de principio a fin: la beta 6 en su Nothing Phone (3), «sí» (TEC-13).
 
 ## En qué teléfonos
 

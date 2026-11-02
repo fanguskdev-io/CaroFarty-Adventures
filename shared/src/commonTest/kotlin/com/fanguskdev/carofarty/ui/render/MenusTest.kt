@@ -8,7 +8,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-/** The layout of the menus (UI-04, UI-07, UI-20) on every screen the game can have, with and without insets. */
+/** The layout of the menus (UI-04, UI-07, UI-20) and of the title screen on every screen the game can have, with and without insets. */
 class MenusTest {
     private val screens = listOf(
         PixelViewport.MIN_WIDTH to PixelViewport.MIN_HEIGHT,
@@ -42,6 +42,8 @@ class MenusTest {
                 layout.howToPanel,
                 layout.forward(Texts.UNDERSTOOD),
                 layout.ribbon(Texts.HOW_TO_TITLE),
+                layout.introScene,
+                layout.prompt(Texts.TAP_TO_START),
             ) + layout.cards + layout.frames + layout.tabs(names)
             for (box in boxes) assertTrue(layout.has(box), "$box on ${layout.width} × ${layout.height}, ${layout.insets}")
             val dots = layout.howToPanel.bottom + MenuLayout.DOTS_GAP + 7
@@ -63,6 +65,19 @@ class MenusTest {
             assertFalse(layout.ribbon(Texts.RECORDS_TITLE).overlaps(layout.tabs(names).first()), "the ribbon and the tabs")
             assertFalse(layout.frames[0].overlaps(layout.frames[1]), "the two frames of how to play")
             assertFalse(layout.hudSound.overlaps(layout.corner), "the sound and the pause")
+            val intro = listOf(layout.title, layout.prompt(Texts.TAP_TO_START), layout.introScene)
+            for (i in intro.indices) {
+                for (j in i + 1 until intro.size) assertFalse(intro[i].overlaps(intro[j]), "${intro[i]} and ${intro[j]}, ${layout.height}")
+            }
+        }
+    }
+
+    @Test
+    fun caroFitsInTheScenarioOfTheTitleScreen() {
+        for (layout in layouts()) {
+            val scene = layout.introScene
+            assertTrue(layout.introGround - CARO_HEIGHT > scene.top, "her head under the sky of the menus on ${layout.height}")
+            assertTrue(layout.introGround < scene.bottom, "the ground on the screen")
         }
     }
 

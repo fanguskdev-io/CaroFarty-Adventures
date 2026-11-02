@@ -34,19 +34,7 @@ internal fun DrawScope.paintTitle(
 ) {
     val ui = art?.ui
     paintMenuBackground(ui, layout.width, layout.height)
-    val title = ui?.title
-    if (title != null) {
-        drawImage(
-            title,
-            IntOffset.Zero,
-            IntSize(title.width, title.height),
-            IntOffset(layout.title.left + (layout.title.width - title.width) / 2, layout.title.top),
-            IntSize(title.width, title.height),
-            filterQuality = FilterQuality.None,
-        )
-    } else {
-        drawCentred(TITLE, layout.title, GreyPalette.record, GreyPalette.shadow, size = TITLE_SIZE)
-    }
+    paintTitleImage(layout.title, ui)
     for (scenario in Scenario.entries) {
         val box = layout.cards[scenario.ordinal]
         paintCard(box, art, scenario, names[scenario.ordinal], millis, lit = scenario == chosen, pressed = box == pressed)
@@ -55,6 +43,23 @@ internal fun DrawScope.paintTitle(
     paintButton(layout.howToButton, MenuLayout.HOW_TO_TEXT, ui, Icon.Help, pressed = layout.howToButton == pressed)
     paintIconButton(layout.titleSound, if (soundOn) Icon.SoundOn else Icon.SoundOff, ui, pressed = layout.titleSound == pressed)
     if (canQuit) paintIconButton(layout.exit, Icon.Exit, ui, pressed = layout.exit == pressed)
+}
+
+/** The title in [box]: GameMaster's, the variant B that Fangusk chose, or the name in big letters in the prototype. */
+internal fun DrawScope.paintTitleImage(box: Box, ui: UiArt?) {
+    val title = ui?.title
+    if (title == null) {
+        drawCentred(TITLE, box, GreyPalette.record, GreyPalette.shadow, size = TITLE_SIZE)
+        return
+    }
+    drawImage(
+        title,
+        IntOffset.Zero,
+        IntSize(title.width, title.height),
+        IntOffset(box.left + (box.width - title.width) / 2, box.top),
+        IntSize(title.width, title.height),
+        filterQuality = FilterQuality.None,
+    )
 }
 
 /**

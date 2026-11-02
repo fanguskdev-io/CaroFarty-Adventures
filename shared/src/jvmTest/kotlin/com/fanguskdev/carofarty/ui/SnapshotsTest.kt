@@ -13,6 +13,7 @@ import com.fanguskdev.carofarty.storage.Choices
 import com.fanguskdev.carofarty.storage.MemoryStore
 import com.fanguskdev.carofarty.storage.Records
 import com.fanguskdev.carofarty.ui.render.Box
+import com.fanguskdev.carofarty.ui.render.IntroShow
 import com.fanguskdev.carofarty.ui.render.MenuLayout
 import com.fanguskdev.carofarty.ui.render.PanelLine
 import com.fanguskdev.carofarty.ui.render.SafeInsets
@@ -28,9 +29,9 @@ import kotlin.test.assertTrue
 import kotlin.test.fail
 
 /**
- * Draws the real screens into PNG files with Skia, without a window (build/capturas/): the start screen, how to play, the
- * records, runs and their ends, in the three scenarios; and checks the pixel grid at six proportions of screen, from 4:3
- * to 21:9 (TEC-04, UI-04, UI-14): every game pixel is a square of identical phone pixels.
+ * Draws the real screens into PNG files with Skia, without a window (build/capturas/): the title screen, the start
+ * screen, how to play, the records, runs and their ends, in the three scenarios; and checks the pixel grid at six
+ * proportions of screen, from 4:3 to 21:9 (TEC-04, UI-04, UI-14): every game pixel is a square of identical phone pixels.
  */
 @OptIn(ExperimentalComposeUiApi::class)
 class SnapshotsTest {
@@ -42,15 +43,31 @@ class SnapshotsTest {
 
     private class Tap(val hold: Int, val at: Offset? = null)
 
+    private companion object {
+        /** The tap on the title screen that comes before the scripts, and the frame where they start. */
+        const val TITLE_TAP = 2
+        const val TITLE_FRAMES = 8
+
+        /** How long after the rescue the capture of it is taken. */
+        const val RESCUE_SHOWN_MILLIS = 200L
+    }
+
+    /**
+     * Draws [script] into `build/capturas/[name].png` and returns its last frame. The game opens on the title screen: unless
+     * the scene is of it ([pastTheTitle] false), a tap there comes first and the script starts [TITLE_FRAMES] later.
+     */
     private fun render(
         name: String,
         width: Int,
         height: Int,
         script: Script,
         store: MemoryStore = MemoryStore(),
+        pastTheTitle: Boolean = true,
         quit: (() -> Unit)? = null,
     ): Image {
         var image: Image? = null
+        val shift = if (pastTheTitle) TITLE_FRAMES else 0
+        val taps = script.taps.mapKeys { it.key + shift } + if (pastTheTitle) mapOf(TITLE_TAP to Tap(hold = 2)) else emptyMap()
         ImageComposeScene(width, height, Density(3f)) {
             if (script.debug) GameScreen(store, debugBuild = true, debugAtStart = true) else App(store, quit = quit)
         }.use { scene ->
@@ -58,8 +75,8 @@ class SnapshotsTest {
             val centre = Offset(width * 0.6f, height * 0.6f)
             var finger = centre
             var releaseAt = -1
-            for (index in 0 until script.frames) {
-                script.taps[index]?.let { tap ->
+            for (index in 0 until script.frames + shift) {
+                taps[index]?.let { tap ->
                     finger = tap.at ?: centre
                     scene.sendPointerEvent(PointerEventType.Press, finger)
                     releaseAt = index + tap.hold
@@ -166,11 +183,11 @@ class SnapshotsTest {
         }
         val no = Tap(hold = 2, at = at(2400, 1080) { answers(it)[1] })
         val yes = Tap(hold = 2, at = at(2400, 1080) { answers(it)[0] })
-        render("inicio-salir", 2400, 1080, Script(frames = 40, taps = mapOf(10 to exit)), seen()) { left = true }
+        render("inicio-salir", 2400, 1080, Script(frames = 40, taps = mapOf(10 to exit)), seen(), quit = { left = true })
         assertFalse(left, "it only asks")
-        render("inicio-salir-no", 2400, 1080, Script(frames = 60, taps = mapOf(10 to exit, 30 to no)), seen()) { left = true }
+        render("inicio-salir-no", 2400, 1080, Script(frames = 60, taps = mapOf(10 to exit, 30 to no)), seen(), quit = { left = true })
         assertFalse(left, "«NO» stays")
-        render("inicio-salir-si", 2400, 1080, Script(frames = 60, taps = mapOf(10 to exit, 30 to yes)), seen()) { left = true }
+        render("inicio-salir-si", 2400, 1080, Script(frames = 60, taps = mapOf(10 to exit, 30 to yes)), seen(), quit = { left = true })
         assertTrue(left, "«SÍ» leaves")
     }
 
@@ -203,6 +220,19 @@ class SnapshotsTest {
         val points = Offset(60f, 50f)
         val noPoints = start + mapOf(40 to Tap(hold = 2, at = points), 50 to Tap(hold = 2, at = points))
         render("fin-sin-puntos", 2400, 1080, Script(frames = 90, taps = noPoints, debug = true), seen())
+    }
+
+    @Test
+    fun theTitleScreenOfTheScenarioPlayedLast() {
+        for (scenario in Scenario.entries) {
+            val name = "titulo-${scenario.name.lowercase()}"
+            assertPixelGrid(render(name, 2400, 1080, Script(frames = 30), seen(scenario), pastTheTitle = false), name)
+        }
+        render("titulo-320x180", 320 * 3, 180 * 3, Script(frames = 30), seen(), pastTheTitle = false)
+        render("titulo-ipad", 2752, 2064, Script(frames = 30), seen(Scenario.Nieve), pastTheTitle = false)
+        // A moment after Caro reaches the first animal: her happy face and its «+1».
+        val rescue = ((IntroShow.reachedAt(0) - IntroShow.START_MILLIS + RESCUE_SHOWN_MILLIS) * 60 / 1000).toInt()
+        render("titulo-rescate", 2400, 1080, Script(frames = rescue + 1), seen(), pastTheTitle = false)
     }
 
     @Test

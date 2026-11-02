@@ -1,7 +1,6 @@
 # CaroFarty · página de diseño
 
-> **Validada por Fangusk el 2026-11-01**: «tienes mi ok para M0». Lo que sigue marcado como propuesta (los récords por
-> escenario) espera a que lo confirme.
+> **Validada por Fangusk el 2026-11-01**: «tienes mi ok para M0».
 
 ## Visión
 
@@ -74,6 +73,22 @@ Después de jugar la beta (2026-11-02), a través de GameMaster salvo lo que va 
   lazo rosa al yorkshire, yorkshire y carlino más pequeños, pastor alemán y golden más grandes, bulldog blanco con manchas
   negras; la mitad de copos o menos, «más suaves»; y la cabaña de la nieve, que «intercala aleatoriamente entre cercana y
   lejana».
+
+Tras jugar la beta 6 en su Nothing (2026-11-02), a través de GameMaster: el prototipo, validado («Sí, para una primera
+versión es correcto»: se entiende y es divertido; QA-03); Caro tal como está, con el cuello y la cabeza girada al moverse
+(CHR-01, CHR-02), sus animaciones de recogida y de fin (CHR-05) y los recolectables (ITM-16), aprobados («Sí»); y Caro con
+el Bosque, validados («Sí», QA-04): adelante con M2, sin más mejoras prioritarias que las que ya estaban en marcha, más
+plataformeo, animales vigilados y el título animado ([pantallas](pantallas.md#presentación)). Y, comprobado en su teléfono,
+«sí» a todo esto: el icono se ve bien en su pantalla de inicio y la beta se instala sin problemas (UI-19, TEC-13); la Nieve
+se desplaza sin saltos ni parpadeos, con la cabaña cerca o lejos y los copos que tiene (ART-22); distingue sin esfuerzo a
+Caro, los animales, el huevo, el pescado, los bordes de los barrancos y las plataformas, también con poco brillo o al aire
+libre (ART-18); los efectos suenan a tiempo, la música se para al salir de la app o con una llamada y vuelve al regresar,
+no hay cortes ni chasquidos en una partida larga y convive con la música de otras apps (AUD-20, AUD-25); y la fase se
+elige en un toque, la partida empieza en ella y la última sale en dorado (UI-20). Del salto: «Estoy contento con el
+salto» (PLY-15); de caídas o recogidas injustas: «por el momento no» (CHR-08, ENM-11). El juego ocupa toda la pantalla
+sin que la cámara tape nada importante y se ve fluido a 120 Hz (UI-14, TEC-05, MOB-03); el botón de silencio funciona y
+se recuerda (UI-21); la mezcla de música y efectos está bien con el altavoz y con auriculares, sin cansar (AUD-21); y el
+estilo visual, tal como está, queda como referencia final (ART-01, ART-03, ART-05).
 
 ## El bucle de juego
 
@@ -168,10 +183,7 @@ de salida en [proceso](proceso.md):
 
 ## Pendiente de Fangusk
 
-- Probar la nueva velocidad y los obstáculos en el aire, y dar su visto bueno al prototipo para pasar a M2 (QA-03).
-- Si los récords van por escenario o son uno general (propuesta: por escenario).
 - Los teléfonos donde se jugará y la cuenta de Apple, al llegar a la instalación (TEC-13).
-- Las referencias de Caro, los recolectables y los escenarios, al empezar M2.
 
 ## Documentos
 

@@ -105,6 +105,22 @@ internal class MenuLayout(val width: Int, val height: Int, val insets: SafeInset
         titleSound = Box(cardsLeft + row - SMALL, y + 1, SMALL, SMALL)
     }
 
+    /**
+     * The title screen (UI-07, the animated title Fangusk chose): the title where the start screen has it, so it stays in
+     * its place from one to the other; the scenario along the bottom, from side to side, under the second band of the sky
+     * of the menus, with its ground [introGround]; and Caro running in it at [introCaroX].
+     */
+    val introScene = minOf(menuSkySecondBandEnd(height), height - INTRO_SCENE_MIN).let { Box(0, it, width, height - it) }
+    val introGround = height - INTRO_GROUND
+    val introCaroX = width / INTRO_CARO_PART
+
+    /** «TOCA PARA EMPEZAR», [text] in big letters, centred between the title and the scenario. */
+    fun prompt(text: String): Box {
+        val across = PixelFont.width(text, PROMPT_SIZE)
+        val tall = PixelFont.HEIGHT * PROMPT_SIZE
+        return Box(centred(across), (title.bottom + introScene.top - tall) / 2, across, tall)
+    }
+
     /** The panel of the records, with its tabs over it, in the middle of what the header leaves. */
     val recordsPanel: Box
     val tabsTop: Int
@@ -215,6 +231,15 @@ internal class MenuLayout(val width: Int, val height: Int, val insets: SafeInset
         private const val HOW_TO_WIDTH = 2 * FRAME_WIDTH + FRAMES_GAP + 2 * HOW_TO_PAD + 2 * PANEL_BORDER
         private const val HOW_TO_HEIGHT = PANEL_BORDER + HOW_TO_PAD + FRAME_HEIGHT + 4 + 2 * PixelFont.LINE + PANEL_BORDER - 2
         private const val DOTS_SPACE = 4 + 7
+
+        /**
+         * The title screen: the scenario never less tall than enough for Caro over its ground, its ground the two tiles of
+         * the start of a run, Caro a quarter of the way in, as in the cards, and the prompt in letters twice the size.
+         */
+        private const val INTRO_SCENE_MIN = 80
+        private const val INTRO_GROUND = 32
+        private const val INTRO_CARO_PART = 4
+        const val PROMPT_SIZE = 2
 
         /** The texts of the buttons whose size the layout needs. */
         const val RECORDS_TEXT = "RÉCORDS"

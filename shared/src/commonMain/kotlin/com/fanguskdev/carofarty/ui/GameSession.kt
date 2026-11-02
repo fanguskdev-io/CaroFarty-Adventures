@@ -47,8 +47,12 @@ import kotlin.random.Random
 import kotlin.time.Duration
 import kotlin.time.TimeSource
 
-/** The screens of the game (UI-01): the start screen, the records, how to play and the run. */
+/**
+ * The screens of the game (UI-01): the title screen it opens on ([Intro], UI-07), the start screen with the scenarios
+ * ([Title]), the records, how to play and the run.
+ */
 internal enum class Screen {
+    Intro,
     Title,
     Records,
     HowTo,
@@ -63,8 +67,9 @@ internal enum class Screen {
  * frame and again on its own when a run ends. [art] is null when there is none: then everything is drawn as the grey
  * prototype; and [audio] when the game plays no sound, as in the tests.
  *
- * The way through the screens (Fangusk, after playing the beta): the game opens on how to play the first time and on the
- * start screen after; a card there starts a run in its scenario; the end of a run offers another one or the start screen.
+ * The way through the screens (Fangusk, after playing the beta): the game opens on the title screen, and a tap there
+ * leads to how to play the first time and to the start screen after; a card there starts a run in its scenario; the end
+ * of a run offers another one or the start screen, never the title screen again.
  * A button shows pressed while the finger is on it and does its thing when the finger goes up, as GameMaster's pressed
  * pieces ask; only the jump goes with the finger down.
  */
@@ -95,14 +100,17 @@ internal class GameSession(
     private val clock = FixedStep()
 
     /** The screen it is on. */
-    var screen = if (choices.tutorialSeen || this.autopilot) Screen.Title else Screen.HowTo
+    var screen = if (this.autopilot) Screen.Title else Screen.Intro
         private set
 
     /** Read by the drawing so it redraws every frame. */
     val frame = mutableLongStateOf(0L)
 
-    /** Whether the back button has something to do, for the platform: Compose state, so it can enable and disable it. */
-    var backEnabled by mutableStateOf(screen != Screen.Title)
+    /**
+     * Whether the back button has something to do, for the platform: Compose state, so it can enable and disable it. On the
+     * title screen and on the start screen it has nothing to do, and the phone leaves the game.
+     */
+    var backEnabled by mutableStateOf(false)
         private set
     var paused = false
         private set
@@ -229,7 +237,6 @@ internal class GameSession(
 
     init {
         audio?.muted = !soundOn
-        if (screen == Screen.HowTo) tutorial = scenesOf(0)
         if (this.autopilot) startRun(scenario) else audio?.music(scenario)
     }
 
@@ -269,6 +276,8 @@ internal class GameSession(
         pressed = null
         onRelease = null
         when (screen) {
+            // A tap anywhere: the screen is its button.
+            Screen.Intro -> press(null) { leaveIntro() }
             Screen.Title -> titleTap(gameX, gameY)
             Screen.Records -> recordsTap(gameX, gameY)
             Screen.HowTo -> howToTap(gameX, gameY)
@@ -297,7 +306,7 @@ internal class GameSession(
             askingToQuit -> stopAskingToQuit()
             screen == Screen.Game && run.phase == RunPhase.Running && !paused -> pause()
             screen == Screen.HowTo -> goBackInHowTo()
-            screen != Screen.Title -> goHome()
+            screen == Screen.Records || screen == Screen.Game -> goHome()
         }
     }
 
@@ -420,7 +429,16 @@ internal class GameSession(
     private fun stopAskingToQuit() {
         audio?.play(Sound.Back)
         askingToQuit = false
-        backEnabled = screen != Screen.Title
+        backEnabled = backFor(screen)
+    }
+
+    /**
+     * From the title screen, with the sound of a tap and the music going on as it was: how to play the first time, and the
+     * start screen after.
+     */
+    private fun leaveIntro() {
+        audio?.play(Sound.Tap)
+        if (choices.tutorialSeen) show(Screen.Title) else showHowTo()
     }
 
     private fun toggleSound() {
@@ -439,6 +457,10 @@ internal class GameSession(
 
     private fun openHowTo() {
         audio?.play(Sound.Tap)
+        showHowTo()
+    }
+
+    private fun showHowTo() {
         showPage(0)
         clock.reset()
         show(Screen.HowTo)
@@ -487,8 +509,11 @@ internal class GameSession(
 
     private fun show(next: Screen) {
         screen = next
-        backEnabled = next != Screen.Title
+        backEnabled = backFor(next)
     }
+
+    /** Whether the back button has something to do on [screen]: everywhere but on the title screen and the start screen. */
+    private fun backFor(screen: Screen): Boolean = screen != Screen.Intro && screen != Screen.Title
 
     /** A run in [chosen], already going: a card of the start screen. The scenario is remembered for the next time. */
     private fun startRun(chosen: Scenario) {

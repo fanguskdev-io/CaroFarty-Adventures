@@ -55,6 +55,7 @@ import com.fanguskdev.carofarty.ui.render.paintCaroSprite
 import com.fanguskdev.carofarty.ui.render.paintDebug
 import com.fanguskdev.carofarty.ui.render.paintHint
 import com.fanguskdev.carofarty.ui.render.paintHud
+import com.fanguskdev.carofarty.ui.render.paintIntro
 import com.fanguskdev.carofarty.ui.render.paintMenuGround
 import com.fanguskdev.carofarty.ui.render.paintPanel
 import com.fanguskdev.carofarty.ui.render.paintRecordCelebration
@@ -231,8 +232,9 @@ private fun DrawScope.drawGame(session: GameSession, world: PixelBuffer, viewpor
 }
 
 /**
- * The screens around the runs (UI-01, UI-07, UI-20): the start screen, the records and how to play, on the same pixel grid
- * as the game; over the day sky of the interface's art or, in the grey prototype, over the scenario she chose, still.
+ * The screens around the runs (UI-01, UI-07, UI-20): the title screen, the start screen, the records and how to play, on
+ * the same pixel grid as the game; over the day sky of the interface's art or, in the grey prototype, over the scenario
+ * she chose, still.
  */
 private fun DrawScope.drawMenu(session: GameSession, scenes: List<PixelBuffer>, viewport: PixelViewport) {
     val art = session.art
@@ -257,6 +259,7 @@ private fun DrawScope.drawMenu(session: GameSession, scenes: List<PixelBuffer>, 
             if (ui == null) paintMenuGround(scenery, palette, viewport.width, viewport.height)
             val pressed = session.pressed
             when (session.screen) {
+                Screen.Intro -> paintIntro(session.layout, art, session.scenario, Texts.TAP_TO_START, millis)
                 Screen.Title -> {
                     paintTitle(
                         session.layout,

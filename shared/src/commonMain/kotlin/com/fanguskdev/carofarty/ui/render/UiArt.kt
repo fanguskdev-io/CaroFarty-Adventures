@@ -229,21 +229,37 @@ internal fun DrawScope.drawUiSpriteBottom(
 
 /**
  * The day sky of the menus with its clouds, as Fangusk chose: three bands of blue, lighter downwards, and the clouds of
- * the interface here and there, in the same places of the screen whatever its size (diseno/ui/maquetas.py).
+ * the interface here and there, in the same places of the screen whatever its size (diseno/ui/maquetas.py). With
+ * [driftMillis], the clouds have drifted that long to the left, slowly, the small ones slower, as far away; one that goes
+ * out on the left comes back on the right.
  */
-internal fun DrawScope.paintMenuSky(width: Int, height: Int, ui: UiArt) {
-    val first = (height * FIRST_BAND + PERCENT - 1) / PERCENT
-    val second = (height * SECOND_BAND + PERCENT - 1) / PERCENT
+internal fun DrawScope.paintMenuSky(
+    width: Int,
+    height: Int,
+    ui: UiArt,
+    driftMillis: Long = 0L,
+) {
+    val first = skyBandEnd(height, FIRST_BAND)
+    val second = skyBandEnd(height, SECOND_BAND)
     drawRect(LIGHT_BLUE, Offset.Zero, Size(width.toFloat(), first.toFloat()))
     drawRect(CLOUD_SHADOW, Offset(0f, first.toFloat()), Size(width.toFloat(), (second - first).toFloat()))
     drawRect(CLEAR_SKY, Offset(0f, second.toFloat()), Size(width.toFloat(), (height - second).toFloat()))
     val big = ui.piece("nube-grande")
     val small = ui.piece("nube-pequena")
     for (i in CLOUDS.indices step 3) {
-        val piece = (if (CLOUDS[i] == 1) big else small) ?: continue
-        drawPiece(piece, Box(width * CLOUDS[i + 1] / PERCENT, height * CLOUDS[i + 2] / PERCENT, piece.width, piece.height))
+        val isBig = CLOUDS[i] == 1
+        val piece = (if (isBig) big else small) ?: continue
+        val drift = driftMillis * (if (isBig) BIG_CLOUD_SPEED else SMALL_CLOUD_SPEED) / MILLIS
+        val x = (width * CLOUDS[i + 1] / PERCENT - drift + piece.width).mod(width + piece.width) - piece.width
+        drawPiece(piece, Box(x, height * CLOUDS[i + 2] / PERCENT, piece.width, piece.height))
     }
 }
+
+/** Where a band of the sky of the menus that goes down to [percent] of a screen [height] pixels tall ends. */
+private fun skyBandEnd(height: Int, percent: Int): Int = (height * percent + PERCENT - 1) / PERCENT
+
+/** Where the second band of the sky of the menus ends: the title screen puts its scenario under it, with no third band. */
+internal fun menuSkySecondBandEnd(height: Int): Int = skyBandEnd(height, SECOND_BAND)
 
 /** The colours of the sky of the menus: «azul luz», «nube sombra» and «cielo claro» of the interface's palette. */
 private val LIGHT_BLUE = Color(0xFFA6CDFF)
@@ -253,6 +269,11 @@ private val CLEAR_SKY = Color(0xFFD6EBFF)
 private const val PERCENT = 100
 private const val FIRST_BAND = 34
 private const val SECOND_BAND = 52
+
+/** How fast the clouds drift on the title screen, in pixels a second: much slower than anything of the scenario. */
+private const val BIG_CLOUD_SPEED = 6L
+private const val SMALL_CLOUD_SPEED = 4L
+private const val MILLIS = 1000L
 
 /** The clouds of the menus: big (1) or small (0), and their top left across and down, in hundredths of the screen. */
 private val CLOUDS = intArrayOf(

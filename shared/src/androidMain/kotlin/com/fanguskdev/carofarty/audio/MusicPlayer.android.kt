@@ -7,6 +7,9 @@ import android.media.AudioTrack
 import android.media.SoundPool
 import android.os.Process
 import java.io.File
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 import kotlin.math.max
 import kotlin.math.min
 
@@ -14,8 +17,9 @@ internal actual fun musicPlayer(): MusicPlayer = AndroidMusicPlayer()
 
 /**
  * The music on Android: an AudioTrack fed by a thread of its own, with the samples of a WAV round and round, so the loop
- * has no gap (MediaPlayer leaves one), or with what a stream makes as it plays. The thread waits on the track while it is
- * paused.
+ * has no gap (MediaPlayer leaves one), or with what a stream makes as it plays. While the track is paused it takes
+ * nothing (its write gives 0 at once instead of waiting), so the thread sleeps until it plays again instead of going
+ * round and round.
  */
 private class AndroidMusicPlayer : MusicPlayer {
     private var track: AudioTrack? = null
@@ -23,7 +27,13 @@ private class AndroidMusicPlayer : MusicPlayer {
 
     @Volatile private var running = false
 
+    @Volatile private var paused = false
+
     @Volatile private var rewind = false
+
+    /** Where the writer sleeps while the track is paused, woken when it plays again or stops. */
+    private val lock = ReentrantLock()
+    private val woken = lock.newCondition()
 
     /** The phone's own rate, if the music knows how to make it exactly; else 48 000 Hz, which the phone converts. */
     override val streamRate: Int =
@@ -37,15 +47,17 @@ private class AndroidMusicPlayer : MusicPlayer {
         val sound = readWav(wav) ?: return
         val track = open(sound.rate, sound.channels, volume) ?: return
         val samples = sound.samples
+        if (samples.isEmpty()) return
         feed(track) {
             var position = 0
-            while (running && samples.isNotEmpty()) {
+            while (running) {
                 if (rewind) {
                     rewind = false
                     position = 0
                 }
                 val written = track.write(samples, position, min(CHUNK, samples.size - position))
                 if (written < 0) break
+                if (written == 0) waitWhilePaused()
                 position = (position + written) % samples.size
             }
         }
@@ -58,8 +70,25 @@ private class AndroidMusicPlayer : MusicPlayer {
         feed(track) {
             while (running) {
                 source.render(buffer, 0, CHUNK)
-                if (track.write(buffer, 0, CHUNK) < 0) break
+                // All of it, even if the track is paused halfway: the music never skips what it made.
+                var done = 0
+                while (running && done < CHUNK) {
+                    val written = track.write(buffer, done, CHUNK - done)
+                    if (written < 0) return@feed
+                    if (written == 0) waitWhilePaused()
+                    done += written
+                }
             }
+        }
+    }
+
+    /**
+     * The writer waits while the track takes nothing: paused, until it plays again (a little at a time, so it never
+     * misses it); full for a moment, a few milliseconds.
+     */
+    private fun waitWhilePaused() {
+        lock.withLock {
+            if (running) woken.await(if (paused) PAUSED_WAIT_MILLIS else FULL_WAIT_MILLIS, TimeUnit.MILLISECONDS)
         }
     }
 
@@ -109,11 +138,14 @@ private class AndroidMusicPlayer : MusicPlayer {
     }
 
     override fun pause() {
+        paused = true
         runCatching { track?.pause() }
     }
 
     override fun resume() {
+        paused = false
         runCatching { track?.play() }
+        lock.withLock { woken.signalAll() }
     }
 
     override fun restart() {
@@ -128,6 +160,7 @@ private class AndroidMusicPlayer : MusicPlayer {
 
     override fun stop() {
         running = false
+        lock.withLock { woken.signalAll() }
         val track = track ?: return
         runCatching {
             track.pause()
@@ -145,6 +178,10 @@ private class AndroidMusicPlayer : MusicPlayer {
         const val JOIN_MILLIS = 500L
         const val STREAM_RATE = 48_000
         const val CD_RATE = 44_100
+
+        /** How long the writer sleeps at a time while the track is paused, or full. */
+        const val PAUSED_WAIT_MILLIS = 50L
+        const val FULL_WAIT_MILLIS = 5L
     }
 }
 

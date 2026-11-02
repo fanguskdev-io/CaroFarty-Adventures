@@ -78,9 +78,11 @@ internal class GameAudio(private val music: MusicPlayer, private val sounds: Sou
     private val millis = HashMap<String, Long>()
 
     init {
-        scope.launch {
-            for (scenario in Scenario.entries) {
-                banks[scenario.ordinal] = runCatching { withContext(Dispatchers.Default) { MusicBank(scenario) } }.getOrNull()
+        // The three at once, each on a core of its own: on a phone they take a moment.
+        for (scenario in Scenario.entries) {
+            scope.launch {
+                banks[scenario.ordinal] = runCatching { withContext(Dispatchers.Default) { MusicBank(scenario) } }
+                    .getOrNull()
             }
         }
         scope.launch {
@@ -169,11 +171,12 @@ internal class GameAudio(private val music: MusicPlayer, private val sounds: Sou
         val wait = millis[fileOf(Sound.StartJingle, scenario)] ?: 0L
         after =
             scope.launch {
-                val bank = banks[scenario.ordinal]
-                val made = bank?.let {
-                    runCatching { withContext(Dispatchers.Default) { MusicStream(scenario, seed, music.streamRate, it) } }.getOrNull()
-                }
                 delay(wait)
+                // The instruments, made since the game opened, are ready by now but for the very first seconds.
+                val made = banks[scenario.ordinal]?.let {
+                    runCatching { withContext(Dispatchers.Default) { MusicStream(scenario, seed, music.streamRate, it) } }
+                        .getOrNull()
+                }
                 if (made == null) {
                     music(scenario, restart = true)
                     return@launch

@@ -67,13 +67,14 @@ internal fun DrawScope.paintBackground(
     scenery: ScenarioArt?,
     groundLine: Int,
     millis: Long,
+    plan: BackgroundPlan?,
 ) {
     val scale = viewport.scale
     val left = viewport.offsetX.toFloat()
     val top = viewport.offsetY.toFloat()
     drawRect(palette.sky, Offset(left, top), Size((viewport.width * scale).toFloat(), (viewport.height * scale).toFloat()))
     if (scenery != null) {
-        paintScenery(scenery, camera, restCamera, cameraBottom, viewport, groundLine, millis)
+        paintScenery(scenery, camera, restCamera, cameraBottom, viewport, groundLine, millis, plan)
         return
     }
     val far = (camera - restCamera) * FAR_SPEED + floor(restCamera * FAR_SPEED)

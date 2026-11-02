@@ -82,6 +82,10 @@ Los nombres son los que busca el juego; las duraciones, una propuesta para ajust
 | `espera` | Antes del primer toque | 4, en bucle | 150–250 ms |
 | `corre` | Corriendo, hasta 240 px/s | 6 a 8, en bucle | La pone la distancia: un ciclo cada 3 tiles, así que con 6 fotogramas cada uno dura 50 ms a 160 px/s; nunca menos de 40 ms, para que no se vea frenética |
 | `corre-rapido` | Desde 240 px/s, con zancadas más largas | 6, en bucle | Un ciclo cada 5 tiles: 56 ms por fotograma a 240 px/s y 37 a 360, que se quedan en 40 como mínimo (propuesta de GameMaster en su guía 2) |
+
+`corre` y `corre-rapido` pueden llevar `"ciclo-tiles"`: los tiles que avanza Caro en un ciclo entero de la animación. Si
+no lo llevan, 3 y 5. Con más fotogramas hace falta un ciclo más largo, porque el mínimo de 40 ms por fotograma haría
+patinar los pies: con 8 fotogramas y 3 tiles, ya desde 150 px/s.
 | `salta` | Subiendo | 1 o 2 | Se queda en el último hasta el ápice |
 | `apice` | Arriba del todo | 1 | Mientras apenas sube o baja |
 | `cae` | Bajando | 1 o 2 | Se queda en el último |
@@ -170,8 +174,9 @@ día.
   `apice` arriba y `cae` al bajar (al caerse de un borde sin saltar, `cae` directamente); `aterriza` los 0,1 s del
   aterrizaje; `al-barranco` cuando ya no hay suelo que la recoja; `sin-puntos` al quedarse sin puntos y, si ha batido un
   récord, `record` en cuanto acaba. La ropa es la variante del escenario.
-- **Los animales** se bajan las filas vacías que tengan bajo el dibujo, para que pisen el suelo o la plataforma. Los
-  perritos caminan o se paran según su paseo y miran hacia donde van; cada animal anima un poco a destiempo de los demás.
+- **Los animales** pisan el suelo o la plataforma con la última fila de su dibujo, sea cual sea su fotograma: el juego
+  descuenta las filas vacías que tengan debajo. Los perritos caminan o se paran según su paseo y miran hacia donde van;
+  cada animal anima un poco a destiempo de los demás.
 - **El olor**: su ancla, 6 px por encima del centro del huevo o del pescado.
 - **El suelo**: `superficie` en la fila de arriba y `relleno` debajo, alternando la 1 y la 2 de forma fija por columna y
   fila; `borde-izq`/`relleno-izq` y `borde-der`/`relleno-der` en la columna de un extremo, pero solo en la parte que queda
@@ -179,6 +184,11 @@ día.
 - **Los fondos**: el cielo, quieto y apoyado abajo; el lejano al 30 % de la cámara y el medio al 60 %, repetidos de lado y
   con su borde de abajo en la línea del suelo más bajo (32 px sobre el borde de la pantalla), menos las
   `filas-bajo-el-suelo`, que se ven dentro de los barrancos.
+- **Las variantes de los fondos** (`"variantes"` en `fondos.json`, por capa: `{"medio": {"cabana":
+  "fondo-medio-cabana.png"}, "lejano": {...}}`): la misma tira con algo más, del mismo tamaño y con los mismos colores, que
+  el juego pone de vez en cuando en lugar de una vuelta de la tira. Fangusk, de la cabaña de la nieve: «intercala
+  aleatoriamente entre cercana y lejana». El juego saca dónde está lo añadido comparando la variante con su base, y lo
+  planea con la semilla: una cada 8 a 15 s, en una capa u otra al azar y nunca en las dos a la vez.
 - **La decoración** (`decoracion-<nombre>` en `tiles.json`, opcional): si el dibujo llega a la fila de abajo de su tile,
   se planta en el suelo, encima de más o menos una de cada seis piezas de superficie que no sean borde (la mata del
   bosque, el matojo del desierto); si no, llena el aire en mosaico a tresbolillo, con la fase cambiada en cada pieza,

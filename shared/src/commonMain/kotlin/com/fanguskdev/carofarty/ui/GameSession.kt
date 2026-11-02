@@ -22,15 +22,18 @@ import com.fanguskdev.carofarty.game.Reaction
 import com.fanguskdev.carofarty.game.RunEvent
 import com.fanguskdev.carofarty.game.RunPhase
 import com.fanguskdev.carofarty.game.Scenario
+import com.fanguskdev.carofarty.game.TILE
 import com.fanguskdev.carofarty.storage.Choices
 import com.fanguskdev.carofarty.storage.Records
 import com.fanguskdev.carofarty.storage.RunResult
 import com.fanguskdev.carofarty.ui.render.Art
+import com.fanguskdev.carofarty.ui.render.BackgroundPlan
 import com.fanguskdev.carofarty.ui.render.CaroLook
 import com.fanguskdev.carofarty.ui.render.CaroPose
 import com.fanguskdev.carofarty.ui.render.GreyPalette
 import com.fanguskdev.carofarty.ui.render.PanelLine
 import com.fanguskdev.carofarty.ui.render.SafeInsets
+import com.fanguskdev.carofarty.ui.render.backgroundPlan
 import com.fanguskdev.carofarty.ui.render.chooserHit
 import com.fanguskdev.carofarty.ui.render.chooserTop
 import com.fanguskdev.carofarty.ui.render.pauseButtonHit
@@ -64,6 +67,10 @@ internal class GameSession(
         private set
     var run: GameRun = createRun()
         private set
+
+    /** When the background shows its variants in this run, if the scenario has any (the cabin of the snow). */
+    var backgroundPlan: BackgroundPlan? = planFor(run)
+        private set
     private val autopilot = debugBuild && autopilot
     private var pilot: Pilot? = if (this.autopilot) Pilot(run) else null
     val input = TouchInput()
@@ -91,7 +98,7 @@ internal class GameSession(
         private set
 
     /** Which of Caro's animations shows, stepped with the run (CHR-02 to CHR-07). */
-    val look = CaroLook(runFrames = framesOf(CaroPose.Corre), fastFrames = framesOf(CaroPose.CorreRapido))
+    val look = lookOf(art)
 
     /** The names of the scenarios, for the buttons of the choice (UI-20). */
     val scenarioNames = Scenario.entries.map { Texts.scenario(it) }
@@ -311,14 +318,28 @@ internal class GameSession(
         ItemKind.Pescado -> Sound.Pescado
     }
 
-    private fun framesOf(pose: CaroPose): Int = art?.caro?.animation(pose, Reaction.None)?.size ?: DEFAULT_RUN_FRAMES
+    /** Caro's look with the frames of her runs and, if the art says, how many tiles a cycle of each covers. */
+    private fun lookOf(art: Art?): CaroLook {
+        val run = art?.caro?.animation(CaroPose.Corre, Reaction.None)
+        val fast = art?.caro?.animation(CaroPose.CorreRapido, Reaction.None)
+        return CaroLook(run?.size ?: DEFAULT_RUN_FRAMES, fast?.size ?: DEFAULT_RUN_FRAMES, run?.cycleTiles, fast?.cycleTiles)
+    }
 
     private fun replaceRun() {
         run.close()
         run = createRun()
+        backgroundPlan = planFor(run)
         if (autopilot) pilot = Pilot(run)
         bestBefore = records.meters(scenario)
         recordHeard = false
+    }
+
+    private fun planFor(run: GameRun): BackgroundPlan? {
+        val scenery = art?.scenario(run.scenario) ?: return null
+        val movement = config.movement
+        return backgroundPlan(scenery, run.seed, REST_CAMERA) { camera ->
+            movement.speedAt((camera + CARO_SCREEN_X - GameRun.START_X) / TILE).toDouble()
+        }
     }
 
     private fun createRun(): GameRun {

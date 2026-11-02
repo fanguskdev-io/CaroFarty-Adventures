@@ -264,7 +264,7 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
         val toTile = (ground.end - ground.start) / TILE - OBSTACLE_TO_END_TILES
         if (toTile < fromTile) return false
         val x = ground.start + itemRandom.nextInt(fromTile, toTile + 1) * TILE
-        val obstacle = Item(negativeKind(), x, ground.top + GROUND_ITEM_HEIGHT)
+        val obstacle = Item(negativeKind(), x, ground.top + Item.ABOVE_GROUND)
         if (!fairObstacle(ground, obstacle)) return false
         items += obstacle
         return true
@@ -319,7 +319,7 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
         }
         val count = if (tiles >= PLATFORM_MAX_TILES && itemRandom.nextBoolean()) 2 else 1
         for (k in 1..count) {
-            val animal = positive(platform.start + k * (platform.end - platform.start) / (count + 1), platform.top + GROUND_ITEM_HEIGHT)
+            val animal = positive(platform.start + k * (platform.end - platform.start) / (count + 1), platform.top + Item.ABOVE_GROUND)
             // A perrito walks the platform and turns at its edges, like on the ground.
             if (animal.kind == ItemKind.Perrito) animal.walk = walkOn(animal, platform.start + PLATFORM_EDGE, platform.end - PLATFORM_EDGE)
             items += animal
@@ -350,7 +350,7 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
             val x = from + k * ROW_SPACING
             if (x > ground.end - TILE) return
             if (items.any { !it.kind.adds && abs(it.x - x) < ROW_CLEARANCE }) continue
-            val item = positive(x, ground.top + GROUND_ITEM_HEIGHT)
+            val item = positive(x, ground.top + Item.ABOVE_GROUND)
             if (item.kind == ItemKind.Perrito) item.walk = walkFor(item, ground, items)
             items += item
         }
@@ -534,7 +534,6 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
         const val OBSTACLE_TO_END_TILES = 4
 
         /** Where the collectibles go, above the ground's top: on the ground at her chest, high where a long jump goes. */
-        const val GROUND_ITEM_HEIGHT = 8
         const val CEILING_HEIGHT = 74
         const val ROW_FROM_TILE = 3
         const val ROW_MIN = 2

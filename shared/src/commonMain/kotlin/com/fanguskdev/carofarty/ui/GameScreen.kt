@@ -160,7 +160,9 @@ private fun DrawScope.drawGame(session: GameSession, world: PixelBuffer, viewpor
     val scale = viewport.scale.toFloat()
     clipRect(left, top, left + viewport.width * scale, top + viewport.height * scale) {
         val groundLine = run.config.course.minGroundTop * TILE
-        paintBackground(camera, REST_CAMERA, cameraBottom, viewport, palette, art?.scenario(run.scenario), groundLine, millis)
+        val plan = session.backgroundPlan
+        plan?.reach(camera)
+        paintBackground(camera, REST_CAMERA, cameraBottom, viewport, palette, art?.scenario(run.scenario), groundLine, millis, plan)
         val shift = (fraction * viewport.scale).roundToInt()
         drawImage(
             image = image,
@@ -202,10 +204,10 @@ private class Loaded(val config: GameConfig, val art: Art?)
 internal fun cameraBottom(feetY: Int, height: Int): Int = max(0, feetY + CARO_HEIGHT + HEAD_ROOM - height)
 
 /** Where Caro runs, in game pixels from the left edge (ADR 0003). */
-private const val CARO_SCREEN_X = 96
+internal const val CARO_SCREEN_X = 96
 
 /** The camera before the first tap, with Caro at the start: where the far band sits on the game's pixel grid. */
-private const val REST_CAMERA = GameRun.START_X - CARO_SCREEN_X
+internal const val REST_CAMERA = GameRun.START_X - CARO_SCREEN_X
 
 /** The game pixels the camera leaves above Caro's head before going up. */
 internal const val HEAD_ROOM = 8

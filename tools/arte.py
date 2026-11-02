@@ -161,6 +161,10 @@ def convertir_sprites(nombre, ruta, origen, salida, indice):
             "ms": ms,
             "vacias-abajo": vacias_abajo(fotogramas),
         }
+        # Los tiles que avanza un ciclo entero de una carrera, si la animación lo dice (corre, corre-rapido).
+        ciclo = datos["animaciones"][anim].get("ciclo-tiles")
+        if ciclo is not None:
+            entrada["animaciones"][anim]["ciclo-tiles"] = ciclo
         n += len(fotogramas)
     salida[entrada["hoja"]] = png(hoja(animaciones, ancho, alto, base))
     for familia, variante, paleta in variantes:
@@ -199,6 +203,7 @@ def generar(origen):
         datos_fondos = json.loads((carpeta / "fondos.json").read_text(encoding="utf-8")) if (carpeta / "fondos.json").exists() else {}
         paleta = buscar_paleta(origen, datos_fondos.get("paleta", escenario))
         bajo = datos_fondos.get("filas-bajo-el-suelo", {})
+        variantes = datos_fondos.get("variantes", {})
         entrada = {"tiles": f"{escenario}-tiles"}
         for fondo, clave in FONDOS:
             ruta = carpeta / f"{fondo}.png"
@@ -206,6 +211,17 @@ def generar(origen):
                 imagen = convertir_fondo(ruta, paleta, f"{escenario}/{fondo}.png")
                 salida[f"{escenario}-{fondo}.png"] = png(imagen)
                 entrada[clave] = {"hoja": f"{escenario}-{fondo}.png", "bajo-el-suelo": bajo.get(clave, 0)}
+                # Las variantes de una capa (la cabaña de la nieve): la misma tira con algo más, que el juego intercala.
+                for nombre, fichero in variantes.get(clave, {}).items():
+                    donde = f"{escenario}/{fichero}"
+                    if not (carpeta / fichero).exists():
+                        raise ArteMal(f"{donde}: no existe")
+                    variante = convertir_fondo(carpeta / fichero, paleta, donde)
+                    if variante.size != imagen.size:
+                        raise ArteMal(f"{donde}: mide {variante.size} y su capa {imagen.size}")
+                    hoja_variante = f"{escenario}-{fondo}-{nombre}.png"
+                    salida[hoja_variante] = png(variante)
+                    entrada[clave].setdefault("variantes", {})[nombre] = hoja_variante
         indice["escenarios"][escenario] = entrada
     salida["indice.json"] = (json.dumps(indice, ensure_ascii=False, indent=1) + "\n").encode("utf-8")
     return salida

@@ -121,7 +121,7 @@ internal fun DrawScope.paintItemSprites(
                     paintGreyItem(item, x, y)
                 } else {
                     val sheet = art.coats[item.coat % art.coats.size]
-                    drawFrame(sheet, animation.frameAt(time, loops = true), x - art.anchorX, y - art.anchorY + animation.emptyBelow)
+                    drawFrame(sheet, animation.frameAt(time, loops = true), x - art.anchorX, standing(y, sheet, animation))
                 }
             }
             ItemKind.Perrito -> {
@@ -133,8 +133,7 @@ internal fun DrawScope.paintItemSprites(
                     val walking = walk?.walking == true
                     val animation = if (walking) breed.walk else breed.still
                     val frame = if (walking) animation.frameAt(time, loops = true) else stillFrame(animation, time, item)
-                    val top = y - art.anchorY + animation.emptyBelow
-                    drawFrame(breed.sheet, frame, x - art.anchorX, top, flip = walk?.facingLeft == true)
+                    drawFrame(breed.sheet, frame, x - art.anchorX, standing(y, breed.sheet, animation), flip = walk?.facingLeft == true)
                 }
             }
             ItemKind.Huevo, ItemKind.Pescado -> {
@@ -157,7 +156,7 @@ internal fun DrawScope.paintItemSprites(
 
 /**
  * The sky and the two layers of the background (TEC-04, TEC-18), straight on the screen behind the world like the grey
- * background: the sky still, the far layer at [FAR_SPEED] of the camera and the middle one at [MID_SPEED], each with its
+ * background: the sky still, the far layer at 30 % of the camera and the middle one at 60 % ([LAYER_SPEEDS]), each with its
  * own offset rounded to a pixel of the phone, so they glide instead of stepping. At the start of a run, with the camera at
  * [restCamera], they sit on the game's pixel grid. Their bottoms rest on the line of the lowest ground, less the rows
  * that go under it, which show inside the gaps.
@@ -170,6 +169,7 @@ internal fun DrawScope.paintScenery(
     viewport: PixelViewport,
     groundLine: Int,
     millis: Long,
+    plan: BackgroundPlan?,
 ) {
     val scale = viewport.scale
     val sky = scenery.sky
@@ -183,8 +183,8 @@ internal fun DrawScope.paintScenery(
             filterQuality = FilterQuality.None,
         )
     }
-    scenery.far?.let { paintLayer(it, FAR_SPEED, camera, restCamera, cameraBottom, viewport, groundLine) }
-    scenery.mid?.let { paintLayer(it, MID_SPEED, camera, restCamera, cameraBottom, viewport, groundLine) }
+    scenery.far?.let { paintLayer(it, FAR, camera, restCamera, cameraBottom, viewport, groundLine, plan) }
+    scenery.mid?.let { paintLayer(it, MID, camera, restCamera, cameraBottom, viewport, groundLine, plan) }
     scenery.weather?.let { paintWeather(it.at(millis), camera, restCamera, cameraBottom, viewport) }
 }
 
@@ -218,22 +218,32 @@ private fun DrawScope.paintWeather(
     }
 }
 
+/**
+ * A layer of the background, round after round of its strip at its own speed; each round, its base or the variant that
+ * [plan] gives it ([BackgroundPlan]). [index] is which layer it is: [FAR] or [MID].
+ */
 private fun DrawScope.paintLayer(
     layer: Layer,
-    speed: Double,
+    index: Int,
     camera: Double,
     restCamera: Double,
     cameraBottom: Int,
     viewport: PixelViewport,
     groundLine: Int,
+    plan: BackgroundPlan?,
 ) {
     val scale = viewport.scale
-    val image = layer.image
+    val speed = LAYER_SPEEDS[index]
+    val base = layer.image
     val shift = (camera - restCamera) * speed + floor(restCamera * speed)
-    val period = image.width.toLong() * scale
-    val top = viewport.height + floor(cameraBottom * speed).toInt() - (groundLine - layer.belowGround) - image.height
-    var x = -(shift * scale).roundToLong().mod(period)
+    val period = base.width.toLong() * scale
+    val top = viewport.height + floor(cameraBottom * speed).toInt() - (groundLine - layer.belowGround) - base.height
+    val shiftPixels = (shift * scale).roundToLong()
+    var lap = shiftPixels.floorDiv(period)
+    var x = -shiftPixels.mod(period)
     while (x < viewport.width.toLong() * scale) {
+        val variant = plan?.variant(index, lap) ?: -1
+        val image = if (variant >= 0) layer.variants[variant].image else base
         drawImage(
             image,
             IntOffset.Zero,
@@ -243,7 +253,25 @@ private fun DrawScope.paintLayer(
             filterQuality = FilterQuality.None,
         )
         x += period
+        lap++
     }
+}
+
+/**
+ * The plan of when the far and the middle layer of [scenery] show their variants, for a run of [seed], or null if they
+ * have none. [restCamera] and [speedAt] as BackgroundPlan takes them.
+ */
+internal fun backgroundPlan(
+    scenery: ScenarioArt,
+    seed: Long,
+    restCamera: Double,
+    speedAt: (Double) -> Double,
+): BackgroundPlan? {
+    val layers = listOf(scenery.far, scenery.mid).mapIndexed { index, layer ->
+        PlanLayer(LAYER_SPEEDS[index], layer?.image?.width ?: 1, layer?.variants?.map { it.from until it.to }.orEmpty())
+    }
+    if (layers.all { it.variants.isEmpty() }) return null
+    return BackgroundPlan(seed, layers, restCamera, speedAt)
 }
 
 /**
@@ -261,6 +289,12 @@ internal fun DrawScope.paintCaroSprite(
     val animation = art.animation(look.pose, reaction)
     drawFrame(art.sheet(scenario), look.frame(animation), x - art.anchorX, feet - art.anchorY)
 }
+
+/**
+ * The top row for an animal whose centre is at the buffer row [y]: the last row of its drawing on what it stands on,
+ * whatever the size of its frame.
+ */
+private fun standing(y: Int, sheet: Sheet, animation: Animation): Int = y + Item.ABOVE_GROUND - (sheet.height - animation.emptyBelow)
 
 /**
  * The frame of a perrito standing still: its first frame lasts 1 to 3 s longer each round, a different time for each
@@ -308,8 +342,13 @@ private const val CELEBRATION_X = 34
 private const val SMELL_ABOVE = 6
 private const val OUT_OF_STEP_MILLIS = 1000L
 private const val REST_MILLIS = 1000L
-private const val FAR_SPEED = 0.3
-private const val MID_SPEED = 0.6
+
+/** The far and the middle layer, by their place in [LAYER_SPEEDS] and in the [BackgroundPlan]. */
+private const val FAR = 0
+private const val MID = 1
+
+/** How fast each layer moves with the camera: the far one at 30 %, the middle one at 60 %. */
+private val LAYER_SPEEDS = doubleArrayOf(0.3, 0.6)
 
 /** The decoration in the air moves with the ground, as GameMaster made it. */
 private const val WEATHER_SPEED = 1.0

@@ -58,6 +58,9 @@ class Item(val kind: ItemKind, val x: Int, val y: Int) {
         /** The side of a collectible's drawing in the prototype (CHR-08). */
         const val SIZE = 12
 
+        /** How high over what it stands on a collectible's centre is: its box of 16 px rests on it. */
+        const val ABOVE_GROUND = 8
+
         /** The coats of the gatitos, in this order: naranja, gris azulado, calicó, crema, negro, blanco, chocolate, siamés. */
         const val COATS = 8
 

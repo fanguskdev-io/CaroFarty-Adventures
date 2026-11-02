@@ -47,7 +47,7 @@ internal class Art(val caro: CaroArt?, val items: ItemArt?, private val scenario
                 val variants = entry.variants.map { Variant(it.family, it.name, Sheet(image(it.sheet), width, height, entry.columns)) }
                 val animations = entry.animations
                     .filterValues { it.frames.isNotEmpty() && it.frames.size == it.millis.size }
-                    .mapValues { (_, it) -> Animation(it.frames.toIntArray(), it.millis.toIntArray(), it.emptyBelow) }
+                    .mapValues { (_, it) -> Animation(it.frames.toIntArray(), it.millis.toIntArray(), it.emptyBelow, it.cycleTiles) }
                 val sheet = Sheet(image(entry.sheet), width, height, entry.columns)
                 return SpriteSet(sheet, entry.anchor[0], entry.anchor[1], animations, variants, entry.breeds)
             }
@@ -57,8 +57,12 @@ internal class Art(val caro: CaroArt?, val items: ItemArt?, private val scenario
                 val entry = index.scenarios[scenario.key] ?: continue
                 val tiles = set(entry.tiles) ?: continue
                 val sky = entry.sky?.let { image(it.sheet) }
-                val far = entry.far?.let { Layer(image(it.sheet), it.belowGround) }
-                val mid = entry.mid?.let { Layer(image(it.sheet), it.belowGround) }
+                suspend fun layer(entry: LayerEntry): Layer {
+                    val base = image(entry.sheet)
+                    return Layer(base, entry.belowGround, entry.variants.mapNotNull { (_, sheet) -> LayerVariant.of(base, image(sheet)) })
+                }
+                val far = entry.far?.let { layer(it) }
+                val mid = entry.mid?.let { layer(it) }
                 scenarios[scenario.ordinal] = ScenarioArt.of(tiles, sky, far, mid)
             }
             val caro = set("caro")?.let { CaroArt.of(it) }
@@ -81,9 +85,15 @@ internal class Sheet(
 
 /**
  * An animation: the frames of its sheet and how many milliseconds each lasts. [emptyBelow] is how many rows under the
- * drawing are transparent in every frame: what to lower it so it stands on the ground.
+ * drawing are transparent in every frame: what to lower it so it stands on the ground. [cycleTiles], for a run, how many
+ * tiles a whole cycle of it covers, if the art says.
  */
-internal class Animation(private val frames: IntArray, private val millis: IntArray, val emptyBelow: Int) {
+internal class Animation(
+    private val frames: IntArray,
+    private val millis: IntArray,
+    val emptyBelow: Int,
+    val cycleTiles: Float? = null,
+) {
     /** How long a round of it lasts, in milliseconds. */
     val duration = millis.sum()
     val size: Int get() = frames.size
@@ -239,7 +249,32 @@ internal class ItemArt(set: SpriteSet, effects: SpriteSet?) {
 internal class Breed(val walk: Animation, val still: Animation, val sheet: Sheet)
 
 /** A layer of the background that repeats sideways, with [belowGround] of its rows under the line of the ground. */
-internal class Layer(val image: ImageBitmap, val belowGround: Int)
+internal class Layer(val image: ImageBitmap, val belowGround: Int, val variants: List<LayerVariant> = emptyList())
+
+/**
+ * The same strip as a layer with something more, which the game puts now and then in place of a round of it (the cabin of
+ * the snow): [image], and the columns from [from] to [to] where it differs from the base, where the something is.
+ */
+internal class LayerVariant private constructor(val image: ImageBitmap, val from: Int, val to: Int) {
+    companion object {
+        /** The variant [image] of [base], or null if it does not measure the same or does not differ from it. */
+        fun of(base: ImageBitmap, image: ImageBitmap): LayerVariant? {
+            if (image.width != base.width || image.height != base.height) return null
+            val size = base.width * base.height
+            val a = IntArray(size).also { base.readPixels(it) }
+            val b = IntArray(size).also { image.readPixels(it) }
+            var from = Int.MAX_VALUE
+            var to = -1
+            for (i in 0 until size) {
+                if (a[i] == b[i]) continue
+                val x = i % base.width
+                if (x < from) from = x
+                if (x > to) to = x
+            }
+            return if (to < 0) null else LayerVariant(image, from, to + 1)
+        }
+    }
+}
 
 /**
  * A scenario: the tiles of its ground (frames of [tiles]), its block in the air, its sky and its far and middle layers,
@@ -362,6 +397,7 @@ private class AnimationEntry(
     @SerialName("fotogramas") val frames: List<Int>,
     @SerialName("ms") val millis: List<Int>,
     @SerialName("vacias-abajo") val emptyBelow: Int = 0,
+    @SerialName("ciclo-tiles") val cycleTiles: Float? = null,
 )
 
 @Serializable
@@ -380,4 +416,8 @@ private class ScenarioEntry(
 )
 
 @Serializable
-private class LayerEntry(@SerialName("hoja") val sheet: String, @SerialName("bajo-el-suelo") val belowGround: Int = 0)
+private class LayerEntry(
+    @SerialName("hoja") val sheet: String,
+    @SerialName("bajo-el-suelo") val belowGround: Int = 0,
+    @SerialName("variantes") val variants: Map<String, String> = emptyMap(),
+)

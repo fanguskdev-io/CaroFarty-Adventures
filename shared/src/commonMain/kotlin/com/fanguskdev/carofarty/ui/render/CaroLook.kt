@@ -9,11 +9,19 @@ import kotlin.math.min
 
 /**
  * Which of Caro's animations shows and how far into it (CHR-02 to CHR-06, docs/arte.md), stepped with the run so it looks
- * the same at any frame rate. Her stride follows the ground she covers: a cycle of corre every [RUN_CYCLE_TILES] tiles
- * and of corre-rapido, from [FAST_SPEED], every [FAST_CYCLE_TILES], never faster than [MIN_FRAME_SECONDS] a frame.
- * [runFrames] and [fastFrames] are how many frames those two animations have.
+ * the same at any frame rate. Her stride follows the ground she covers: a cycle of corre every [runCycleTiles] tiles and
+ * of corre-rapido, from [FAST_SPEED], every [fastCycleTiles], never faster than [MIN_FRAME_SECONDS] a frame. [runFrames]
+ * and [fastFrames] are how many frames those two animations have; the art can say how many tiles each cycle covers.
  */
-internal class CaroLook(private val runFrames: Int = DEFAULT_FRAMES, private val fastFrames: Int = DEFAULT_FRAMES) {
+internal class CaroLook(
+    private val runFrames: Int = DEFAULT_FRAMES,
+    private val fastFrames: Int = DEFAULT_FRAMES,
+    runCycleTiles: Float? = null,
+    fastCycleTiles: Float? = null,
+) {
+    private val runCycleTiles = runCycleTiles ?: RUN_CYCLE_TILES
+    private val fastCycleTiles = fastCycleTiles ?: FAST_CYCLE_TILES
+
     var pose = CaroPose.Espera
         private set
     private var seconds = 0f
@@ -31,7 +39,7 @@ internal class CaroLook(private val runFrames: Int = DEFAULT_FRAMES, private val
         if (pose.byDistance) {
             val fast = pose == CaroPose.CorreRapido
             val frames = if (fast) fastFrames else runFrames
-            val pixelsPerFrame = (if (fast) FAST_CYCLE_TILES else RUN_CYCLE_TILES) * TILE.toDouble() / frames
+            val pixelsPerFrame = (if (fast) fastCycleTiles else runCycleTiles) * TILE.toDouble() / frames
             stride += min(run.caro.speed * dt / pixelsPerFrame, dt / MIN_FRAME_SECONDS)
         }
     }
@@ -78,8 +86,8 @@ internal class CaroLook(private val runFrames: Int = DEFAULT_FRAMES, private val
 
     private companion object {
         const val DEFAULT_FRAMES = 6
-        const val RUN_CYCLE_TILES = 3
-        const val FAST_CYCLE_TILES = 5
+        const val RUN_CYCLE_TILES = 3f
+        const val FAST_CYCLE_TILES = 5f
         const val FAST_SPEED = 240f
         const val MIN_FRAME_SECONDS = 0.04
 

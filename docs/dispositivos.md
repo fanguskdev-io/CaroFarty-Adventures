@@ -16,8 +16,12 @@ Falta un emulador de Android de pantalla pequeña (720 px de alto, escala ×4); 
 
 ## Donde se jugará
 
-**Pendiente de Fangusk**: el modelo y la versión de Android o iOS de los teléfonos donde se jugará, y si hay un iPhone,
-si se paga el Apple Developer Program ([ADR 0005](adr/0005-un-regalo-sin-conexion.md)). Se fija al llegar a la instalación
-(TEC-13).
+Lo dijo Fangusk el 2026-11-02 (a través de GameMaster):
 
-El 2026-11-01 había un teléfono Samsung conectado por USB que aún no había autorizado la depuración.
+| Dispositivo | Pantalla en horizontal | Escala y área visible | Uso |
+|---|---|---|---|
+| **Nothing Phone (3)**, Android | 2800×1260, 6,67″, AMOLED con refresco adaptativo hasta 120 Hz | ×7 · 400×180 | Su móvil de pruebas: la fluidez a 120 Hz (TEC-05), la carrera nueva y la legibilidad del arte (ART-18) |
+
+No tiene iPhone: iOS se sigue compilando y probando en el simulador, y lo que pida un iPhone de verdad (firmarla con su
+equipo, TEC-13 en iOS, MOB-04) queda aparcado hasta que él diga. El Samsung que estaba conectado por USB el 2026-11-01 no es
+su móvil de pruebas.

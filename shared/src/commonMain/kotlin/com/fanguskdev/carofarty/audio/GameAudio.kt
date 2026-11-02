@@ -24,6 +24,13 @@ enum class Sound(val file: String) {
     StartJingle("jingle-inicio"),
     RecordJingle("jingle-record"),
     EndJingle("jingle-fin"),
+    ;
+
+    /** The jingles have one for each scenario, with its instruments (Fangusk); the rest are the same everywhere. */
+    val byScenario: Boolean get() = this == StartJingle || this == RecordJingle || this == EndJingle
+
+    /** The name of this sound's file for [scenario]: `jingle-inicio-bosque` for the jingles, its own name for the rest. */
+    fun file(scenario: Scenario): String = if (byScenario) "$file-${scenario.name.lowercase()}" else file
 }
 
 /**
@@ -48,14 +55,18 @@ internal class GameAudio(private val music: MusicPlayer, private val sounds: Sou
         }
     private var loading: Job? = null
     private var after: Job? = null
-    private val millis = HashMap<Sound, Long>()
+
+    /** The files loaded, and how long each lasts in milliseconds. */
+    private val millis = HashMap<String, Long>()
 
     init {
         scope.launch {
-            for (sound in Sound.entries) {
-                val wav = runCatching { Res.readBytes("$SOUNDS/${sound.file}.wav") }.getOrNull() ?: continue
-                sounds.load(sound.file, wav)
-                readWav(wav)?.let { millis[sound] = it.samples.size * MILLIS / (it.channels * it.rate) }
+            val names = Sound.entries.map { it.file } +
+                Sound.entries.filter { it.byScenario }.flatMap { sound -> Scenario.entries.map { sound.file(it) } }
+            for (name in names) {
+                val wav = runCatching { Res.readBytes("$SOUNDS/$name.wav") }.getOrNull() ?: continue
+                sounds.load(name, wav)
+                millis[name] = readWav(wav)?.let { it.samples.size * MILLIS / (it.channels * it.rate) } ?: 0L
             }
         }
     }
@@ -84,15 +95,21 @@ internal class GameAudio(private val music: MusicPlayer, private val sounds: Sou
             }
     }
 
-    fun play(sound: Sound) {
-        if (!muted) sounds.play(sound.file)
+    /** Plays [sound], in its version for [scenario] if it has one and it is there, or the one for everywhere. */
+    fun play(sound: Sound, scenario: Scenario? = null) {
+        if (!muted) sounds.play(fileOf(sound, scenario))
     }
 
-    /** A run begins: the music stops for the start jingle and comes back from its start when the jingle ends. */
+    private fun fileOf(sound: Sound, scenario: Scenario?): String {
+        val own = scenario?.let { sound.file(it) }
+        return if (own != null && own in millis) own else sound.file
+    }
+
+    /** A run begins: the music stops for the start jingle of [scenario] and comes back from its start when it ends. */
     fun start(scenario: Scenario) {
         pause()
-        play(Sound.StartJingle)
-        val wait = millis[Sound.StartJingle] ?: 0L
+        play(Sound.StartJingle, scenario)
+        val wait = millis[fileOf(Sound.StartJingle, scenario)] ?: 0L
         after =
             scope.launch {
                 delay(wait)
@@ -100,13 +117,13 @@ internal class GameAudio(private val music: MusicPlayer, private val sounds: Sou
             }
     }
 
-    /** A run ends: the music stops and, [wait] milliseconds later, the jingle of the end, or of a new [record]. */
-    fun end(record: Boolean, wait: Long) {
+    /** A run in [scenario] ends: the music stops and, [wait] ms later, its jingle of the end, or of a new [record]. */
+    fun end(scenario: Scenario, record: Boolean, wait: Long) {
         pause()
         after =
             scope.launch {
                 delay(wait)
-                play(if (record) Sound.RecordJingle else Sound.EndJingle)
+                play(if (record) Sound.RecordJingle else Sound.EndJingle, scenario)
             }
     }
 

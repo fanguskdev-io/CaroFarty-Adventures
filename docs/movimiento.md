@@ -105,6 +105,19 @@ chocan con la caja de colisión de Caro:
 - **A su favor**: si al subir solo roza con 3 px o menos la esquina de atrás de un bloque que ya deja atrás, no la frena
   (PLY-05); y si sus pies llegan al costado a 4 px o menos de la parte de arriba, se sube encima en vez de chocar.
 
+## El retroceso de un huevo o un pescado
+
+Lo pidió Fangusk tras jugar la beta: «que haga un pequeño retroceso parpadeando durante un corto periodo de tiempo (como
+hacen otros videojuegos)», y que sea de verdad, aunque la lleve a un barranco. En `files/ajustes.json`:
+
+- **El empujón** (`knockbackSeconds`, 0,3 s; `knockbackSpeed`, 40 px/s): su velocidad de lado pasa de ir hacia atrás a 40
+  px/s a su velocidad de carrera a lo largo de esos 0,3 s. En el suelo apenas retrocede un par de píxeles y frena; en el
+  aire, el salto se queda corto, así que puede no llegar al otro lado. Hacia atrás la para una pared, como hacia delante.
+- **En la pantalla**: la cámara sigue a medias el frenazo, así que se la ve ir hacia atrás unos 15 a 25 px y volver a su
+  sitio en un par de décimas.
+- **El parpadeo** (`blinkSeconds`, 1 s): se enciende y se apaga 12 veces por segundo, y mientras dura atraviesa los huevos
+  y pescados sin perder puntos; a los animales sí los rescata.
+
 ## Referencias
 
 Lo que la sesión GameMaster encontró de otros juegos de correr y saltar (sus informes, con las fuentes, en

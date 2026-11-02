@@ -63,7 +63,13 @@ Después de jugar la beta (2026-11-02), a través de GameMaster salvo lo que va 
 - **Un tutorial** con viñetas animadas la primera vez, y desde «Cómo se juega»; y la pista de mantener el dedo en los
   primeros barrancos.
 - **El sonido del salto largo**: el corto al despegar y, si a los 100 ms sigue con el dedo, una cola encima (opción C).
-- **La música**, más distinta entre escenarios: desierto árabe, nieve navideña y bosque selvático, a 111, 100 y 120 pulsos.
+- **La música**, más distinta entre escenarios: desierto árabe, nieve navideña y bosque selvático, a 111, 100 y 120 pulsos;
+  cada escenario con sus jingles de inicio, récord y fin, y efectos de rescate más reconocibles (guau, miau, chisporroteo,
+  chof). Sin avisos al aparecer un huevo o un pescado.
+- **Retroceso y parpadeo** al coger un huevo o un pescado: «que haga un pequeño retroceso parpadeando durante un corto
+  periodo de tiempo (como hacen otros videojuegos)». Y de verdad: «No hace falta la consideración de que el retroceso
+  nunca la tire a un barranco; si el retroceso al coger un huevo o un pescado la lleva a un barranco, debería ser parte de
+  la dificultad». Mientras parpadea, los huevos y pescados no restan; los animales, sí los rescata.
 - **El arte**: la carrera de Caro con brazos de 2 px y 8 fotogramas, más fluida; el salto con los brazos más estirados;
   lazo rosa al yorkshire, yorkshire y carlino más pequeños, pastor alemán y golden más grandes, bulldog blanco con manchas
   negras; la mitad de copos o menos, «más suaves»; y la cabaña de la nieve, que «intercala aleatoriamente entre cercana y

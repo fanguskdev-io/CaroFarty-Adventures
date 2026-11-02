@@ -13,7 +13,9 @@
     "coyoteTime": 0.08,
     "jumpBuffer": 0.1,
     "hitboxWidth": 10.0,
-    "hitboxHeight": 20.0
+    "hitboxHeight": 20.0,
+    "knockbackSeconds": 0.3,
+    "knockbackSpeed": 40.0
   },
   "course": {
     "startFlatTiles": 30,
@@ -61,6 +63,7 @@
     "perritoWalkMax": 3.0,
     "perritoStopMin": 0.5,
     "perritoStopMax": 1.5,
-    "reactionSeconds": 0.4
+    "reactionSeconds": 0.4,
+    "blinkSeconds": 1.0
   }
 }

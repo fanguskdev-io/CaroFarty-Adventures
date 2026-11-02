@@ -17,7 +17,7 @@ arte, el juego los dibuja como en el prototipo en gris, cuadrados de 12 × 12 px
 | **Se mueve** (ADR 0008) | En el suelo, pasea por su tramo o se queda quieto; nunca se cae por un barranco | Quieto, sentado | Quieto | Quieto |
 | **Variantes** (ADR 0008) | Nueve razas al azar: shiba, pastor alemán, carlino, dálmata, golden, beagle, yorkshire, bulldog francés y corgi | Ocho pelajes al azar: naranja, gris azulado, calicó, crema, negro, blanco, chocolate y siamés | — | — |
 | **Aspecto** (M2) | De perfil con la cabeza en tres cuartos; camina o se para | Una hogaza sentada, con su reposo animado | Chisporrotea, con ondas de mal olor encima | Colea, con ondas de mal olor encima |
-| **Caro al cogerlo** (CHR-07) | Cara de contenta, 0,4 s | Igual | Cara de asco, 0,4 s | Igual |
+| **Caro al cogerlo** (CHR-07) | Cara de contenta, 0,4 s | Igual | Cara de asco, 0,4 s, un retroceso de 0,3 s y 1 s parpadeando en el que los huevos y pescados no restan | Igual |
 | **Cómo se distingue** (propuesta) | Un animal de colores cálidos, que se mueve (el rabo) | Un animal de colores cálidos, que se mueve (las orejas o el rabo) | Comida quieta, blanca y amarilla | Comida quieta, gris azulada |
 | **Al recogerlo** (M4) | Un sonido alegre y corto | El suyo, distinto del perrito | Un sonido seco | Más seco aún: es lo que más resta |
 | **En el prototipo** | «P» marrón con borde verde, que se mueve | «G» con borde verde, del color de su pelaje | «H» crema con borde rojo | «F» azul con borde rojo (de *fish*: la P ya es del perrito) |

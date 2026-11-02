@@ -29,7 +29,7 @@ class AudioFilesTest {
 
     @Test
     fun theSoundsHaveTheNamesTheGameLooksFor() {
-        val known = Sound.entries.map { it.file }.toSet()
+        val known = Sound.entries.map { it.file }.toSet() + Sound.entries.flatMap { sound -> Scenario.entries.map { sound.file(it) } }
         for (file in wavs("sonidos")) assertTrue(file.nameWithoutExtension in known, "${file.name} is not a sound of the game")
     }
 }

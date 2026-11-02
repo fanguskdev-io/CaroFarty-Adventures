@@ -49,6 +49,12 @@ data class MovementConfig(
     /** Caro's collision box, a little smaller than her sprite (CHR-08). */
     val hitboxWidth: Float = 10f,
     val hitboxHeight: Float = 20f,
+    /**
+     * The push back when she picks up an egg or a fish (Fangusk: «un pequeño retroceso»): for [knockbackSeconds] she brakes
+     * from going back at [knockbackSpeed] to her running speed. It is real: if it leaves her without ground, she falls.
+     */
+    val knockbackSeconds: Float = 0.3f,
+    val knockbackSpeed: Float = 40f,
 ) {
     /** The running speed after [meters] of the run. */
     fun speedAt(meters: Double): Float {
@@ -130,6 +136,11 @@ data class ItemConfig(
     val perritoStopMax: Float = 1.5f,
     /** How long Caro's face shows what she picked up (CHR-07): happy for a rescued animal, disgusted for food, in seconds. */
     val reactionSeconds: Float = 0.4f,
+    /**
+     * After an egg or a fish she blinks this long (Fangusk: «parpadeando durante un corto periodo de tiempo»), and in it
+     * the eggs and the fish do not take points away; the animals she still rescues.
+     */
+    val blinkSeconds: Float = 1f,
 ) {
     fun box(kind: ItemKind): Int = if (kind.adds) positiveBox else negativeBox
 }

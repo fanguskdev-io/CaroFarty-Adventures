@@ -108,13 +108,56 @@ class GameRunTest {
         assertEquals(Reaction.None, run.reaction, "and after ${config.items.reactionSeconds} s her face is back")
     }
 
+    /** A run on flat ground with nothing on it, where the test puts what it wants. */
+    private fun flatRun(): GameRun {
+        val pieces = object : PieceSource {
+            private var given = false
+
+            override fun nextOrNull(): Piece? {
+                if (given) return null
+                given = true
+                return Piece(listOf(Ground(-512, 100_000, 32)), emptyList(), 100_000)
+            }
+        }
+        return GameRun(config, Scenario.Bosque, seed = 1, pieces = pieces)
+    }
+
+    @Test
+    fun afterAnEggSheBlinksThroughTheNextFoodButStillRescuesAnimals() {
+        val run = flatRun()
+        run.step(step, pressed = true, held = false)
+        val y = run.caro.y.toInt() + 8
+        run.course.items.addFirst(Item(ItemKind.Huevo, run.caro.x.toInt() + 2, y))
+        run.step(step, pressed = false, held = false)
+        assertEquals(config.score.startPoints + config.score.huevo, run.points)
+        assertTrue(run.caro.knockedBack, "the egg pushes her back")
+        assertTrue(run.blinking > 0f, "and she blinks")
+
+        val fish = Item(ItemKind.Pescado, run.caro.x.toInt() + 2, y)
+        run.course.items.addFirst(fish)
+        run.step(step, pressed = false, held = false)
+        assertEquals(config.score.startPoints + config.score.huevo, run.points, "blinking, the fish takes nothing away")
+        assertTrue(!fish.taken, "and stays where it was")
+
+        run.course.items.addFirst(Item(ItemKind.Gatito, run.caro.x.toInt() + 2, y))
+        run.step(step, pressed = false, held = false)
+        assertEquals(config.score.startPoints + config.score.huevo + config.score.gatito, run.points, "the gatito she rescues")
+
+        repeat((config.items.blinkSeconds / step).toInt() + 2) { run.step(step, pressed = false, held = false) }
+        assertEquals(0f, run.blinking)
+        run.course.items.addFirst(Item(ItemKind.Huevo, run.caro.x.toInt() + 2, y))
+        run.step(step, pressed = false, held = false)
+        assertEquals(config.score.startPoints + 2 * config.score.huevo + config.score.gatito, run.points, "after the blinking, again")
+    }
+
     @Test
     fun withNoPointsLeftTheRunEndsAndSheStops() {
         val run = newRun()
         run.step(step, pressed = true, held = false)
         val y = run.caro.y.toInt() + 8
         val x = run.caro.x.toInt()
-        repeat(4) { run.course.items.addFirst(Item(ItemKind.Pescado, x + 2, y)) }
+        run.takeAway(config.score.startPoints + config.score.pescado)
+        run.course.items.addFirst(Item(ItemKind.Pescado, x + 2, y))
 
         run.step(step, pressed = false, held = false)
 

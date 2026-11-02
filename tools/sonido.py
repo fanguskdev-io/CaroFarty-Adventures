@@ -39,6 +39,14 @@ def main():
     args = parser.parse_args()
     pares = [(args.desde / f"{e}-bucle.wav", RECURSOS / "musica" / f"{e}.wav") for e in ESCENARIOS]
     pares += [(args.desde / f"{s}.wav", RECURSOS / "sonidos" / f"{s}.wav") for s in SONIDOS]
+    # Los jingles de cada escenario, con sus instrumentos, si la entrega los trae; si no, suena el genérico.
+    jingles = [s for s in SONIDOS if s.startswith("jingle-")]
+    pares += [
+        (args.desde / f"{j}-{e}.wav", RECURSOS / "sonidos" / f"{j}-{e}.wav")
+        for j in jingles
+        for e in ESCENARIOS
+        if (args.desde / f"{j}-{e}.wav").exists()
+    ]
     errores = 0
     for origen, destino in pares:
         if not origen.exists():

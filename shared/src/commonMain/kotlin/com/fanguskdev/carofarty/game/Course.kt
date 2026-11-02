@@ -158,6 +158,18 @@ interface Terrain {
         head: Float,
     ): Int?
 
+    /**
+     * The end of the nearest ground or block behind her that she would back into: it ends before [fromLeft] and down to
+     * [toLeft], and its side reaches clearly into her body, from her [feet] to her [head]. The push back of an egg or a
+     * fish (Fangusk) is the only thing that moves her backwards.
+     */
+    fun wallBehind(
+        fromLeft: Double,
+        toLeft: Double,
+        feet: Float,
+        head: Float,
+    ): Int?
+
     /** The lowest bottom of a block over the span from [left] to [right] that her head reaches going up from [headBefore] to [head]. */
     fun ceilingAbove(
         left: Double,
@@ -238,6 +250,25 @@ class Course : Terrain {
             if (block.start >= fromRight && block.start <= toRight && inTheWay) nearest = min(nearest, block.start)
         }
         return if (nearest == Int.MAX_VALUE) null else nearest
+    }
+
+    override fun wallBehind(
+        fromLeft: Double,
+        toLeft: Double,
+        feet: Float,
+        head: Float,
+    ): Int? {
+        var nearest = Int.MIN_VALUE
+        for (i in 0 until grounds.size) {
+            val ground = grounds[i]
+            if (ground.end <= fromLeft && ground.end >= toLeft && ground.top > feet + CORNER_TOLERANCE) nearest = max(nearest, ground.end)
+        }
+        for (i in 0 until blocks.size) {
+            val block = blocks[i]
+            val inTheWay = block.top > feet + CORNER_TOLERANCE && block.bottom < head - CORNER_TOLERANCE
+            if (block.end <= fromLeft && block.end >= toLeft && inTheWay) nearest = max(nearest, block.end)
+        }
+        return if (nearest == Int.MIN_VALUE) null else nearest
     }
 
     override fun ceilingAbove(

@@ -65,6 +65,19 @@ class Caro(private val config: MovementConfig) {
     private var coyote = 0f
     private var buffer = 0f
     private var landingTime = 0f
+    private var knockback = 0f
+
+    /** Whether the push back of an egg or a fish is going on. */
+    val knockedBack: Boolean get() = knockback > 0f
+
+    /**
+     * How far behind where she would be without the push back she is, in pixels: half of it shows on the screen as her
+     * going back, and comes back quickly ([cameraLag]); with [previousLag], the one of the step before, for the drawing.
+     */
+    var cameraLag = 0f
+        private set
+    var previousLag = 0f
+        private set
 
     private val halfWidth = config.hitboxWidth / 2
 
@@ -91,6 +104,9 @@ class Caro(private val config: MovementConfig) {
         coyote = 0f
         buffer = 0f
         landingTime = 0f
+        knockback = 0f
+        cameraLag = 0f
+        previousLag = 0f
         state = CaroState.Waiting
         jumps = 0
         coyoteJumps = 0
@@ -100,6 +116,11 @@ class Caro(private val config: MovementConfig) {
     /** The first tap: she starts running, without jumping (ADR 0002). */
     fun start() {
         if (state == CaroState.Waiting) state = CaroState.Running
+    }
+
+    /** An egg or a fish: she brakes and goes back a little (Fangusk), on the ground or in the air. */
+    fun knockBack() {
+        if (state != CaroState.Waiting && !state.over) knockback = config.knockbackSeconds
     }
 
     /** The run is over because she has no points left: she stops where she is. */
@@ -136,9 +157,24 @@ class Caro(private val config: MovementConfig) {
 
     private fun run(dt: Float, terrain: Terrain) {
         speed = config.speedAt(meters)
-        var next = x + speed * dt
-        val wall = terrain.wallAhead(right, next + halfWidth, y, y + config.hitboxHeight)
-        if (wall != null) next = wall - halfWidth.toDouble()
+        var across = speed
+        if (knockback > 0f) {
+            // From going back to running again, along the push.
+            val done = 1f - knockback / config.knockbackSeconds
+            across = -config.knockbackSpeed + (speed + config.knockbackSpeed) * done
+            knockback = max(0f, knockback - dt)
+        }
+        previousLag = cameraLag
+        cameraLag =
+            if (across < speed) cameraLag + (speed - across) * dt * LAG_SHOWN else cameraLag * (1f - dt / LAG_RECOVERY).coerceAtLeast(0f)
+        var next = x + across * dt
+        if (across >= 0f) {
+            val wall = terrain.wallAhead(right, next + halfWidth, y, y + config.hitboxHeight)
+            if (wall != null) next = wall - halfWidth.toDouble()
+        } else {
+            val wall = terrain.wallBehind(left, next - halfWidth, y, y + config.hitboxHeight)
+            if (wall != null) next = wall + halfWidth.toDouble()
+        }
         x = next
     }
 
@@ -205,5 +241,9 @@ class Caro(private val config: MovementConfig) {
 
         /** How long the landing lasts, for its animation: she can jump during it. */
         const val LANDING_TIME = 0.1f
+
+        /** The share of the push back that shows on the screen, and how fast the camera catches her up after, in seconds. */
+        const val LAG_SHOWN = 0.5f
+        const val LAG_RECOVERY = 0.15f
     }
 }

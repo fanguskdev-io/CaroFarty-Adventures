@@ -530,7 +530,7 @@ internal class GameSession(
         panelButtons = layout.row(panelButtonTexts, panelBottom(panel, viewport.height) + MenuLayout.GAP)
         // The music stops: the sound of the end, and a moment later its jingle, of a record if there is one.
         if (cause == EndCause.NoPoints) audio?.play(Sound.NoPoints)
-        audio?.end(ended.newRecord, JINGLE_DELAY_MILLIS)
+        audio?.end(scenario, ended.newRecord, JINGLE_DELAY_MILLIS)
     }
 
     /** Another run at once, already running: from the end of a run to playing again takes one tap (UI-06). */

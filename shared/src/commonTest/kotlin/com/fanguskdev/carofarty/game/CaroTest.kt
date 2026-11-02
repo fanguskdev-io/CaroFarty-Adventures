@@ -260,6 +260,51 @@ class CaroTest {
         assertEquals(CaroState.Stopped, caro.state)
         assertEquals(x, caro.x)
     }
+
+    @Test
+    fun anEggPushesHerBackALittleAndBrakesHerAndTheScreenShowsIt() {
+        val course = terrain(Ground(-512, 1_000_000, 32))
+        val caro = runningOn(course)
+        repeat(30) { caro.step(step, pressed = false, held = false, terrain = course) }
+        val before = caro.x
+        caro.knockBack()
+        repeat(3) { caro.step(step, pressed = false, held = false, terrain = course) }
+        assertTrue(caro.x < before, "pushed back: ${caro.x} < $before")
+        assertTrue(caro.cameraLag > 0f, "the camera stays a little ahead, so she is seen going back")
+        repeat(60) { caro.step(step, pressed = false, held = false, terrain = course) }
+        assertTrue(!caro.knockedBack && caro.cameraLag < 1f, "and soon she runs again where she was on the screen")
+    }
+
+    @Test
+    fun theWallBehindHerStopsThePushBack() {
+        // She has just come down a step: the higher ground ends right behind her.
+        val course = terrain(Ground(-512, 100, 64), Ground(100, 1_000_000, 32))
+        val caro = runningOn(course, x = 100.0 + config.hitboxWidth / 2 + 0.5)
+        caro.knockBack()
+        repeat(20) {
+            caro.step(step, pressed = false, held = false, terrain = course)
+            assertTrue(caro.left >= 100.0, "she went into the wall: ${caro.left}")
+        }
+    }
+
+    @Test
+    fun inTheAirThePushBackShortensTheJumpAndCanLeaveHerShortOfTheGround() {
+        fun landing(knocked: Boolean): Double {
+            val course = terrain(Ground(-512, 1_000_000, 32))
+            val caro = runningOn(course)
+            caro.step(step, pressed = true, held = true, terrain = course)
+            var steps = 0
+            while (!caro.state.grounded) {
+                if (knocked && steps == 5) caro.knockBack()
+                caro.step(step, pressed = false, held = steps < 20, terrain = course)
+                steps++
+            }
+            return caro.x
+        }
+        val normal = landing(knocked = false)
+        val pushed = landing(knocked = true)
+        assertTrue(pushed < normal - 20, "a jump pushed back lands short: $pushed against $normal")
+    }
 }
 
 class FarFromTheOriginTest {

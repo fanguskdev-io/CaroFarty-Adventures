@@ -23,8 +23,9 @@ cosa es propuesta mía, para que Fangusk la cambie al oírla.
 | Fin de la partida | La música se para y, 0,6 s después, `jingle-fin` o, con récord nuevo, `jingle-record`; en el panel de fin no hay música hasta la siguiente partida |
 | La app pasa a segundo plano | Todo se calla, y vuelve al volver |
 
-El botón de sonido, junto al de pausa y en el inicio, lo calla todo; viene encendido la primera vez y el juego recuerda
-cómo lo dejó ([pantallas](pantallas.md)).
+Los jingles son de cada escenario, con sus instrumentos (`jingle-inicio-bosque.wav`, `jingle-record-nieve.wav`…); si
+falta el de un escenario, suena el genérico. El botón de sonido, junto al de pausa y en el inicio, lo calla todo; viene
+encendido la primera vez y el juego recuerda cómo lo dejó ([pantallas](pantallas.md)).
 
 ## Cómo suena en cada teléfono
 

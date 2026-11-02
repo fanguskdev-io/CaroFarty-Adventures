@@ -65,6 +65,10 @@ class GameRun(
         private set
     private var reactionTime = 0f
 
+    /** The seconds left of her blinking after an egg or a fish, in which eggs and fish do not take points away. */
+    var blinking = 0f
+        private set
+
     /** Metres run, the distance of the record. */
     val meters: Double get() = max(0.0, caro.meters)
 
@@ -94,6 +98,7 @@ class GameRun(
         for (i in 0 until course.items.size) course.items[i].walk?.step(dt)
         reactionTime -= dt
         if (reactionTime <= 0f) reaction = Reaction.None
+        blinking = max(0f, blinking - dt)
         pickUp()
         course.dropBefore(caro.x - BEHIND)
         if (caro.state == CaroState.Fallen) end(EndCause.Fall)
@@ -111,11 +116,17 @@ class GameRun(
         for (i in 0 until course.items.size) {
             val item = course.items[i]
             if (item.taken || !overlaps(caro, item, config.items.box(item.kind), config.movement)) continue
+            // Blinking, she goes through eggs and fish; the animals she still rescues.
+            if (!item.kind.adds && blinking > 0f) continue
             item.taken = true
             val value = item.kind.points(config.score)
             events += RunEvent.Picked(item.kind, value)
             reaction = if (item.kind.adds) Reaction.Happy else Reaction.Disgusted
             reactionTime = config.items.reactionSeconds
+            if (!item.kind.adds) {
+                caro.knockBack()
+                blinking = config.items.blinkSeconds
+            }
             if (add(value)) return
         }
     }

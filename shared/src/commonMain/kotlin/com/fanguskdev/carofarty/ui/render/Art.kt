@@ -167,6 +167,9 @@ internal enum class CaroPose(val key: String, val loops: Boolean, val byDistance
     AlBarranco("al-barranco", loops = true),
     SinPuntos("sin-puntos", loops = false),
     Record("record", loops = true),
+
+    /** The push back of an egg or a fish, with her face of disgust (Fangusk); until its art arrives, the run with that face. */
+    Retroceso("retroceso", loops = false),
 }
 
 /** Caro (CHR-01 to CHR-07): her poses with the faces she makes when she picks something up, dressed for each scenario. */
@@ -198,6 +201,7 @@ internal class CaroArt private constructor(set: SpriteSet, private val poses: Ar
             CaroPose.Salta, CaroPose.AlBarranco -> set.animation(CaroPose.Cae.key)
             CaroPose.Cae -> set.animation(CaroPose.Salta.key)
             CaroPose.Record, CaroPose.SinPuntos -> set.animation(CaroPose.Espera.key)
+            CaroPose.Retroceso -> set.animation(CaroPose.Corre.key + "-asco") ?: set.animation(CaroPose.Corre.key)
             else -> null
         }
 

@@ -145,7 +145,9 @@ private fun DrawScope.drawGame(session: GameSession, world: PixelBuffer, viewpor
     val caro = run.caro
     val x = caro.previousX + (caro.x - caro.previousX) * session.alpha
     val y = caro.previousY + (caro.y - caro.previousY) * session.alpha
-    val camera = x - CARO_SCREEN_X
+    // The push back of an egg or a fish shows as her going back on the screen, until the camera catches her up.
+    val lag = caro.previousLag + (caro.cameraLag - caro.previousLag) * session.alpha
+    val camera = x - CARO_SCREEN_X + lag
     val cameraLeft = floor(camera).toLong()
     val fraction = camera - cameraLeft
     // Both rounded the same way, so while the camera goes up with her she stays still on the screen and nothing shakes.
@@ -184,10 +186,13 @@ private fun DrawScope.drawGame(session: GameSession, world: PixelBuffer, viewpor
         }) {
             val feet = viewport.height + cameraBottom - feetY
             val caroArt = art?.caro
-            if (caroArt != null) {
-                paintCaroSprite(caroArt, run.scenario, session.look, run.reaction, CARO_SCREEN_X, feet)
-            } else {
-                paintCaro(CARO_SCREEN_X, feet, caro.state, stride = (caro.meters * STRIDES_PER_METER).toInt() % 2 == 0)
+            val screenX = CARO_SCREEN_X - lag.roundToInt()
+            // Blinking after an egg or a fish: shown and hidden by turns.
+            val shown = run.blinking <= 0f || (run.blinking * BLINKS_PER_SECOND).toInt() % 2 == 0
+            if (shown && caroArt != null) {
+                paintCaroSprite(caroArt, run.scenario, session.look, run.reaction, screenX, feet)
+            } else if (shown) {
+                paintCaro(screenX, feet, caro.state, stride = (caro.meters * STRIDES_PER_METER).toInt() % 2 == 0)
             }
             if (run.phase != RunPhase.Ready) {
                 paintHud(session.pointsText, session.metersText, session.layout, session.soundOn, warn = session.lowPoints)
@@ -260,4 +265,7 @@ internal const val REST_CAMERA = GameRun.START_X - CARO_SCREEN_X
 /** The game pixels the camera leaves above Caro's head before going up. */
 internal const val HEAD_ROOM = 8
 private const val STRIDES_PER_METER = 4
+
+/** How many times a second she goes on and off while blinking. */
+private const val BLINKS_PER_SECOND = 12
 private const val SETTINGS = "files/ajustes.json"

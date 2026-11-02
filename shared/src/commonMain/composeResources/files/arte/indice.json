@@ -429,7 +429,7 @@
       130,
       130
      ],
-     "vacias-abajo": 1
+     "vacias-abajo": 0
     },
     "perrito-pastor-aleman-quieto": {
      "fotogramas": [
@@ -444,7 +444,7 @@
       160,
       240
      ],
-     "vacias-abajo": 1
+     "vacias-abajo": 0
     },
     "perrito-carlino-camina": {
      "fotogramas": [
@@ -519,7 +519,7 @@
       130,
       130
      ],
-     "vacias-abajo": 1
+     "vacias-abajo": 0
     },
     "perrito-golden-quieto": {
      "fotogramas": [
@@ -534,7 +534,7 @@
       160,
       240
      ],
-     "vacias-abajo": 1
+     "vacias-abajo": 0
     },
     "perrito-beagle-camina": {
      "fotogramas": [
@@ -1146,11 +1146,17 @@
    },
    "lejano": {
     "hoja": "nieve-fondo-lejano.png",
-    "bajo-el-suelo": 0
+    "bajo-el-suelo": 0,
+    "variantes": {
+     "cabana": "nieve-fondo-lejano-cabana.png"
+    }
    },
    "medio": {
     "hoja": "nieve-fondo-medio.png",
-    "bajo-el-suelo": 96
+    "bajo-el-suelo": 96,
+    "variantes": {
+     "cabana": "nieve-fondo-medio-cabana.png"
+    }
    }
   },
   "desierto": {

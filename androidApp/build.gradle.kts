@@ -27,6 +27,7 @@ android {
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
         versionName = "1.0"
+        buildConfigField("boolean", "MEASURE", "false")
     }
     packaging {
         resources {
@@ -45,6 +46,15 @@ android {
             // Firmada con la clave de depuración para instalarla desde el ordenador (README); publicarla en Google
             // Play pediría una clave propia.
             signingConfig = signingConfigs.getByName("debug")
+        }
+        // Para medir 30 minutos en el teléfono de Fangusk (AUD-29): optimizada como la de lanzamiento, que es la que se
+        // juega, pero otra app, «CaroFarty medida», para no tocar sus récords, que juega sola con el piloto automático y
+        // enseña la línea de depuración desde que se abre (entregas/LEEME.md).
+        create("medida") {
+            initWith(getByName("release"))
+            applicationIdSuffix = ".medida"
+            matchingFallbacks += listOf("release")
+            buildConfigField("boolean", "MEASURE", "true")
         }
     }
     compileOptions {

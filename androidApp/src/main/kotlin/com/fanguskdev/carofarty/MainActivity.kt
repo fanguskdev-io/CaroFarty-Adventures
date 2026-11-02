@@ -23,12 +23,16 @@ class MainActivity : ComponentActivity() {
         val store = AndroidKeyValueStore(applicationContext)
         // `adb shell am start -n com.fanguskdev.carofarty/.MainActivity --ez debug true` opens the debugging tools at once,
         // `--ez autopilot true` lets the pilot play and `--ez silencio true` turns the sound off, to measure without it.
-        val debugAtStart = BuildConfig.DEBUG && intent.getBooleanExtra("debug", false)
-        val autopilot = BuildConfig.DEBUG && intent.getBooleanExtra("autopilot", false)
+        // The build to measure (AUD-29) does the first two by itself, with the sound on and the screen kept awake.
+        val measure = BuildConfig.MEASURE
+        val tools = BuildConfig.DEBUG || measure
+        val debugAtStart = measure || (BuildConfig.DEBUG && intent.getBooleanExtra("debug", false))
+        val autopilot = measure || (BuildConfig.DEBUG && intent.getBooleanExtra("autopilot", false))
         val sound = !(BuildConfig.DEBUG && intent.getBooleanExtra("silencio", false))
+        if (measure) window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         setContent {
             // The button to leave the game of the start screen (UI-22) closes the app and takes it out of the recent ones.
-            App(store, BuildConfig.DEBUG, debugAtStart, autopilot, sound, quit = { finishAndRemoveTask() })
+            App(store, tools, debugAtStart, autopilot, sound, quit = { finishAndRemoveTask() })
         }
     }
 

@@ -1,0 +1,4 @@
+<resources>
+    <!-- La app de medida (AUD-29), que se instala aparte de la del juego. -->
+    <string name="app_name">CaroFarty medida</string>
+</resources>

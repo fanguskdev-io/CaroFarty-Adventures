@@ -2,8 +2,10 @@ package com.fanguskdev.carofarty.audio
 
 import android.media.AudioAttributes
 import android.media.AudioFormat
+import android.media.AudioManager
 import android.media.AudioTrack
 import android.media.SoundPool
+import android.os.Process
 import java.io.File
 import kotlin.math.max
 import kotlin.math.min
@@ -11,8 +13,9 @@ import kotlin.math.min
 internal actual fun musicPlayer(): MusicPlayer = AndroidMusicPlayer()
 
 /**
- * The music on Android: the samples of the WAV fed to an AudioTrack by a thread of its own, round and round, so the loop
- * has no gap (MediaPlayer leaves one).
+ * The music on Android: an AudioTrack fed by a thread of its own, with the samples of a WAV round and round, so the loop
+ * has no gap (MediaPlayer leaves one), or with what a stream makes as it plays. The thread waits on the track while it is
+ * paused.
  */
 private class AndroidMusicPlayer : MusicPlayer {
     private var track: AudioTrack? = null
@@ -22,11 +25,48 @@ private class AndroidMusicPlayer : MusicPlayer {
 
     @Volatile private var rewind = false
 
+    /** The phone's own rate, if the music knows how to make it exactly; else 48 000 Hz, which the phone converts. */
+    override val streamRate: Int =
+        runCatching { AudioTrack.getNativeOutputSampleRate(AudioManager.STREAM_MUSIC) }
+            .getOrNull()
+            ?.takeIf { it == CD_RATE || it == STREAM_RATE }
+            ?: STREAM_RATE
+
     override fun play(wav: ByteArray, volume: Float) {
         stop()
         val sound = readWav(wav) ?: return
-        val channels = if (sound.channels == 2) AudioFormat.CHANNEL_OUT_STEREO else AudioFormat.CHANNEL_OUT_MONO
-        val minimum = AudioTrack.getMinBufferSize(sound.rate, channels, AudioFormat.ENCODING_PCM_16BIT)
+        val track = open(sound.rate, sound.channels, volume) ?: return
+        val samples = sound.samples
+        feed(track) {
+            var position = 0
+            while (running && samples.isNotEmpty()) {
+                if (rewind) {
+                    rewind = false
+                    position = 0
+                }
+                val written = track.write(samples, position, min(CHUNK, samples.size - position))
+                if (written < 0) break
+                position = (position + written) % samples.size
+            }
+        }
+    }
+
+    override fun stream(source: PcmSource, rate: Int, volume: Float) {
+        stop()
+        val track = open(rate, 1, volume) ?: return
+        val buffer = ShortArray(CHUNK)
+        feed(track) {
+            while (running) {
+                source.render(buffer, 0, CHUNK)
+                if (track.write(buffer, 0, CHUNK) < 0) break
+            }
+        }
+    }
+
+    /** A track playing [rate] samples a second of [channels], or null if the phone has no way to play it. */
+    private fun open(rate: Int, channels: Int, volume: Float): AudioTrack? {
+        val mask = if (channels == 2) AudioFormat.CHANNEL_OUT_STEREO else AudioFormat.CHANNEL_OUT_MONO
+        val minimum = AudioTrack.getMinBufferSize(rate, mask, AudioFormat.ENCODING_PCM_16BIT)
         val attributes =
             AudioAttributes.Builder()
                 .setUsage(AudioAttributes.USAGE_GAME)
@@ -34,39 +74,33 @@ private class AndroidMusicPlayer : MusicPlayer {
                 .build()
         val format =
             AudioFormat.Builder()
-                .setSampleRate(sound.rate)
+                .setSampleRate(rate)
                 .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
-                .setChannelMask(channels)
+                .setChannelMask(mask)
                 .build()
         // A phone without a way to play it (or an emulator without sound) leaves the game silent, never closed.
-        val track =
-            runCatching {
-                AudioTrack.Builder()
-                    .setAudioAttributes(attributes)
-                    .setAudioFormat(format)
-                    .setTransferMode(AudioTrack.MODE_STREAM)
-                    .setBufferSizeInBytes(max(minimum, CHUNK * 4))
-                    .build()
-                    .also {
-                        it.setVolume(volume)
-                        it.play()
-                    }
-            }.getOrNull() ?: return
+        return runCatching {
+            AudioTrack.Builder()
+                .setAudioAttributes(attributes)
+                .setAudioFormat(format)
+                .setTransferMode(AudioTrack.MODE_STREAM)
+                .setBufferSizeInBytes(max(minimum, CHUNK * 4))
+                .build()
+                .also {
+                    it.setVolume(volume)
+                    it.play()
+                }
+        }.getOrNull()
+    }
+
+    /** Starts the thread that writes into [track], with the priority of audio, doing [writing] while the music goes on. */
+    private fun feed(track: AudioTrack, writing: () -> Unit) {
         this.track = track
         running = true
-        val samples = sound.samples
         writer =
             Thread {
-                var position = 0
-                while (running && samples.isNotEmpty()) {
-                    if (rewind) {
-                        rewind = false
-                        position = 0
-                    }
-                    val written = track.write(samples, position, min(CHUNK, samples.size - position))
-                    if (written < 0) break
-                    position = (position + written) % samples.size
-                }
+                Process.setThreadPriority(Process.THREAD_PRIORITY_AUDIO)
+                writing()
             }.apply {
                 name = "music"
                 isDaemon = true
@@ -109,6 +143,8 @@ private class AndroidMusicPlayer : MusicPlayer {
         /** Samples written at a time: some 50 ms. */
         const val CHUNK = 2048
         const val JOIN_MILLIS = 500L
+        const val STREAM_RATE = 48_000
+        const val CD_RATE = 44_100
     }
 }
 

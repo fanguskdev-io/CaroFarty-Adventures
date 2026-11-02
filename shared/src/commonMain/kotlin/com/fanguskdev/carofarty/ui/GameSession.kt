@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.fanguskdev.carofarty.audio.GameAudio
+import com.fanguskdev.carofarty.audio.RescueStreak
 import com.fanguskdev.carofarty.audio.Sound
 import com.fanguskdev.carofarty.engine.FixedStep
 import com.fanguskdev.carofarty.engine.PixelViewport
@@ -205,6 +206,10 @@ internal class GameSession(
 
     /** Steps left to know whether the jump is a long one, or 0. */
     private var longJumpSteps = 0
+
+    /** The rescues in a row, for the pitch of their sound, and the seconds the run has gone on, to time them. */
+    private val streak = RescueStreak()
+    private var runSeconds = 0.0
 
     /** The start of the gap ahead and how many gaps the run has come to, for the hint. */
     private var hintGap = Int.MIN_VALUE
@@ -466,7 +471,7 @@ internal class GameSession(
         run.step(JumpLab.STEP, pressed = true, held = false)
         lastNanos = -1L
         clock.reset()
-        audio?.start(scenario)
+        audio?.start(scenario, run.seed)
     }
 
     /** Back to the start screen, with a new run of the scenario waiting there and its music. */
@@ -507,6 +512,12 @@ internal class GameSession(
         val jumps = caro.jumps
         val landing = caro.state == CaroState.Landing
         run.step(JumpLab.STEP, pressed, held)
+        runSeconds += JumpLab.STEP
+        // The music follows the run while it goes on: its layers with the speed, its tense version with few points.
+        if (run.phase == RunPhase.Running) {
+            audio?.speed(caro.speed)
+            audio?.lowPoints(lowPoints)
+        }
         jumpSound(jumped = caro.jumps > jumps, held = held)
         if (!landing && caro.state == CaroState.Landing) audio?.play(Sound.Landing)
         if (!recordHeard && bestBefore > 0 && run.meters > bestBefore) {
@@ -568,7 +579,14 @@ internal class GameSession(
         if (run.events.isEmpty()) return
         for (event in run.events) {
             when (event) {
-                is RunEvent.Picked -> audio?.play(soundOf(event.kind))
+                is RunEvent.Picked -> {
+                    if (event.kind.adds) {
+                        audio?.play(soundOf(event.kind), streak = streak.rescued(runSeconds))
+                    } else {
+                        streak.broken()
+                        audio?.play(soundOf(event.kind))
+                    }
+                }
                 is RunEvent.Ended -> finish(event.cause)
             }
         }
@@ -597,7 +615,7 @@ internal class GameSession(
         run.step(JumpLab.STEP, pressed = true, held = false)
         panel = emptyList()
         panelButtons = emptyList()
-        audio?.start(scenario)
+        audio?.start(scenario, run.seed)
     }
 
     private fun soundOf(kind: ItemKind): Sound = when (kind) {
@@ -624,6 +642,8 @@ internal class GameSession(
         hintGap = Int.MIN_VALUE
         gapsMet = 0
         hint = false
+        streak.broken()
+        runSeconds = 0.0
     }
 
     private fun planFor(run: GameRun): BackgroundPlan? {

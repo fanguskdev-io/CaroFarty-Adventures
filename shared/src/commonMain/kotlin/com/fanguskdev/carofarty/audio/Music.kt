@@ -2,10 +2,19 @@ package com.fanguskdev.carofarty.audio
 
 import kotlin.math.min
 
-/** Plays one track of music round and round. Each platform does it its own way; the tracks are 16-bit PCM WAV files. */
+/**
+ * Plays the music: a track round and round, a 16-bit PCM WAV file (the menus), or what a [PcmSource] makes while it plays
+ * (the music of a run). Each platform does it its own way, on a thread of its own.
+ */
 interface MusicPlayer {
     /** Plays [wav] in a loop from its start, at [volume] (0 to 1), instead of whatever was playing. */
     fun play(wav: ByteArray, volume: Float = 1f)
+
+    /** The rate a stream should have on this platform, in samples a second: the one it mixes at. */
+    val streamRate: Int
+
+    /** Plays what [source] makes, mono at [rate] samples a second and at [volume], instead of whatever was playing. */
+    fun stream(source: PcmSource, rate: Int, volume: Float = 1f)
 
     fun pause()
 
@@ -19,6 +28,12 @@ interface MusicPlayer {
 
 /** The player of this platform. */
 internal expect fun musicPlayer(): MusicPlayer
+
+/** Something that makes 16-bit mono samples when they are asked for: the music made while she plays. */
+fun interface PcmSource {
+    /** Writes [frames] samples into [out] from [offset]. Called from the player's thread, never from the game's. */
+    fun render(out: ShortArray, offset: Int, frames: Int)
+}
 
 /** Plays short sounds over the music, each from its start, several at once if need be. */
 interface SoundPlayer {

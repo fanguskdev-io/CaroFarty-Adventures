@@ -153,8 +153,10 @@ JVM enlaza el código y eso sí crea objetos, una vez por proceso.
 
 ## Lo que falta
 
-- **Los reproductores de cada plataforma** que tiran de `MusicStream` y lo enganchan con el juego (`GameAudio`), con la
-  semilla de cada partida y los niveles de AUD-04: los hace el agente principal.
+- ~~Los reproductores de cada plataforma~~: hechos (2026-11-02). `GameAudio` le da a cada partida su `MusicStream` con
+  la semilla de la partida, el nivel por la velocidad (AUD-04: 200, 240, 280 y 320 px/s) y la versión tensa con 3
+  puntos o menos; lo tocan el AudioTrack de Android, el AVAudioEngine de iOS y una línea de Java Sound en el escritorio
+  ([sonido](sonido.md)).
 - **† La capa de premio C4** y **las reglas de partidas muy largas** (ambiente cada 5 minutos, menos densidad desde los
   10), que tampoco tiene el prototipo.
 - **Medir el coste en sus teléfonos** (AUD-29).

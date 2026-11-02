@@ -1,11 +1,15 @@
 package com.fanguskdev.carofarty.audio
 
 import carofarty.shared.generated.resources.Res
+import com.fanguskdev.carofarty.audio.music.MusicBank
+import com.fanguskdev.carofarty.audio.music.MusicStream
 import com.fanguskdev.carofarty.game.Scenario
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlin.math.pow
 import kotlin.random.Random
 
@@ -36,14 +40,23 @@ enum class Sound(val file: String) {
 }
 
 /**
- * The music and the sounds (AUD): the music of each scenario round and round while she plays there (ADR 0006: each one
- * has «su decorado, su paleta y su música»), and the sounds over it. For the beta, GameMaster's provisional loops in
- * `files/musica/<escenario>.wav` and sounds in `files/sonidos/`; the music with layers that never bores is M4's. What is
- * missing stays silent.
+ * The music and the sounds (AUD), as GameMaster designed them and Fangusk approved (ADR 0006: each scenario has «su
+ * decorado, su paleta y su música»). In a run, the music of its scenario made as she plays (docs/musica.md): a song the
+ * run's seed chooses, its layers coming in as the speed rises ([speed]), its tense version with few points left
+ * ([lowPoints]) and its end. Around the runs, the loop of the scenario in `files/musica/<escenario>.wav`; and the sounds
+ * of `files/sonidos/` over both. What is missing stays silent; until the instruments of a scenario are made, its run
+ * plays the loop.
  */
 internal class GameAudio(private val music: MusicPlayer, private val sounds: SoundPlayer, private val scope: CoroutineScope) {
+    /** The scenario whose loop the player has, or null if it has a stream or nothing. */
     private var current: Scenario? = null
     private var playing = false
+
+    /** The instruments of each scenario, made once in the background; and the music of the run, while there is one. */
+    private val banks = arrayOfNulls<MusicBank>(Scenario.entries.size)
+    private var stream: MusicStream? = null
+    private var level = 1
+    private var tense = false
 
     /** Whether she turned the sound off (the button by the pause): no music and no sounds until she turns it on. */
     var muted = false
@@ -66,6 +79,11 @@ internal class GameAudio(private val music: MusicPlayer, private val sounds: Sou
 
     init {
         scope.launch {
+            for (scenario in Scenario.entries) {
+                banks[scenario.ordinal] = runCatching { withContext(Dispatchers.Default) { MusicBank(scenario) } }.getOrNull()
+            }
+        }
+        scope.launch {
             val names = Sound.entries.map { it.file } +
                 Sound.entries.filter { it.byScenario }.flatMap { sound -> Scenario.entries.map { sound.file(it) } }
             for (name in names) {
@@ -76,9 +94,10 @@ internal class GameAudio(private val music: MusicPlayer, private val sounds: Sou
         }
     }
 
-    /** The music of [scenario] from its start, or on with it if [restart] is false and it is already the one playing. */
+    /** The loop of [scenario] from its start, or on with it if [restart] is false and it is already the one playing. */
     fun music(scenario: Scenario, restart: Boolean = false) {
         after?.cancel()
+        stream = null
         playing = true
         // The same track is never read again: that would take a frame or two in the middle of a run.
         if (current == scenario) {
@@ -103,9 +122,10 @@ internal class GameAudio(private val music: MusicPlayer, private val sounds: Sou
     /**
      * Plays [sound], in its version for [scenario] if it has one and it is there, or the one for everywhere. The sounds of
      * the run come out each time a little different, ±40 cents and ±1.5 dB at random, so a row of them does not sound like
-     * a machine (GameMaster's mix); the jingles and the buttons, always the same.
+     * a machine (GameMaster's mix); the jingles and the buttons, always the same. A rescue goes up the steps of the
+     * pentatonic with its [streak] ([RescueStreak]), played that much faster.
      */
-    fun play(sound: Sound, scenario: Scenario? = null) {
+    fun play(sound: Sound, scenario: Scenario? = null, streak: Int = 0) {
         if (muted) return
         val file = fileOf(sound, scenario)
         if (sound.byScenario || sound == Sound.Tap || sound == Sound.Back) {
@@ -117,7 +137,13 @@ internal class GameAudio(private val music: MusicPlayer, private val sounds: Sou
             sounds.play(file, jumpRate, jumpVolume)
             return
         }
-        val cents = random.nextDouble(-MAX_CENTS, MAX_CENTS)
+        val steps = when (sound) {
+            Sound.Perrito -> PERRITO_STEPS
+            Sound.Gatito -> GATITO_STEPS
+            else -> null
+        }
+        val semitones = steps?.get(streak.coerceIn(0, steps.size - 1)) ?: 0
+        val cents = random.nextDouble(-MAX_CENTS, MAX_CENTS) + semitones * CENTS_IN_SEMITONE
         val decibels = random.nextDouble(-MAX_DECIBELS, MAX_DECIBELS)
         val rate = 2.0.pow(cents / CENTS_IN_OCTAVE).toFloat()
         val volume = (EFFECTS_VOLUME * 10.0.pow(decibels / DECIBELS_TO_AMPLITUDE)).toFloat().coerceAtMost(1f)
@@ -133,24 +159,67 @@ internal class GameAudio(private val music: MusicPlayer, private val sounds: Sou
         return if (own != null && own in millis) own else sound.file
     }
 
-    /** A run begins: the music stops for the start jingle of [scenario] and comes back from its start when it ends. */
-    fun start(scenario: Scenario) {
+    /**
+     * A run begins: the music stops for the start jingle of [scenario] and, when it ends, the music of the run starts,
+     * the song that [seed] chooses; or the loop, if the instruments of the scenario are not made yet.
+     */
+    fun start(scenario: Scenario, seed: Long) {
         pause()
         play(Sound.StartJingle, scenario)
         val wait = millis[fileOf(Sound.StartJingle, scenario)] ?: 0L
         after =
             scope.launch {
+                val bank = banks[scenario.ordinal]
+                val made = bank?.let {
+                    runCatching { withContext(Dispatchers.Default) { MusicStream(scenario, seed, music.streamRate, it) } }.getOrNull()
+                }
                 delay(wait)
-                music(scenario, restart = true)
+                if (made == null) {
+                    music(scenario, restart = true)
+                    return@launch
+                }
+                current = null
+                stream = made
+                level = 1
+                tense = false
+                playing = true
+                music.stream(PcmSource { out, offset, frames -> made.render(out, offset, frames) }, music.streamRate, MUSIC_VOLUME)
+                if (muted) music.pause()
             }
     }
 
-    /** A run in [scenario] ends: the music stops and, [wait] ms later, its jingle of the end, or of a new [record]. */
+    /** Whether the instruments of [scenario] are made: until they are, its runs play the loop. */
+    fun hasMusic(scenario: Scenario): Boolean = banks[scenario.ordinal] != null
+
+    /** How fast she runs, in pixels a second: the layers of the music come in at GameMaster's speeds (AUD-04). */
+    fun speed(pixelsPerSecond: Float) {
+        var next = 1
+        for (threshold in LEVEL_SPEEDS) if (pixelsPerSecond >= threshold) next++
+        if (next == level) return
+        level = next
+        stream?.setLevel(next)
+    }
+
+    /** Whether few points are left: the music plays its warning and its tense version, and leaves it when she recovers. */
+    fun lowPoints(low: Boolean) {
+        if (low == tense) return
+        tense = low
+        stream?.setTense(low)
+    }
+
+    /**
+     * A run in [scenario] ends: the music of the run fades out (a loop stops at once) and, [wait] ms later, its jingle of
+     * the end, or of a new [record].
+     */
     fun end(scenario: Scenario, record: Boolean, wait: Long) {
-        pause()
+        after?.cancel()
+        playing = false
+        val ending = stream
+        if (ending != null) ending.end() else music.pause()
         after =
             scope.launch {
                 delay(wait)
+                music.pause()
                 play(if (record) Sound.RecordJingle else Sound.EndJingle, scenario)
             }
     }
@@ -162,7 +231,7 @@ internal class GameAudio(private val music: MusicPlayer, private val sounds: Sou
     }
 
     fun resume() {
-        if (current == null) return
+        if (current == null && stream == null) return
         playing = true
         if (!muted) music.resume()
     }
@@ -170,6 +239,7 @@ internal class GameAudio(private val music: MusicPlayer, private val sounds: Sou
     fun release() {
         loading?.cancel()
         current = null
+        stream = null
         playing = false
         music.stop()
         sounds.release()
@@ -187,5 +257,13 @@ internal class GameAudio(private val music: MusicPlayer, private val sounds: Sou
         const val MAX_DECIBELS = 1.5
         const val CENTS_IN_OCTAVE = 1200.0
         const val DECIBELS_TO_AMPLITUDE = 20.0
+
+        /** The steps of a streak of rescues, in semitones: the pentatonic of each sound (GameMaster's sfx.py). */
+        val PERRITO_STEPS = intArrayOf(0, 2, 5, 7, 9, 12)
+        val GATITO_STEPS = intArrayOf(0, 2, 4, 7, 9, 12)
+        const val CENTS_IN_SEMITONE = 100.0
+
+        /** The speeds of the levels 2 to 5 of the music, in pixels a second (GameMaster's proposal for AUD-04). */
+        val LEVEL_SPEEDS = floatArrayOf(200f, 240f, 280f, 320f)
     }
 }

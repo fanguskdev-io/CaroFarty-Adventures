@@ -2,9 +2,12 @@ package com.fanguskdev.carofarty.audio
 
 import java.io.ByteArrayInputStream
 import java.util.concurrent.Executors
+import javax.sound.sampled.AudioFormat
 import javax.sound.sampled.AudioSystem
 import javax.sound.sampled.Clip
 import javax.sound.sampled.FloatControl
+import javax.sound.sampled.Line
+import javax.sound.sampled.SourceDataLine
 import kotlin.math.log10
 
 /**
@@ -20,12 +23,21 @@ private fun onAudioThread(block: () -> Unit) {
 
 internal actual fun musicPlayer(): MusicPlayer = DesktopMusicPlayer()
 
-/** The music on the desktop: a Clip that loops for ever, or silence if the computer has no way to play it. */
+/**
+ * The music on the desktop: a Clip that loops for ever, or a line fed by a thread of its own with what a stream makes;
+ * silence if the computer has no way to play them.
+ */
 private class DesktopMusicPlayer : MusicPlayer {
     private var clip: Clip? = null
+    private var line: SourceDataLine? = null
+    private var writer: Thread? = null
+
+    @Volatile private var running = false
+
+    override val streamRate: Int = STREAM_RATE
 
     override fun play(wav: ByteArray, volume: Float) = onAudioThread {
-        clip?.close()
+        stopAll()
         clip =
             clip(wav)?.apply {
                 setVolume(volume)
@@ -33,9 +45,44 @@ private class DesktopMusicPlayer : MusicPlayer {
             }
     }
 
-    override fun pause() = onAudioThread { clip?.stop() }
+    override fun stream(source: PcmSource, rate: Int, volume: Float) = onAudioThread {
+        stopAll()
+        val format = AudioFormat(rate.toFloat(), BITS, 1, true, false)
+        val line = runCatching { AudioSystem.getSourceDataLine(format).apply { open(format, rate * 2 * BUFFER_MILLIS / 1000) } }
+            .getOrNull() ?: return@onAudioThread
+        line.setVolume(volume)
+        line.start()
+        this.line = line
+        running = true
+        writer =
+            Thread {
+                val samples = ShortArray(FRAMES)
+                val bytes = ByteArray(FRAMES * 2)
+                while (running) {
+                    source.render(samples, 0, FRAMES)
+                    for (i in 0 until FRAMES) {
+                        val sample = samples[i].toInt()
+                        bytes[2 * i] = sample.toByte()
+                        bytes[2 * i + 1] = (sample shr 8).toByte()
+                    }
+                    line.write(bytes, 0, bytes.size)
+                }
+            }.apply {
+                name = "music"
+                isDaemon = true
+                start()
+            }
+    }
 
-    override fun resume() = onAudioThread { clip?.loop(Clip.LOOP_CONTINUOUSLY) }
+    override fun pause() = onAudioThread {
+        clip?.stop()
+        line?.stop()
+    }
+
+    override fun resume() = onAudioThread {
+        clip?.loop(Clip.LOOP_CONTINUOUSLY)
+        line?.start()
+    }
 
     override fun restart() = onAudioThread {
         clip?.let {
@@ -45,9 +92,28 @@ private class DesktopMusicPlayer : MusicPlayer {
         }
     }
 
-    override fun stop() = onAudioThread {
+    override fun stop() = onAudioThread { stopAll() }
+
+    private fun stopAll() {
         clip?.close()
         clip = null
+        running = false
+        line?.let {
+            it.stop()
+            it.flush()
+            writer?.join(JOIN_MILLIS)
+            it.close()
+        }
+        line = null
+        writer = null
+    }
+
+    private companion object {
+        const val STREAM_RATE = 48_000
+        const val BITS = 16
+        const val FRAMES = 2048
+        const val BUFFER_MILLIS = 200
+        const val JOIN_MILLIS = 500L
     }
 }
 
@@ -77,7 +143,7 @@ private class DesktopSoundPlayer : SoundPlayer {
 }
 
 /** Its volume, from 0 to 1, if the computer lets it change; the desktop does not change the speed of a sound. */
-private fun Clip.setVolume(volume: Float) {
+private fun Line.setVolume(volume: Float) {
     if (!isControlSupported(FloatControl.Type.MASTER_GAIN)) return
     val gain = getControl(FloatControl.Type.MASTER_GAIN) as? FloatControl ?: return
     gain.value = (DECIBELS * log10(volume.coerceIn(MIN_VOLUME, 1f))).coerceIn(gain.minimum, gain.maximum)

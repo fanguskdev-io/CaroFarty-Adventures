@@ -2,8 +2,15 @@ package com.fanguskdev.carofarty.audio
 
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.addressOf
+import kotlinx.cinterop.get
+import kotlinx.cinterop.set
 import kotlinx.cinterop.usePinned
+import platform.AVFAudio.AVAudioEngine
+import platform.AVFAudio.AVAudioEngineManualRenderingModeOffline
+import platform.AVFAudio.AVAudioFormat
+import platform.AVFAudio.AVAudioPCMBuffer
 import platform.AVFAudio.AVAudioPlayer
+import platform.AVFAudio.AVAudioPlayerNode
 import platform.Foundation.NSData
 import platform.Foundation.dataWithBytes
 import platform.darwin.dispatch_async
@@ -20,12 +27,24 @@ private fun onAudioQueue(block: () -> Unit) = dispatch_async(audioQueue, block)
 
 internal actual fun musicPlayer(): MusicPlayer = IosMusicPlayer()
 
-/** The music on iOS: an AVAudioPlayer that loops for ever. It respects the silent switch, like any game. */
-private class IosMusicPlayer : MusicPlayer {
+/**
+ * The music on iOS, which respects the silent switch, like any game: an AVAudioPlayer that loops a WAV for ever, or an
+ * AVAudioEngine whose player node plays what a stream makes, in a few buffers that are made again on this queue as each
+ * one ends, never on the thread of the sound card. [offline] is for the tests, where the simulator gives the process no
+ * sound card: the engine then plays only what [pull] asks of it.
+ */
+internal class IosMusicPlayer(private val offline: Boolean = false) : MusicPlayer {
     private var player: AVAudioPlayer? = null
+    private var engine: AVAudioEngine? = null
+    private var node: AVAudioPlayerNode? = null
+
+    /** Which stream is playing: the buffers of one that was stopped are not made again. */
+    private var generation = 0
+
+    override val streamRate: Int = STREAM_RATE
 
     override fun play(wav: ByteArray, volume: Float) = onAudioQueue {
-        player?.stop()
+        stopAll()
         player =
             audioPlayer(wav)?.apply {
                 numberOfLoops = -1
@@ -35,9 +54,59 @@ private class IosMusicPlayer : MusicPlayer {
             }
     }
 
-    override fun pause() = onAudioQueue { player?.pause() }
+    @OptIn(ExperimentalForeignApi::class)
+    override fun stream(source: PcmSource, rate: Int, volume: Float) = onAudioQueue {
+        stopAll()
+        val format = AVAudioFormat(standardFormatWithSampleRate = rate.toDouble(), channels = 1u)
+        val engine = AVAudioEngine()
+        val node = AVAudioPlayerNode()
+        engine.attachNode(node)
+        engine.connect(node, to = engine.mainMixerNode, format = format)
+        node.volume = volume
+        if (offline) engine.enableManualRenderingMode(AVAudioEngineManualRenderingModeOffline, format, FRAMES.toUInt(), null)
+        if (!runCatching { engine.startAndReturnError(null) }.getOrDefault(false)) return@onAudioQueue
+        this.engine = engine
+        this.node = node
+        val mine = ++generation
+        val samples = ShortArray(FRAMES)
+        repeat(BUFFERS) {
+            val buffer = AVAudioPCMBuffer(pCMFormat = format, frameCapacity = FRAMES.toUInt())
+            schedule(node, buffer, source, samples, mine)
+        }
+        node.play()
+    }
 
-    override fun resume() = onAudioQueue { player?.play() }
+    /** Fills [buffer] with what [source] makes and queues it; when it has played, the same again, while it is [mine]. */
+    @OptIn(ExperimentalForeignApi::class)
+    private fun schedule(
+        node: AVAudioPlayerNode,
+        buffer: AVAudioPCMBuffer,
+        source: PcmSource,
+        samples: ShortArray,
+        mine: Int,
+    ) {
+        source.render(samples, 0, FRAMES)
+        buffer.frameLength = FRAMES.toUInt()
+        val channel = buffer.floatChannelData?.get(0) ?: return
+        for (i in 0 until FRAMES) channel[i] = samples[i] * TO_FLOAT
+        node.scheduleBuffer(buffer) {
+            onAudioQueue { if (generation == mine) schedule(node, buffer, source, samples, mine) }
+        }
+    }
+
+    override fun pause() = onAudioQueue {
+        player?.pause()
+        node?.pause()
+    }
+
+    @OptIn(ExperimentalForeignApi::class)
+    override fun resume() = onAudioQueue {
+        player?.play()
+        val engine = engine ?: return@onAudioQueue
+        // A call or another app may have stopped the engine while the game was away.
+        if (!engine.running) runCatching { engine.startAndReturnError(null) }
+        node?.play()
+    }
 
     override fun restart() = onAudioQueue {
         player?.let {
@@ -46,9 +115,33 @@ private class IosMusicPlayer : MusicPlayer {
         }
     }
 
-    override fun stop() = onAudioQueue {
+    override fun stop() = onAudioQueue { stopAll() }
+
+    /** For the tests, with [offline]: the engine plays [frames] samples, as the sound card would ask for them. */
+    @OptIn(ExperimentalForeignApi::class)
+    internal fun pull(frames: Int) = onAudioQueue {
+        val engine = engine ?: return@onAudioQueue
+        val buffer = AVAudioPCMBuffer(pCMFormat = engine.manualRenderingFormat, frameCapacity = frames.toUInt())
+        engine.renderOffline(frames.toUInt(), buffer, null)
+    }
+
+    private fun stopAll() {
         player?.stop()
         player = null
+        generation++
+        node?.stop()
+        engine?.stop()
+        node = null
+        engine = null
+    }
+
+    private companion object {
+        const val STREAM_RATE = 48_000
+
+        /** Each buffer, some 85 ms; three of them queued, so the music is made a quarter of a second ahead. */
+        const val FRAMES = 4096
+        const val BUFFERS = 3
+        const val TO_FLOAT = 1f / 32_768f
     }
 }
 

@@ -30,10 +30,12 @@ Columns: 8
 124  58  30	pescado parrilla
 243 184 116	pescado tripa
 159 224  90	olor
- 86  80  92	perrito N
- 60  55  66	perrito n
+255 250 240	perrito N
+228 216 198	perrito n
 252 239 217	perrito C
 232 203 164	perrito c
 240 138 153	perrito R
  62  50  54	perrito k
  66  76  99	perrito K
+255  46 136	perrito D
+184  29  99	perrito d

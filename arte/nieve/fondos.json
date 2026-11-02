@@ -3,5 +3,13 @@
  "filas-bajo-el-suelo": {
   "lejano": 0,
   "medio": 96
+ },
+ "variantes": {
+  "medio": {
+   "cabana": "fondo-medio-cabana.png"
+  },
+  "lejano": {
+   "cabana": "fondo-lejano-cabana.png"
+  }
  }
 }

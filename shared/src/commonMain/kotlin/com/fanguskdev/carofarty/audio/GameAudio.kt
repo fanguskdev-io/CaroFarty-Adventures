@@ -35,6 +35,17 @@ enum class Sound(val file: String) {
 internal class GameAudio(private val music: MusicPlayer, private val sounds: SoundPlayer, private val scope: CoroutineScope) {
     private var current: Scenario? = null
     private var playing = false
+
+    /** Whether she turned the sound off (the button by the pause): no music and no sounds until she turns it on. */
+    var muted = false
+        set(value) {
+            field = value
+            if (value) {
+                music.pause()
+            } else if (playing) {
+                music.resume()
+            }
+        }
     private var loading: Job? = null
     private var after: Job? = null
     private val millis = HashMap<Sound, Long>()
@@ -56,6 +67,7 @@ internal class GameAudio(private val music: MusicPlayer, private val sounds: Sou
         // The same track is never read again: that would take a frame or two in the middle of a run.
         if (current == scenario) {
             if (restart) music.restart() else music.resume()
+            if (muted) music.pause()
             return
         }
         current = scenario
@@ -68,11 +80,13 @@ internal class GameAudio(private val music: MusicPlayer, private val sounds: Sou
                     return@launch
                 }
                 music.play(track)
-                if (!playing) music.pause()
+                if (!playing || muted) music.pause()
             }
     }
 
-    fun play(sound: Sound) = sounds.play(sound.file)
+    fun play(sound: Sound) {
+        if (!muted) sounds.play(sound.file)
+    }
 
     /** A run begins: the music stops for the start jingle and comes back from its start when the jingle ends. */
     fun start(scenario: Scenario) {
@@ -105,7 +119,7 @@ internal class GameAudio(private val music: MusicPlayer, private val sounds: Sou
     fun resume() {
         if (current == null) return
         playing = true
-        music.resume()
+        if (!muted) music.resume()
     }
 
     fun release() {

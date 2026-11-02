@@ -53,6 +53,22 @@ través de GameMaster: ondas de «mal olor» encima de lo que resta; la cara de 
 «rescatar» un gatito o un perrito y asco con un huevo o un pescado; y nueve razas de perrito al azar (shiba, pastor alemán,
 carlino, dálmata, golden, beagle, yorkshire, bulldog francés y corgi), que cambian de forma y no solo de color.
 
+Después de jugar la beta (2026-11-02), a través de GameMaster salvo lo que va entre comillas, que lo escribió él:
+
+- **Una pantalla inicial** con el título, las tres fases con una vista de cada una, «Récords» y «Cómo se juega»; al tocar
+  una fase empieza la partida, y desde el fin de partida se puede reintentar o volver a ella ([pantallas](pantallas.md)).
+- **Un botón de silencio** junto al de pausa, encendido la primera vez y recordado.
+- **Los récords, por fase**: las mejores partidas con sus metros, sus puntos máximos y la fecha; «no tiene mucho sentido
+  almacenar 10 records por cada pantalla, es mejor 5 por cada», «y que se vayan actualizando».
+- **Un tutorial** con viñetas animadas la primera vez, y desde «Cómo se juega»; y la pista de mantener el dedo en los
+  primeros barrancos.
+- **El sonido del salto largo**: el corto al despegar y, si a los 100 ms sigue con el dedo, una cola encima (opción C).
+- **La música**, más distinta entre escenarios: desierto árabe, nieve navideña y bosque selvático, a 111, 100 y 120 pulsos.
+- **El arte**: la carrera de Caro con brazos de 2 px y 8 fotogramas, más fluida; el salto con los brazos más estirados;
+  lazo rosa al yorkshire, yorkshire y carlino más pequeños, pastor alemán y golden más grandes, bulldog blanco con manchas
+  negras; la mitad de copos o menos, «más suaves»; y la cabaña de la nieve, que «intercala aleatoriamente entre cercana y
+  lejana».
+
 ## El bucle de juego
 
 Elegir dónde jugar (Bosque, Nieve o Desierto) → tocar para empezar → Caro corre sola → saltar los barrancos y elegir qué
@@ -157,6 +173,6 @@ de salida en [proceso](proceso.md):
 - [Movimiento](movimiento.md) · [Métricas y curva de dificultad](metricas.md) · [Generación del recorrido](generacion.md)
 - [Recolectables](recolectables.md) · [Escenarios](escenarios.md) · [Proceso y criterios de salida](proceso.md)
 - [Pruebas](pruebas.md) · [Lista de bugs](bugs.md) · [Rendimiento](rendimiento.md) · [Cómo se entrega el arte](arte.md)
-- [Música y sonidos de la beta](sonido.md) · [Instalar la beta](../entregas/LEEME.md)
+- [Las pantallas](pantallas.md) · [Música y sonidos de la beta](sonido.md) · [Instalar la beta](../entregas/LEEME.md)
 - [Dispositivos de prueba](dispositivos.md) · [Propiedad intelectual](propiedad-intelectual.md)
 - El backlog compartido: `../backlog-juego-plataformas` (lo creó la sesión GameMaster; el estado de cada tarea se lleva allí)

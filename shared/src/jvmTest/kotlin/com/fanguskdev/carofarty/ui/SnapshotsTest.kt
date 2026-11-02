@@ -11,6 +11,10 @@ import com.fanguskdev.carofarty.engine.PixelViewport
 import com.fanguskdev.carofarty.game.Scenario
 import com.fanguskdev.carofarty.storage.Choices
 import com.fanguskdev.carofarty.storage.MemoryStore
+import com.fanguskdev.carofarty.storage.Records
+import com.fanguskdev.carofarty.ui.render.Box
+import com.fanguskdev.carofarty.ui.render.MenuLayout
+import com.fanguskdev.carofarty.ui.render.SafeInsets
 import org.jetbrains.skia.Bitmap
 import org.jetbrains.skia.EncodedImageFormat
 import org.jetbrains.skia.Image
@@ -20,8 +24,9 @@ import kotlin.test.assertEquals
 import kotlin.test.fail
 
 /**
- * Draws the real screen into PNG files with Skia, without a window (build/capturas/), and checks the pixel grid at six
- * proportions of screen, from 4:3 to 21:9 (TEC-04, UI-04, UI-14): every game pixel is a square of identical phone pixels.
+ * Draws the real screens into PNG files with Skia, without a window (build/capturas/): the start screen, how to play, the
+ * records, runs and their ends, in the three scenarios; and checks the pixel grid at six proportions of screen, from 4:3
+ * to 21:9 (TEC-04, UI-04, UI-14): every game pixel is a square of identical phone pixels.
  */
 @OptIn(ExperimentalComposeUiApi::class)
 class SnapshotsTest {
@@ -84,8 +89,28 @@ class SnapshotsTest {
         }
     }
 
+    /** A store where she has already seen how to play, so the game opens on the start screen. */
+    private fun seen(scenario: Scenario = Scenario.Bosque): MemoryStore = MemoryStore().also {
+        Choices(it).tutorialSeen = true
+        Choices(it).scenario = scenario
+    }
+
+    /** The point of a screen [width] × [height] at the centre of [box] of the menus, in its pixels. */
+    private fun at(width: Int, height: Int, box: (MenuLayout) -> Box): Offset {
+        val viewport = PixelViewport.fit(width, height)
+        val target = box(MenuLayout(viewport.width, viewport.height, SafeInsets()))
+        return Offset(
+            viewport.offsetX + (target.left + target.width / 2f) * viewport.scale,
+            viewport.offsetY + (target.top + target.height / 2f) * viewport.scale,
+        )
+    }
+
+    /** A tap on the card of [scenario] at frame 10, which starts a run there. */
+    private fun startIn(scenario: Scenario, width: Int = 2400, height: Int = 1080): Map<Int, Tap> =
+        mapOf(10 to Tap(hold = 2, at = at(width, height) { it.cards[scenario.ordinal] }))
+
     @Test
-    fun theReadyScreenKeepsThePixelGridAtSixProportions() {
+    fun theStartScreenKeepsThePixelGridAtSixProportions() {
         val screens = listOf(
             Triple("16x9", 1280, 720),
             Triple("20x9", 2400, 1080),
@@ -95,31 +120,50 @@ class SnapshotsTest {
             Triple("ipad", 2752, 2064),
         )
         for ((name, width, height) in screens) {
-            val image = render("listo-$name", width, height, Script(frames = 30))
+            val image = render("inicio-$name", width, height, Script(frames = 30), seen())
             assertEquals(width, image.width)
             assertPixelGrid(image, name)
         }
     }
 
     @Test
+    fun howToPlayTheFirstTimeTheGameOpens() {
+        val image = render("como-se-juega-1", 2400, 1080, Script(frames = 90))
+        assertPixelGrid(image, "como-se-juega")
+        val next = Tap(hold = 2, at = Offset(2400 * 0.8f, 1080 * 0.97f))
+        render("como-se-juega-2", 2400, 1080, Script(frames = 150, taps = mapOf(30 to next)))
+        render("como-se-juega-3", 2400, 1080, Script(frames = 150, taps = mapOf(30 to next, 50 to next)))
+        render("como-se-juega-4", 2400, 1080, Script(frames = 150, taps = mapOf(30 to next, 50 to next, 70 to next)))
+    }
+
+    @Test
+    fun theRecordsOfEachScenario() {
+        val store = seen(Scenario.Nieve)
+        val records = Records(store)
+        records.submit(Scenario.Nieve, meters = 1234, maxPoints = 56, day = 20261102)
+        records.submit(Scenario.Nieve, meters = 321, maxPoints = 18, day = 20261101)
+        records.submit(Scenario.Nieve, meters = 87, maxPoints = 12)
+        val open = mapOf(10 to Tap(hold = 2, at = at(2400, 1080) { it.recordsButton }))
+        render("records", 2400, 1080, Script(frames = 40, taps = open), store)
+    }
+
+    @Test
     fun aRunAndItsTwoEnds() {
-        val start = mapOf(10 to Tap(hold = 2))
-        render("jugando", 2400, 1080, Script(frames = 150, taps = start))
-        render("fin", 2400, 1080, Script(frames = 60 * 9, taps = start))
-        render("depuracion", 2400, 1080, Script(frames = 150, taps = start, debug = true))
+        val start = startIn(Scenario.Bosque)
+        render("jugando", 2400, 1080, Script(frames = 150, taps = start), seen())
+        render("fin", 2400, 1080, Script(frames = 60 * 9, taps = start), seen())
+        render("depuracion", 2400, 1080, Script(frames = 150, taps = start, debug = true), seen())
         // With the debugging tools, two taps on the points take the 10 of the start away.
         val points = Offset(60f, 50f)
         val noPoints = start + mapOf(40 to Tap(hold = 2, at = points), 50 to Tap(hold = 2, at = points))
-        render("fin-sin-puntos", 2400, 1080, Script(frames = 90, taps = noPoints, debug = true))
+        render("fin-sin-puntos", 2400, 1080, Script(frames = 90, taps = noPoints, debug = true), seen())
     }
 
     @Test
     fun theThreeScenarios() {
         for (scenario in Scenario.entries) {
-            val store = MemoryStore().also { Choices(it).scenario = scenario }
             val name = scenario.name.lowercase()
-            render("escenario-$name", 2400, 1080, Script(frames = 240, taps = mapOf(10 to Tap(hold = 2))), store)
-            render("escenario-$name-listo", 1280, 720, Script(frames = 30), store)
+            render("escenario-$name", 2400, 1080, Script(frames = 240, taps = startIn(scenario)), seen(scenario))
         }
     }
 }

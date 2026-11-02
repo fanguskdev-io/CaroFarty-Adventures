@@ -31,35 +31,27 @@ internal fun DrawScope.paintCaro(
 }
 
 /**
- * The marker (UI-04): [points] on the left, in red when they are running out ([warn]), and [distance] and the pause button on
- * the right, already as text.
+ * The marker (UI-04): [points] on the left, in red when they are running out ([warn]), and on the right [distance], the
+ * sound and the pause buttons of [layout] ([soundOn] says which icon).
  */
 internal fun DrawScope.paintHud(
     points: String,
     distance: String,
-    width: Int,
-    insets: SafeInsets,
+    layout: MenuLayout,
+    soundOn: Boolean,
     warn: Boolean = false,
 ) {
-    val top = MARGIN + insets.top
-    drawText(points, MARGIN + insets.left, top, if (warn) GreyPalette.bad else GreyPalette.text, GreyPalette.shadow)
-    val pauseLeft = width - insets.right - MARGIN - PAUSE_SIZE
-    drawText(distance, pauseLeft - 6 - PixelFont.width(distance), top, GreyPalette.text, GreyPalette.shadow)
-    drawRect(GreyPalette.panel, Offset(pauseLeft.toFloat(), (top - 3).toFloat()), Size(PAUSE_SIZE.toFloat(), PAUSE_SIZE.toFloat()))
-    drawRect(GreyPalette.text, Offset(pauseLeft + 4f, top.toFloat()), Size(2f, 7f))
-    drawRect(GreyPalette.text, Offset(pauseLeft + 8f, top.toFloat()), Size(2f, 7f))
+    val top = layout.corner.top + (layout.corner.height - PixelFont.HEIGHT) / 2
+    drawText(points, MARGIN + layout.insets.left, top, if (warn) GreyPalette.bad else GreyPalette.text, GreyPalette.shadow)
+    drawText(distance, layout.hudSound.left - MARGIN - PixelFont.width(distance), top, GreyPalette.text, GreyPalette.shadow)
+    paintIconButton(layout.hudSound, if (soundOn) Icon.SoundOn else Icon.SoundOff)
+    paintIconButton(layout.corner, Icon.Pause)
 }
 
-/** Whether the point ([x], [y]) in game pixels is on the pause button. */
-internal fun pauseButtonHit(
-    x: Float,
-    y: Float,
-    width: Int,
-    insets: SafeInsets,
-): Boolean {
-    val left = width - insets.right - MARGIN - PAUSE_SIZE - PAUSE_SLACK
-    val bottom = MARGIN + insets.top + PAUSE_SIZE + PAUSE_SLACK
-    return x >= left && y <= bottom
+/** The hint to hold the finger in the first gaps of her first runs (GDD-17, UI-12), under the marker. */
+internal fun DrawScope.paintHint(text: String, layout: MenuLayout) {
+    val y = layout.corner.bottom + MARGIN
+    drawText(text, (layout.width - PixelFont.width(text)) / 2, y, GreyPalette.record, GreyPalette.shadow)
 }
 
 /** A dark panel across the middle with [lines] centred, each a text, its colour and its size. */
@@ -83,58 +75,6 @@ private fun panelHeight(lines: List<PanelLine>): Int = lines.sumOf { PixelFont.L
 /** The row of game pixels under the panel of [lines] that [paintPanel] draws on a screen [height] tall. */
 internal fun panelBottom(lines: List<PanelLine>, height: Int): Int = (height - panelHeight(lines)) / 2 + panelHeight(lines)
 
-/**
- * The top row of the choice of scenario over the panel of [lines] that [paintPanel] draws on a screen [height] tall: in
- * the sky, clear of Caro and of what is on the ground.
- */
-internal fun chooserTop(lines: List<PanelLine>, height: Int): Int =
-    (height - panelHeight(lines)) / 2 - CHOOSER_GAP - PixelFont.HEIGHT - 2 * BUTTON_PAD_Y
-
-/**
- * The choice of scenario (UI-20, ADR 0006): its [names] in a row of buttons from [top], centred, the [chosen] one lit. The
- * world behind already shows the chosen one.
- */
-internal fun DrawScope.paintChooser(
-    names: List<String>,
-    chosen: Int,
-    width: Int,
-    top: Int,
-) {
-    var left = chooserLeft(names, width)
-    val tall = PixelFont.HEIGHT + 2 * BUTTON_PAD_Y
-    for (i in names.indices) {
-        val across = PixelFont.width(names[i]) + 2 * BUTTON_PAD_X
-        val lit = i == chosen
-        if (lit) drawRect(GreyPalette.record, Offset(left - 1f, top - 1f), Size(across + 2f, tall + 2f))
-        drawRect(GreyPalette.panel, Offset(left.toFloat(), top.toFloat()), Size(across.toFloat(), tall.toFloat()))
-        drawText(names[i], left + BUTTON_PAD_X, top + BUTTON_PAD_Y, if (lit) GreyPalette.record else GreyPalette.text, GreyPalette.shadow)
-        left += across + BUTTON_GAP
-    }
-}
-
-/** Which of the buttons of [paintChooser] is at ([x], [y]), with some slack around them, or -1. */
-internal fun chooserHit(
-    names: List<String>,
-    x: Float,
-    y: Float,
-    width: Int,
-    top: Int,
-): Int {
-    if (y < top - BUTTON_SLACK || y > top + PixelFont.HEIGHT + 2 * BUTTON_PAD_Y + BUTTON_SLACK) return -1
-    var left = chooserLeft(names, width)
-    for (i in names.indices) {
-        val across = PixelFont.width(names[i]) + 2 * BUTTON_PAD_X
-        if (x >= left - BUTTON_GAP / 2f && x < left + across + BUTTON_GAP / 2f) return i
-        left += across + BUTTON_GAP
-    }
-    return -1
-}
-
-private fun chooserLeft(names: List<String>, width: Int): Int {
-    val across = names.sumOf { PixelFont.width(it) + 2 * BUTTON_PAD_X } + BUTTON_GAP * (names.size - 1)
-    return (width - across) / 2
-}
-
 /** One line of numbers for those who debug (TEC-10), at the bottom left. */
 internal fun DrawScope.paintDebug(lines: Array<String>, height: Int, insets: SafeInsets) {
     var top = height - MARGIN - lines.size * (PixelFont.HEIGHT + LINE_GAP) + LINE_GAP
@@ -154,14 +94,7 @@ private fun caroColor(code: Char): Color? = when (code) {
 }
 
 private const val MARGIN = 6
-private const val BUTTON_PAD_X = 8
-private const val BUTTON_PAD_Y = 5
-private const val BUTTON_GAP = 8
-private const val BUTTON_SLACK = 6
-private const val CHOOSER_GAP = 6
 private const val LINE_GAP = 3
-private const val PAUSE_SIZE = 14
-private const val PAUSE_SLACK = 8
 private const val CARO_WIDTH = 16
 private const val PLACEHOLDER_HEIGHT = 24
 

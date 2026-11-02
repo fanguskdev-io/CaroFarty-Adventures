@@ -39,19 +39,25 @@ import com.fanguskdev.carofarty.game.TILE
 import com.fanguskdev.carofarty.storage.Choices
 import com.fanguskdev.carofarty.storage.KeyValueStore
 import com.fanguskdev.carofarty.storage.Records
+import com.fanguskdev.carofarty.storage.dayText
 import com.fanguskdev.carofarty.ui.render.Art
 import com.fanguskdev.carofarty.ui.render.CARO_HEIGHT
 import com.fanguskdev.carofarty.ui.render.GreyPalette
 import com.fanguskdev.carofarty.ui.render.PixelBuffer
+import com.fanguskdev.carofarty.ui.render.RecordTexts
 import com.fanguskdev.carofarty.ui.render.SafeInsets
 import com.fanguskdev.carofarty.ui.render.paintBackground
+import com.fanguskdev.carofarty.ui.render.paintButton
 import com.fanguskdev.carofarty.ui.render.paintCaro
 import com.fanguskdev.carofarty.ui.render.paintCaroSprite
-import com.fanguskdev.carofarty.ui.render.paintChooser
 import com.fanguskdev.carofarty.ui.render.paintDebug
+import com.fanguskdev.carofarty.ui.render.paintHint
 import com.fanguskdev.carofarty.ui.render.paintHud
+import com.fanguskdev.carofarty.ui.render.paintMenuGround
 import com.fanguskdev.carofarty.ui.render.paintPanel
 import com.fanguskdev.carofarty.ui.render.paintRecordCelebration
+import com.fanguskdev.carofarty.ui.render.paintRecords
+import com.fanguskdev.carofarty.ui.render.paintTitle
 import com.fanguskdev.carofarty.ui.render.paintWorld
 import com.fanguskdev.carofarty.ui.render.panelBottom
 import kotlinx.coroutines.isActive
@@ -103,7 +109,7 @@ internal fun GameScreen(
     }
     LifecycleEventEffect(Lifecycle.Event.ON_PAUSE) { session.background() }
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { session.foreground() }
-    PlatformBackHandler(enabled = session.running) { session.pause() }
+    PlatformBackHandler(enabled = session.backEnabled) { session.back() }
 
     Canvas(
         Modifier.fillMaxSize().pointerInput(session) {
@@ -129,7 +135,7 @@ internal fun GameScreen(
                 right = ceil(safe.getRight(this, layoutDirection).toFloat() / viewport.scale).toInt(),
             )
         val drawing = TimeSource.Monotonic.markNow()
-        drawGame(session, world, viewport)
+        if (session.screen == Screen.Game) drawGame(session, world, viewport) else drawMenu(session, world, viewport)
         session.drawn(drawing.elapsedNow())
     }
 }
@@ -184,18 +190,60 @@ private fun DrawScope.drawGame(session: GameSession, world: PixelBuffer, viewpor
                 paintCaro(CARO_SCREEN_X, feet, caro.state, stride = (caro.meters * STRIDES_PER_METER).toInt() % 2 == 0)
             }
             if (run.phase != RunPhase.Ready) {
-                paintHud(session.pointsText, session.metersText, viewport.width, session.insets, warn = session.lowPoints)
+                paintHud(session.pointsText, session.metersText, session.layout, session.soundOn, warn = session.lowPoints)
             }
+            if (session.hint) paintHint(Texts.HOLD_HINT, session.layout)
             if (session.panel.isNotEmpty()) paintPanel(session.panel, viewport.width, viewport.height)
+            for (i in session.panelButtons.indices) paintButton(session.panelButtons[i], session.panelButtonTexts[i], lit = i == 0)
             if (caroArt != null && run.phase == RunPhase.Over && session.result?.newRecord == true) {
                 val bottom = panelBottom(session.panel, viewport.height)
                 paintRecordCelebration(caroArt, run.scenario, session.millis, viewport.width, bottom)
             }
-            if (session.choosing) paintChooser(session.scenarioNames, session.scenario.ordinal, viewport.width, session.chooserTop)
             if (session.showDebug) paintDebug(session.debugLines, viewport.height, session.insets)
         }
     }
 }
+
+/**
+ * The screens around the runs (UI-01, UI-07, UI-20): the start screen, the records and how to play, over the scenario she
+ * chose standing still, on the same pixel grid as the game.
+ */
+private fun DrawScope.drawMenu(session: GameSession, world: PixelBuffer, viewport: PixelViewport) {
+    val art = session.art
+    val scenario = if (session.screen == Screen.Records) session.recordsScenario else session.scenario
+    val palette = GreyPalette.of(scenario)
+    val scenery = art?.scenario(scenario)
+    val millis = session.millis
+    drawRect(Color.Black)
+    val left = viewport.offsetX.toFloat()
+    val top = viewport.offsetY.toFloat()
+    val scale = viewport.scale.toFloat()
+    clipRect(left, top, left + viewport.width * scale, top + viewport.height * scale) {
+        val groundLine = session.run.config.course.minGroundTop * TILE
+        paintBackground(REST_CAMERA, REST_CAMERA, 0, viewport, palette, scenery, groundLine, millis, null)
+        withTransform({
+            translate(left, top)
+            scale(scale, scale, Offset.Zero)
+        }) {
+            paintMenuGround(scenery, palette, viewport.width, viewport.height)
+            when (session.screen) {
+                Screen.Title -> paintTitle(session.layout, art, session.scenarioNames, session.scenario, session.soundOn, millis)
+                Screen.Records -> paintRecords(
+                    session.layout,
+                    session.scenarioNames,
+                    session.recordsScenario,
+                    session.recordRuns,
+                    RECORD_TEXTS,
+                )
+                Screen.HowTo -> paintHowTo(session, world)
+                Screen.Game -> Unit
+            }
+            if (session.showDebug) paintDebug(session.debugLines, viewport.height, session.insets)
+        }
+    }
+}
+
+private val RECORD_TEXTS = RecordTexts(Texts.RECORDS_TITLE, Texts.NO_RECORDS, Texts.POINTS) { dayText(it) }
 
 /** What the game reads before its first frame: the settings and the art, which may be missing. */
 private class Loaded(val config: GameConfig, val art: Art?)

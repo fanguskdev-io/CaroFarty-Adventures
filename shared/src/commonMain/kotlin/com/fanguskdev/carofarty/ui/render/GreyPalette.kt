@@ -21,6 +21,9 @@ internal class GreyPalette(
         val text = Color(0xFFF4F4F4)
         val shadow = Color(0xFF2A2A30)
         val panel = Color(0xCC1E1E24)
+
+        /** Over the moving scenery of the menus, so their words read. */
+        val shade = Color(0x661E1E24)
         val good = Color(0xFF3FAF5A)
         val bad = Color(0xFFD9483B)
         val record = Color(0xFFFFD44A)

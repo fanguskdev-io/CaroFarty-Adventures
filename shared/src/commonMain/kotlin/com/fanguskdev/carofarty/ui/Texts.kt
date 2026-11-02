@@ -16,6 +16,26 @@ internal object Texts {
     const val DISTANCE = "DISTANCIA"
     const val MAX_POINTS = "PUNTOS MÁXIMOS"
     const val RECORD = "RÉCORD"
+    const val AGAIN = "OTRA VEZ"
+    const val HOME = "INICIO"
+    const val RECORDS_TITLE = "RÉCORDS"
+    const val NO_RECORDS = "TODAVÍA NO HAS JUGADO AQUÍ"
+    const val NEXT = "SIGUIENTE"
+    const val PREVIOUS = "ATRÁS"
+    const val PLAY = "¡A JUGAR!"
+
+    const val HOW_TO_TITLE = "CÓMO SE JUEGA"
+
+    /** The two lines of each page of how to play. */
+    fun howTo(page: Int): List<String> = when (page) {
+        0 -> listOf("TOCA PARA SALTAR", "MANTÉN EL DEDO PARA SALTAR MÁS ALTO Y MÁS LEJOS")
+        1 -> listOf("RESCATA PERRITOS Y GATITOS", "CADA UNO SUMA 1 PUNTO")
+        2 -> listOf("EVITA EL HUEVO FRITO Y EL PESCADO", "EL HUEVO RESTA 2 PUNTOS Y EL PESCADO 3")
+        else -> listOf("LA PARTIDA SE ACABA SI CAES A UN BARRANCO", "O SI TE QUEDAS SIN PUNTOS")
+    }
+
+    /** Where a run got in among the best of its scenario, when it is not the first. */
+    fun place(place: Int, of: Int): String = "PUESTO $place DE TUS $of MEJORES"
 
     fun cause(cause: EndCause?): String = when (cause) {
         EndCause.Fall -> "TE CAÍSTE POR UN BARRANCO"

@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Estado** | aceptada: el qué lo dictó Fangusk el 2026-11-01, y la pantalla para elegir escenario entra con su visto bueno a M0: «tienes mi ok para M0» (Fangusk, 2026-11-01) · propuesta: los récords por escenario, que siguen pendientes de que lo confirme |
+| **Estado** | aceptada: el qué lo dictó Fangusk el 2026-11-01, y la pantalla para elegir escenario entra con su visto bueno a M0: «tienes mi ok para M0» (Fangusk, 2026-11-01); los récords por escenario los decidió después de jugar la beta (2026-11-02): las 5 mejores partidas de cada uno, «es mejor 5 por cada» |
 | **Fecha** | 2026-11-01 · **Fase:** P0 · Borrador anticipado, sin ninguna puerta confirmada · **Hito:** M0 · **Tarea:** GDD-12 (y GEN-08, UI-20) |
 | **Propone · decide** | Fangusk · Fangusk |
 | **Reversibilidad** | alta en el cómo; el qué es suyo |
@@ -20,8 +20,10 @@ cambiando cada 600 metros. Son 3 escenarios distintos, el usuario elige donde ju
   El generador recibe el escenario y usa sus piezas (GEN-08).
 - **Una pantalla para elegir escenario** antes de la partida, con una vista de cada uno, que recuerda el último elegido
   (UI-20, propuesta). Llega en M3, cuando existan los tres; mientras solo exista el Bosque (M2), se juega directamente en él.
-- **Récords**: los dos que decidió Fangusk (distancia y puntos máximos). Que vayan por escenario es una propuesta pendiente de
-  que la confirme: los escenarios podrían acabar teniendo dificultades distintas.
+- **Récords**: por escenario, como decidió Fangusk tras jugar la beta: las 5 mejores partidas de cada uno, ordenadas por
+  metros, con sus puntos máximos y la fecha; una partida mejor entra en su puesto y la quinta sale.
+- **La pantalla de elegir** es la pantalla inicial que pidió tras la beta: una tarjeta con la vista de cada escenario, que
+  al tocarla empieza la partida ([pantallas](../pantallas.md)).
 
 ## Consecuencias
 

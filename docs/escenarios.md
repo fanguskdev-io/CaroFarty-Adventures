@@ -60,14 +60,15 @@ Los tres llegaron la misma noche, diseñados por GameMaster con sus agentes (`ar
 | Fondos | Troncos azulados y bruma verde | Montañas lavanda, abetos nevados y una cabaña | Dunas rosas y lilas y cactus |
 | Decoración | Matas en el suelo | Copos que caen | Matojos que se mecen |
 
-Lo que GameMaster dejó para que decida Fangusk (en su resumen de la mañana): el color de las dunas, si la cabaña de la
-nieve se queda, cuánta nieve cae, el tono de la nieve del fondo y la bruma del bosque.
+Lo que decidió Fangusk al verlos (2026-11-02, a través de GameMaster): las dunas, rosas y lilas; la cabaña de la nieve,
+que «intercala aleatoriamente entre cercana y lejana»; la mitad de copos o menos, «más suaves»; y el fondo de los
+barrancos, que casi negro le parecía «muy agresivo» y que «rompe con la estética del fondo»: en el Bosque, una niebla verde
+que baja hasta un río; en el Desierto, un cañón de estratos que se oscurece hacia abajo; y en la Nieve, niebla azul helada.
 
 ## Elegir escenario
 
-En el panel de inicio y en el de fin, tres botones sobre el panel con el nombre de cada escenario; el elegido, en amarillo,
-y el mundo de detrás ya es ese (UI-20). El juego recuerda el último elegido. Es la versión sencilla de la pantalla del
-[ADR 0006](adr/0006-tres-escenarios-a-elegir.md): la de una vista de cada escenario queda para más adelante.
+En la pantalla inicial, una tarjeta por fase con una vista en movimiento de su escenario y Caro con su ropa; al tocarla
+empieza la partida en ella (UI-20, [pantallas](pantallas.md)). El juego recuerda la última y la deja resaltada.
 
 ## En el prototipo en gris (M1)
 

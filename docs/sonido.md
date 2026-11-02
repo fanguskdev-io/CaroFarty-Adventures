@@ -9,11 +9,11 @@ cosa es propuesta mía, para que Fangusk la cambie al oírla.
 
 | Momento | Qué suena |
 |---|---|
-| Panel de inicio | El bucle del escenario elegido, para oírlo al elegir |
-| Elegir escenario o pausar | `ui-pulsar`, y el bucle del escenario nuevo desde su principio |
-| Reanudar tras la pausa | `ui-volver`, y la música sigue donde estaba |
+| Pantalla inicial, récords y cómo se juega | El bucle de la última fase elegida |
+| Pulsar un botón: récords, cómo se juega, una pestaña, una página, la pausa, el sonido | `ui-pulsar` |
+| Reanudar tras la pausa o volver al inicio | `ui-volver`; al reanudar, la música sigue donde estaba, y al volver, la de la fase desde su principio |
 | Empezar una partida | La música se calla, suena `jingle-inicio` (2,6 s) y el bucle vuelve desde su principio al acabar |
-| Saltar | `salto-corto`, en el mismo instante del despegue |
+| Saltar | `salto-corto`, en el mismo instante del despegue, y si a los 100 ms sigue con el dedo, `salto-largo` encima: la cola que sigue subiendo (Fangusk, opción C) |
 | Aterrizar | `aterrizaje` |
 | Rescatar un perrito o un gatito | `rescate-perrito` o `rescate-gatito` |
 | Coger un huevo o un pescado | `huevo` o `pescado` |
@@ -23,10 +23,8 @@ cosa es propuesta mía, para que Fangusk la cambie al oírla.
 | Fin de la partida | La música se para y, 0,6 s después, `jingle-fin` o, con récord nuevo, `jingle-record`; en el panel de fin no hay música hasta la siguiente partida |
 | La app pasa a segundo plano | Todo se calla, y vuelve al volver |
 
-`salto-largo` no se usa todavía: para saber si el salto será largo hay que esperar a ver si mantiene el dedo, unos 100 ms,
-y el sonido llegaría tarde. GameMaster le ha propuesto a Fangusk tres opciones (en su resumen de la mañana): el corto
-siempre, como ahora; el largo a partir de cierta velocidad; o el corto al despegar y, si a los 100 ms sigue con el dedo,
-una cola que suba encima.
+El botón de sonido, junto al de pausa y en el inicio, lo calla todo; viene encendido la primera vez y el juego recuerda
+cómo lo dejó ([pantallas](pantallas.md)).
 
 ## Cómo suena en cada teléfono
 

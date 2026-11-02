@@ -216,6 +216,198 @@
     ]
    ]
   },
+  "plataforma-izq": {
+   "ms": 0,
+   "fotogramas": [
+    [
+     ".000000000000000",
+     "0uuuuuuuuuuuuuuu",
+     "0uuuuuuuuuutuuuu",
+     "0ttttttttttttttt",
+     "0tqttttttttssstt",
+     "0thjhttttttttttt",
+     "0hjghgssssssssss",
+     "0gfgfg0000000000",
+     ".0f0f0..........",
+     ".0f00...........",
+     "..0.............",
+     "................",
+     "................",
+     "................",
+     "................",
+     "................"
+    ]
+   ]
+  },
+  "plataforma": {
+   "ms": 0,
+   "fotogramas": [
+    [
+     "0000000000000000",
+     "uuuuuuuuuuuuuuuu",
+     "uuutuuuuuuuuuuuu",
+     "tttttttttttttttt",
+     "ttttsssttttttttt",
+     "tttttttthtttsstt",
+     "ssssssshjhgsssss",
+     "0000000gfgf00000",
+     ".......0f00.....",
+     "........0.......",
+     "................",
+     "................",
+     "................",
+     "................",
+     "................",
+     "................"
+    ]
+   ]
+  },
+  "plataforma-der": {
+   "ms": 0,
+   "fotogramas": [
+    [
+     "000000000000000.",
+     "uuuuuuuuuuuuuuu0",
+     "uuuuuutuuuuuuuu0",
+     "tttttttttttttts0",
+     "ttttttttttttqts0",
+     "ttttttttsssttts0",
+     "ssssssssssssssr0",
+     "00000000000q000.",
+     "...........0qhh0",
+     "...........0qgg0",
+     "..........0hh00.",
+     "..........0g0...",
+     "...........0....",
+     "................",
+     "................",
+     "................"
+    ]
+   ]
+  },
+  "plataforma-movil-izq": {
+   "ms": 250,
+   "fotogramas": [
+    [
+     "....000000000000",
+     "...0vvvpvvvvvvvp",
+     "..0vvvpvvvvvvvpv",
+     "..0vvpvvvvvvvpvv",
+     ".0tppppppppppppp",
+     "0t0oovooooooovoo",
+     "0t0nnnvooooooovo",
+     ".0.000nnnnnnnnnn",
+     "......0000000000",
+     "................",
+     "................",
+     "................",
+     "................",
+     "................",
+     "................",
+     "................"
+    ],
+    [
+     "....000000000000",
+     ".0.0vvvpvvvvvvvp",
+     "0t0vvvpvvvvvvvpv",
+     "0t0vvpvvvvvvvpvv",
+     ".0tppppppppppppp",
+     "..0oovooooooovoo",
+     "..0nnnvooooooovo",
+     "...000nnnnnnnnnn",
+     "......0000000000",
+     "................",
+     "................",
+     "................",
+     "................",
+     "................",
+     "................",
+     "................"
+    ]
+   ]
+  },
+  "plataforma-movil": {
+   "ms": 250,
+   "fotogramas": [
+    [
+     "0000000000000000",
+     "vvvvvvvpvvvvvvvp",
+     "vvvvvvpvvvvvvvpv",
+     "vvvvvpvvvvvvvpvv",
+     "pppppppppppppppp",
+     "ooooovooooooovoo",
+     "oooooovooooooovo",
+     "nnnnnnnnnnnnnnnn",
+     "0000000000000000",
+     "................",
+     "................",
+     "................",
+     "................",
+     "................",
+     "................",
+     "................"
+    ],
+    [
+     "0000000000000000",
+     "vvvvvvvpvvvvvvvp",
+     "vvvvvvpvvvvvvvpv",
+     "vvvvvpvvvvvvvpvv",
+     "pppppppppppppppp",
+     "ooooovooooooovoo",
+     "oooooovooooooovo",
+     "nnnnnnnnnnnnnnnn",
+     "0000000000000000",
+     "................",
+     "................",
+     "................",
+     "................",
+     "................",
+     "................",
+     "................"
+    ]
+   ]
+  },
+  "plataforma-movil-der": {
+   "ms": 250,
+   "fotogramas": [
+    [
+     "000000000000....",
+     "vvvvvvvpvvvv0...",
+     "vvvvvvpvvvvvv0..",
+     "vvvvvpvvvvvvvp0.",
+     "ppppppppppppppp0",
+     "ooooovoooonnn00.",
+     "oooooovnnn000...",
+     "nnnnnnn000......",
+     "0000000.........",
+     "................",
+     "................",
+     "................",
+     "................",
+     "................",
+     "................",
+     "................"
+    ],
+    [
+     "0000000000000...",
+     "vvvvvvvpvvvvv0..",
+     "vvvvvvpvvvvvvv0.",
+     "vvvvvpvvvvvvppp0",
+     "ppppppppppppn00.",
+     "ooooovoooonn0...",
+     "oooooovnnn00....",
+     "nnnnnnn000......",
+     "0000000.........",
+     "................",
+     "................",
+     "................",
+     "................",
+     "................",
+     "................",
+     "................"
+    ]
+   ]
+  },
   "decoracion-mata": {
    "ms": 250,
    "fotogramas": [

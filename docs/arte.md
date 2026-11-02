@@ -157,7 +157,10 @@ carácter es un índice de su paleta, cada variante tiene tantos colores como su
 colores fuera de su paleta. Genera, por cada JSON de sprites, una hoja PNG con la paleta base y otra por variante, con
 los fotogramas en el mismo sitio en todas, y por cada escenario su cielo y sus fondos; y un `indice.json` con lo que el
 juego necesita de cada hoja: tamaño, ancla, columnas, animaciones (fotogramas, ms y las filas vacías bajo el dibujo),
-variantes y razas. La puerta de calidad (`scripts/verificar.sh`) falla si alguien cambia `arte/` y no lo ejecuta.
+variantes y razas. La compilación lo ejecuta sola antes de preparar los recursos (la tarea `generarArte` de
+`shared/build.gradle.kts`), así que cambiar un sprite y compilar basta para verlo; si la entrega no cumple el formato, la
+compilación falla diciendo qué y dónde. Y la puerta de calidad (`scripts/verificar.sh`) comprueba que lo generado está al
+día.
 
 ## Cómo lo coloca el juego
 

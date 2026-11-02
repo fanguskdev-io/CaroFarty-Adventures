@@ -36,16 +36,19 @@ private class AndroidMusicPlayer : MusicPlayer {
                 .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
                 .setChannelMask(channels)
                 .build()
+        // A phone without a way to play it (or an emulator without sound) leaves the game silent, never closed.
         val track =
-            AudioTrack.Builder()
-                .setAudioAttributes(attributes)
-                .setAudioFormat(format)
-                .setTransferMode(AudioTrack.MODE_STREAM)
-                .setBufferSizeInBytes(max(minimum, CHUNK * 4))
-                .build()
+            runCatching {
+                AudioTrack.Builder()
+                    .setAudioAttributes(attributes)
+                    .setAudioFormat(format)
+                    .setTransferMode(AudioTrack.MODE_STREAM)
+                    .setBufferSizeInBytes(max(minimum, CHUNK * 4))
+                    .build()
+                    .also { it.play() }
+            }.getOrNull() ?: return
         this.track = track
         running = true
-        track.play()
         val samples = sound.samples
         writer =
             Thread {
@@ -63,18 +66,20 @@ private class AndroidMusicPlayer : MusicPlayer {
     }
 
     override fun pause() {
-        track?.pause()
+        runCatching { track?.pause() }
     }
 
     override fun resume() {
-        track?.play()
+        runCatching { track?.play() }
     }
 
     override fun stop() {
         running = false
         val track = track ?: return
-        track.pause()
-        track.flush()
+        runCatching {
+            track.pause()
+            track.flush()
+        }
         writer?.join(JOIN_MILLIS)
         track.release()
         this.track = null
@@ -108,13 +113,13 @@ private class AndroidSoundPlayer : SoundPlayer {
 
     override fun load(name: String, wav: ByteArray) {
         val folder = System.getProperty("java.io.tmpdir") ?: return
-        val file = runCatching { File(folder, "sonido-$name.wav").apply { writeBytes(wav) } }.getOrNull() ?: return
-        ids[name] = pool.load(file.path, 1)
+        val id = runCatching { pool.load(File(folder, "sonido-$name.wav").apply { writeBytes(wav) }.path, 1) }.getOrNull()
+        if (id != null && id > 0) ids[name] = id
     }
 
     override fun play(name: String) {
         val id = ids[name] ?: return
-        pool.play(id, 1f, 1f, 1, 0, 1f)
+        runCatching { pool.play(id, 1f, 1f, 1, 0, 1f) }
     }
 
     override fun release() {

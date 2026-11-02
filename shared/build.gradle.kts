@@ -58,3 +58,17 @@ kotlin {
         }
     }
 }
+
+// El arte de arte/ convertido en las hojas que carga el juego (TEC-11, tools/arte.py) antes de preparar los recursos:
+// cambiar un sprite y compilar basta para verlo. Si la entrega no cumple el formato, la compilación dice qué y dónde.
+val generarArte = tasks.register<Exec>("generarArte") {
+    val raiz = rootProject.layout.projectDirectory
+    workingDir = raiz.asFile
+    commandLine("python3", "tools/arte.py")
+    inputs.dir(raiz.dir("arte"))
+    inputs.file(raiz.file("tools/arte.py"))
+    outputs.dir(layout.projectDirectory.dir("src/commonMain/composeResources/files/arte"))
+}
+tasks.matching { it.name != "generarArte" && (it.name.contains("Resources") || it.name.contains("ResClass")) }.configureEach {
+    dependsOn(generarArte)
+}

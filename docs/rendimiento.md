@@ -41,3 +41,29 @@ Cómo leerlo:
   de su tiempo.
 - **El dibujo de iOS** es el número a vigilar en M2, cuando entre el arte final: hoy el mundo se pinta por software en un
   búfer pequeño que luego se escala ([ADR 0003](adr/0003-horizontal-y-pixel-perfecto.md)).
+
+## Con el arte y el sonido (2026-11-02, beta)
+
+Con el piloto automático, en las versiones de depuración, en el Bosque:
+
+| | Emulador Android 16 (2400×1080) | Simulador iPhone 17 Pro (iOS 26.5) |
+|---|---|---|
+| FPS | 11 a 27 | 60 |
+| PEOR | 117 a 333 ms | 17 ms |
+| LENTOS | 70 a 75 % | 0,0 % en minuto y medio |
+| LÓGICA | 0,3 a 1,0 ms | 0,0 a 1,1 ms |
+| DIBUJO | 3,7 a 6,0 ms | 4,5 a 4,7 ms |
+| ARRANQUE | 1,0 s | 0,1 a 0,5 s |
+
+Cómo leerlo:
+
+- **El emulador ya no sirve para medir la fluidez**: Android 16 exige GLES 3.1 y el emulador lo da por software («API level
+  36 requires GLES 3.1, forcing software rendering»). Con el arte, cada fotograma escala a pantalla completa el cielo, los
+  dos fondos y el mundo, y eso por software no llega. Lo que cuesta en la CPU, la lógica y el dibujo, sigue muy por debajo
+  del presupuesto; la medida de verdad es la de sus teléfonos (TEC-13).
+- **El sonido daba tirones en iOS**: cada efecto bloqueaba unos milisegundos el hilo que dibuja (con sonido, 56 FPS, 45 ms
+  de peor fotograma y un 7,8 % de lentos; sin él, 60, 17 ms y 0 %). Desde que va por su propia cola, con sonido mide lo
+  mismo que sin él ([sonido](sonido.md)).
+- **Cuánto pinta la GPU**: el cielo, el fondo lejano, el medio, los copos en la nieve y el mundo cubren casi toda la
+  pantalla cada uno. Si un teléfono lento no llegara a 60, lo primero sería no pintar lo que tapan los fondos opacos (el
+  lejano del Bosque es opaco entero y tapa el cielo).

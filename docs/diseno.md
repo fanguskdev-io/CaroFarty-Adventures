@@ -128,7 +128,7 @@ aplica su estilo a esos temas. El arte se diseña a partir de las referencias de
 Música generativa y adaptativa por escenario (M4): compuesta por reglas a partir de motivos propios, con variaciones para
 que nunca suene igual y capas que entran con la velocidad, una música para cada escenario. Se sintetiza en el
 propio teléfono con sonido de 16 bits (instrumentos al estilo de la Super Nintendo y su eco característico) y es
-composición original.
+composición original. Hasta entonces, la beta lleva bucles, jingles y efectos provisionales ([sonido](sonido.md)).
 
 ## Alcance y orden de trabajo
 
@@ -157,5 +157,6 @@ de salida en [proceso](proceso.md):
 - [Movimiento](movimiento.md) · [Métricas y curva de dificultad](metricas.md) · [Generación del recorrido](generacion.md)
 - [Recolectables](recolectables.md) · [Escenarios](escenarios.md) · [Proceso y criterios de salida](proceso.md)
 - [Pruebas](pruebas.md) · [Lista de bugs](bugs.md) · [Rendimiento](rendimiento.md) · [Cómo se entrega el arte](arte.md)
+- [Música y sonidos de la beta](sonido.md) · [Instalar la beta](../entregas/LEEME.md)
 - [Dispositivos de prueba](dispositivos.md) · [Propiedad intelectual](propiedad-intelectual.md)
 - El backlog compartido: `../backlog-juego-plataformas` (lo creó la sesión GameMaster; el estado de cada tarea se lleva allí)

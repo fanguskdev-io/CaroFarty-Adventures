@@ -35,7 +35,7 @@ internal class TutorialScene(
 ) {
     var run = newRun()
         private set
-    var look = newLook()
+    var look = lookFor(run)
         private set
     private var pilot: Pilot? = pilotFor(run)
     private var overFor = 0f
@@ -81,7 +81,7 @@ internal class TutorialScene(
 
     private fun restart() {
         run = newRun()
-        look = newLook()
+        look = lookFor(run)
         pilot = pilotFor(run)
         overFor = 0f
         floating.clear()
@@ -91,6 +91,9 @@ internal class TutorialScene(
     }
 
     private fun pilotFor(run: GameRun): Pilot? = if (index == JUMPING) Pilot(run) else null
+
+    /** A new look already on the pose of [run], so it never shows her waiting for a moment as the scene starts again. */
+    private fun lookFor(run: GameRun): CaroLook = newLook().also { it.step(0f, run, newRecord = false) }
 
     private fun newRun(): GameRun {
         val piece = when (index) {

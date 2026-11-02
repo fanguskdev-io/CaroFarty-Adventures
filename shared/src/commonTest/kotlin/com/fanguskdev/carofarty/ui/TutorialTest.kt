@@ -5,6 +5,7 @@ import com.fanguskdev.carofarty.game.GameConfig
 import com.fanguskdev.carofarty.game.RunPhase
 import com.fanguskdev.carofarty.game.Scenario
 import com.fanguskdev.carofarty.ui.render.CaroLook
+import com.fanguskdev.carofarty.ui.render.CaroPose
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -70,6 +71,15 @@ class TutorialTest {
             if (it.heldFor > TutorialScene.TAP_SECONDS) held = true
         }
         assertTrue(tapped && held, "a tap and a hold: $tapped, $held")
+    }
+
+    @Test
+    fun noSceneShowsHerWaitingNotEvenWhenItStartsAgain() {
+        for (index in 0 until TutorialScene.SCENES) {
+            val scene = scene(index)
+            assertTrue(scene.look.pose != CaroPose.Espera, "scene $index as it opens")
+            play(scene, seconds = 8f) { assertTrue(it.look.pose != CaroPose.Espera, "scene $index") }
+        }
     }
 
     @Test

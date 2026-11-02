@@ -3,13 +3,13 @@
 Aquí se deja cada APK de Android para instalar en el móvil. El APK no se versiona: se genera con
 `./gradlew :androidApp:assembleRelease` y se copia aquí con la fecha en el nombre.
 
-## La beta del 2026-11-02 (la cuarta)
+## La beta del 2026-11-02 (la quinta)
 
-`CaroFarty-beta-2026-11-02-4.apk`, 9,7 MB, versión de lanzamiento firmada con la clave de depuración de este Mac
-(SHA-256 del fichero: `0ec7715b063202f4a97f52d9928ace9b87bdcbd6767902a8efcde555ae9cb871`), del commit `558c28a`. Es la
-cuarta de ese día: sustituye a la tercera y añade la música de cada partida hecha mientras se juega, Caro con la cabeza
-girada hacia donde va y el arreglo de la pausa (en Android, la música gastaba casi un núcleo mientras estaba en pausa).
-Probada en el emulador y, la parte común, en el simulador de iOS; falta probarla en su Nothing Phone (3).
+`CaroFarty-beta-2026-11-02-5.apk`, 9,8 MB, versión de lanzamiento firmada con la clave de depuración de este Mac
+(SHA-256 del fichero: `e5f2104fdef68144198a49a089f499518b4857e2571e92f018ae33a8a6f33484`), del commit `29ae98b`. Es la
+quinta de ese día: sustituye a la cuarta y trae lo que pidió Fangusk al probarla, más plataformeo y el botón de salir, y
+el arreglo de «Cómo se juega» que vio en su Nothing. Probada en el emulador y, la parte común, en el simulador de iOS;
+falta probarla en su Nothing Phone (3).
 
 ## Qué lleva
 
@@ -18,8 +18,13 @@ Probada en el emulador y, la parte común, en el simulador de iOS; falta probarl
   ([docs/pantallas.md](../docs/pantallas.md)).
 - **Pantalla inicial** con una tarjeta por fase (Bosque, Nieve y Desierto) con su escenario en marcha y Caro corriendo;
   la última que jugó, en un **marco dorado**. Al tocar una fase empieza la partida; al acabar, «Otra vez» o «Inicio».
+  Arriba a la izquierda, **el botón de salir**: pregunta «¿SALIR DEL JUEGO?» y con «SÍ» cierra la app.
+- **Más plataformeo** (ADR 0009): suelos más cortos, más barrancos, **plataformas** que se atraviesan saltando desde
+  abajo y sobre las que se aterriza, barrancos que solo se cruzan saltando a ellas (uno de cada 2 o 3 retos) y, cuando la
+  partida ya va rápida, **plataformas que se mueven** y la llevan: la hoja dorada, el trineo y la alfombra voladora.
 - **Récords por fase**: las 5 mejores partidas con medallas, sus metros, sus puntos máximos y la fecha (2 NOV 2026).
-- **Cómo se juega**: dos páginas con dos viñetas que se juegan solas; sale la primera vez que se abre.
+- **Cómo se juega**: dos páginas con dos viñetas que se juegan solas; sale la primera vez que se abre. Ya no se mezclan
+  las dos viñetas de una página en el móvil y el salto no se sale del marco.
 - **La pista «MANTÉN»** sobre Caro en los primeros barrancos de sus 3 primeras partidas, con un medidor que se llena
   mientras mantiene el salto.
 - **Botón de silencio** junto al de pausa y en el inicio, que el juego recuerda.
@@ -40,7 +45,7 @@ Probada en el emulador y, la parte común, en el simulador de iOS; falta probarl
 **Con el cable** (y las opciones de desarrollador con la depuración USB activada):
 
 ```bash
-~/Library/Android/sdk/platform-tools/adb install -r entregas/CaroFarty-beta-2026-11-02-4.apk
+~/Library/Android/sdk/platform-tools/adb install -r entregas/CaroFarty-beta-2026-11-02-5.apk
 ```
 
 La primera vez, el móvil pregunta si permite la depuración USB desde este Mac: hay que aceptar en su pantalla.

@@ -6,6 +6,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.math.pow
+import kotlin.random.Random
 
 /** The sounds of the game, by the names of their files in `files/sonidos/` (GameMaster's beta set). */
 enum class Sound(val file: String) {
@@ -55,6 +57,7 @@ internal class GameAudio(private val music: MusicPlayer, private val sounds: Sou
         }
     private var loading: Job? = null
     private var after: Job? = null
+    private val random = Random.Default
 
     /** The files loaded, and how long each lasts in milliseconds. */
     private val millis = HashMap<String, Long>()
@@ -90,14 +93,28 @@ internal class GameAudio(private val music: MusicPlayer, private val sounds: Sou
                     music.stop()
                     return@launch
                 }
-                music.play(track)
+                music.play(track, MUSIC_VOLUME)
                 if (!playing || muted) music.pause()
             }
     }
 
-    /** Plays [sound], in its version for [scenario] if it has one and it is there, or the one for everywhere. */
+    /**
+     * Plays [sound], in its version for [scenario] if it has one and it is there, or the one for everywhere. The sounds of
+     * the run come out each time a little different, ±40 cents and ±1.5 dB at random, so a row of them does not sound like
+     * a machine (GameMaster's mix); the jingles and the buttons, always the same.
+     */
     fun play(sound: Sound, scenario: Scenario? = null) {
-        if (!muted) sounds.play(fileOf(sound, scenario))
+        if (muted) return
+        val file = fileOf(sound, scenario)
+        if (sound.byScenario || sound == Sound.Tap || sound == Sound.Back) {
+            sounds.play(file)
+            return
+        }
+        val cents = random.nextDouble(-MAX_CENTS, MAX_CENTS)
+        val decibels = random.nextDouble(-MAX_DECIBELS, MAX_DECIBELS)
+        val rate = 2.0.pow(cents / CENTS_IN_OCTAVE).toFloat()
+        val volume = (EFFECTS_VOLUME * 10.0.pow(decibels / DECIBELS_TO_AMPLITUDE)).toFloat().coerceAtMost(1f)
+        sounds.play(file, rate, volume)
     }
 
     private fun fileOf(sound: Sound, scenario: Scenario?): String {
@@ -151,5 +168,13 @@ internal class GameAudio(private val music: MusicPlayer, private val sounds: Sou
         const val MUSIC = "files/musica"
         const val SOUNDS = "files/sonidos"
         const val MILLIS = 1000L
+
+        /** The mix GameMaster proposed to start with: the music at 0.8 and the sounds at 1, varied by ±40 cents and ±1.5 dB. */
+        const val MUSIC_VOLUME = 0.8f
+        const val EFFECTS_VOLUME = 0.85
+        const val MAX_CENTS = 40.0
+        const val MAX_DECIBELS = 1.5
+        const val CENTS_IN_OCTAVE = 1200.0
+        const val DECIBELS_TO_AMPLITUDE = 20.0
     }
 }

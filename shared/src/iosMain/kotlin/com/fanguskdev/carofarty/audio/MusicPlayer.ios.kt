@@ -24,11 +24,12 @@ internal actual fun musicPlayer(): MusicPlayer = IosMusicPlayer()
 private class IosMusicPlayer : MusicPlayer {
     private var player: AVAudioPlayer? = null
 
-    override fun play(wav: ByteArray) = onAudioQueue {
+    override fun play(wav: ByteArray, volume: Float) = onAudioQueue {
         player?.stop()
         player =
             audioPlayer(wav)?.apply {
                 numberOfLoops = -1
+                this.volume = volume
                 prepareToPlay()
                 play()
             }
@@ -59,14 +60,17 @@ private class IosSoundPlayer : SoundPlayer {
 
     override fun load(name: String, wav: ByteArray) = onAudioQueue {
         audioPlayer(wav)?.let {
+            it.enableRate = true
             it.prepareToPlay()
             players[name] = it
         }
     }
 
-    override fun play(name: String) = onAudioQueue {
+    override fun play(name: String, rate: Float, volume: Float) = onAudioQueue {
         players[name]?.let {
             it.currentTime = 0.0
+            it.rate = rate
+            it.volume = volume
             it.play()
         }
     }

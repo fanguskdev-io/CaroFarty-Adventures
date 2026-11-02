@@ -22,7 +22,7 @@ private class AndroidMusicPlayer : MusicPlayer {
 
     @Volatile private var rewind = false
 
-    override fun play(wav: ByteArray) {
+    override fun play(wav: ByteArray, volume: Float) {
         stop()
         val sound = readWav(wav) ?: return
         val channels = if (sound.channels == 2) AudioFormat.CHANNEL_OUT_STEREO else AudioFormat.CHANNEL_OUT_MONO
@@ -47,7 +47,10 @@ private class AndroidMusicPlayer : MusicPlayer {
                     .setTransferMode(AudioTrack.MODE_STREAM)
                     .setBufferSizeInBytes(max(minimum, CHUNK * 4))
                     .build()
-                    .also { it.play() }
+                    .also {
+                        it.setVolume(volume)
+                        it.play()
+                    }
             }.getOrNull() ?: return
         this.track = track
         running = true
@@ -133,9 +136,9 @@ private class AndroidSoundPlayer : SoundPlayer {
         if (id != null && id > 0) ids[name] = id
     }
 
-    override fun play(name: String) {
+    override fun play(name: String, rate: Float, volume: Float) {
         val id = ids[name] ?: return
-        runCatching { pool.play(id, 1f, 1f, 1, 0, 1f) }
+        runCatching { pool.play(id, volume, volume, 1, 0, rate) }
     }
 
     override fun release() {

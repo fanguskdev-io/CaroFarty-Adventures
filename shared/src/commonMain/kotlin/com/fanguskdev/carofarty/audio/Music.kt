@@ -4,8 +4,8 @@ import kotlin.math.min
 
 /** Plays one track of music round and round. Each platform does it its own way; the tracks are 16-bit PCM WAV files. */
 interface MusicPlayer {
-    /** Plays [wav] in a loop from its start, instead of whatever was playing. */
-    fun play(wav: ByteArray)
+    /** Plays [wav] in a loop from its start, at [volume] (0 to 1), instead of whatever was playing. */
+    fun play(wav: ByteArray, volume: Float = 1f)
 
     fun pause()
 
@@ -25,8 +25,8 @@ interface SoundPlayer {
     /** Gets [wav] ready to be played as [name]. */
     fun load(name: String, wav: ByteArray)
 
-    /** Plays [name] from its start, if it is loaded. */
-    fun play(name: String)
+    /** Plays [name] from its start, if it is loaded, [rate] times as fast (and as high) and at [volume] (0 to 1). */
+    fun play(name: String, rate: Float = 1f, volume: Float = 1f)
 
     fun release()
 }

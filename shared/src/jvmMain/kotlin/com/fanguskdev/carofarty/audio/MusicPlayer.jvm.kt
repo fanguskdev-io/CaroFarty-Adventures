@@ -4,6 +4,8 @@ import java.io.ByteArrayInputStream
 import java.util.concurrent.Executors
 import javax.sound.sampled.AudioSystem
 import javax.sound.sampled.Clip
+import javax.sound.sampled.FloatControl
+import kotlin.math.log10
 
 /**
  * Where every Clip is opened and told what to do: a thread of its own, so the window never waits for the sound card.
@@ -22,9 +24,13 @@ internal actual fun musicPlayer(): MusicPlayer = DesktopMusicPlayer()
 private class DesktopMusicPlayer : MusicPlayer {
     private var clip: Clip? = null
 
-    override fun play(wav: ByteArray) = onAudioThread {
+    override fun play(wav: ByteArray, volume: Float) = onAudioThread {
         clip?.close()
-        clip = clip(wav)?.apply { loop(Clip.LOOP_CONTINUOUSLY) }
+        clip =
+            clip(wav)?.apply {
+                setVolume(volume)
+                loop(Clip.LOOP_CONTINUOUSLY)
+            }
     }
 
     override fun pause() = onAudioThread { clip?.stop() }
@@ -55,10 +61,11 @@ private class DesktopSoundPlayer : SoundPlayer {
         clip(wav)?.let { clips[name] = it }
     }
 
-    override fun play(name: String) = onAudioThread {
+    override fun play(name: String, rate: Float, volume: Float) = onAudioThread {
         clips[name]?.let {
             it.stop()
             it.framePosition = 0
+            it.setVolume(volume)
             it.start()
         }
     }
@@ -68,6 +75,16 @@ private class DesktopSoundPlayer : SoundPlayer {
         clips.clear()
     }
 }
+
+/** Its volume, from 0 to 1, if the computer lets it change; the desktop does not change the speed of a sound. */
+private fun Clip.setVolume(volume: Float) {
+    if (!isControlSupported(FloatControl.Type.MASTER_GAIN)) return
+    val gain = getControl(FloatControl.Type.MASTER_GAIN) as? FloatControl ?: return
+    gain.value = (DECIBELS * log10(volume.coerceIn(MIN_VOLUME, 1f))).coerceIn(gain.minimum, gain.maximum)
+}
+
+private const val DECIBELS = 20f
+private const val MIN_VOLUME = 0.0001f
 
 /** A Clip open with the WAV in [wav], or null if the computer cannot play it. */
 private fun clip(wav: ByteArray): Clip? =

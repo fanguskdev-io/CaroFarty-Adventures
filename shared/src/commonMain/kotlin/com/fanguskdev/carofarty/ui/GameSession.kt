@@ -35,9 +35,6 @@ import com.fanguskdev.carofarty.ui.render.chooserHit
 import com.fanguskdev.carofarty.ui.render.chooserTop
 import com.fanguskdev.carofarty.ui.render.pauseButtonHit
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 import kotlin.random.Random
 import kotlin.time.Duration
@@ -136,7 +133,6 @@ internal class GameSession(
     /** The best distance in the scenario when the run began, to hear the moment she beats it. */
     private var bestBefore = records.meters(scenario)
     private var recordHeard = false
-    private var jingle: Job? = null
 
     init {
         audio?.music(scenario)
@@ -246,7 +242,7 @@ internal class GameSession(
         if (wasReady && run.phase == RunPhase.Running) {
             panel = emptyList()
             running = true
-            audio?.play(Sound.StartJingle)
+            audio?.start(scenario)
         }
         if (caro.jumps > jumps) audio?.play(Sound.Jump)
         if (!landing && caro.state == CaroState.Landing) audio?.play(Sound.Landing)
@@ -279,13 +275,7 @@ internal class GameSession(
         panel = overPanel(ended)
         // The music stops: the sound of the end, and a moment later its jingle, of a record if there is one.
         if (cause == EndCause.NoPoints) audio?.play(Sound.NoPoints)
-        audio?.pause()
-        jingle?.cancel()
-        jingle =
-            scope.launch {
-                delay(JINGLE_DELAY_MILLIS)
-                audio?.play(if (ended.newRecord) Sound.RecordJingle else Sound.EndJingle)
-            }
+        audio?.end(ended.newRecord, JINGLE_DELAY_MILLIS)
     }
 
     /** Another run at once, already running: from the end of a run to playing again takes one tap (UI-06). */
@@ -295,8 +285,7 @@ internal class GameSession(
         run.step(JumpLab.STEP, pressed = true, held = false)
         running = true
         panel = emptyList()
-        audio?.music(scenario, restart = true)
-        audio?.play(Sound.StartJingle)
+        audio?.start(scenario)
     }
 
     /**
@@ -328,7 +317,6 @@ internal class GameSession(
         run.close()
         run = createRun()
         if (autopilot) pilot = Pilot(run)
-        jingle?.cancel()
         bestBefore = records.meters(scenario)
         recordHeard = false
     }

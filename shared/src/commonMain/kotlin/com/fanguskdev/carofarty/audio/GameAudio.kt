@@ -4,6 +4,7 @@ import carofarty.shared.generated.resources.Res
 import com.fanguskdev.carofarty.game.Scenario
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 /** The sounds of the game, by the names of their files in `files/sonidos/` (GameMaster's beta set). */
@@ -35,18 +36,22 @@ internal class GameAudio(private val music: MusicPlayer, private val sounds: Sou
     private var current: Scenario? = null
     private var playing = false
     private var loading: Job? = null
+    private var after: Job? = null
+    private val millis = HashMap<Sound, Long>()
 
     init {
         scope.launch {
             for (sound in Sound.entries) {
                 val wav = runCatching { Res.readBytes("$SOUNDS/${sound.file}.wav") }.getOrNull() ?: continue
                 sounds.load(sound.file, wav)
+                readWav(wav)?.let { millis[sound] = it.samples.size * MILLIS / (it.channels * it.rate) }
             }
         }
     }
 
     /** The music of [scenario] from its start, or on with it if [restart] is false and it is already the one playing. */
     fun music(scenario: Scenario, restart: Boolean = false) {
+        after?.cancel()
         playing = true
         if (current == scenario && !restart) {
             music.resume()
@@ -68,7 +73,30 @@ internal class GameAudio(private val music: MusicPlayer, private val sounds: Sou
 
     fun play(sound: Sound) = sounds.play(sound.file)
 
+    /** A run begins: the music stops for the start jingle and comes back from its start when the jingle ends. */
+    fun start(scenario: Scenario) {
+        pause()
+        play(Sound.StartJingle)
+        val wait = millis[Sound.StartJingle] ?: 0L
+        after =
+            scope.launch {
+                delay(wait)
+                music(scenario, restart = true)
+            }
+    }
+
+    /** A run ends: the music stops and, [wait] milliseconds later, the jingle of the end, or of a new [record]. */
+    fun end(record: Boolean, wait: Long) {
+        pause()
+        after =
+            scope.launch {
+                delay(wait)
+                play(if (record) Sound.RecordJingle else Sound.EndJingle)
+            }
+    }
+
     fun pause() {
+        after?.cancel()
         playing = false
         music.pause()
     }
@@ -90,5 +118,6 @@ internal class GameAudio(private val music: MusicPlayer, private val sounds: Sou
     private companion object {
         const val MUSIC = "files/musica"
         const val SOUNDS = "files/sonidos"
+        const val MILLIS = 1000L
     }
 }

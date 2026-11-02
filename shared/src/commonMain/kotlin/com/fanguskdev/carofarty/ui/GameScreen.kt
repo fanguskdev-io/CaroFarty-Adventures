@@ -51,7 +51,9 @@ import com.fanguskdev.carofarty.ui.render.paintChooser
 import com.fanguskdev.carofarty.ui.render.paintDebug
 import com.fanguskdev.carofarty.ui.render.paintHud
 import com.fanguskdev.carofarty.ui.render.paintPanel
+import com.fanguskdev.carofarty.ui.render.paintRecordCelebration
 import com.fanguskdev.carofarty.ui.render.paintWorld
+import com.fanguskdev.carofarty.ui.render.panelBottom
 import kotlinx.coroutines.isActive
 import kotlin.math.ceil
 import kotlin.math.floor
@@ -183,6 +185,10 @@ private fun DrawScope.drawGame(session: GameSession, world: PixelBuffer, viewpor
                 paintHud(session.pointsText, session.metersText, viewport.width, session.insets, warn = session.lowPoints)
             }
             if (session.panel.isNotEmpty()) paintPanel(session.panel, viewport.width, viewport.height)
+            if (caroArt != null && run.phase == RunPhase.Over && session.result?.newRecord == true) {
+                val bottom = panelBottom(session.panel, viewport.height)
+                paintRecordCelebration(caroArt, run.scenario, session.millis, viewport.width, bottom)
+            }
             if (session.choosing) paintChooser(session.scenarioNames, session.scenario.ordinal, viewport.width, session.chooserTop)
             if (session.showDebug) paintDebug(session.debugLines, viewport.height, session.insets)
         }

@@ -64,7 +64,7 @@ internal fun pauseButtonHit(
 
 /** A dark panel across the middle with [lines] centred, each a text, its colour and its size. */
 internal fun DrawScope.paintPanel(lines: List<PanelLine>, width: Int, height: Int) {
-    val tall = lines.sumOf { PixelFont.LINE * it.size + 2 } + 12
+    val tall = panelHeight(lines)
     val top = (height - tall) / 2
     drawRect(GreyPalette.panel, Offset(0f, top.toFloat()), Size(width.toFloat(), tall.toFloat()))
     var y = top + 8
@@ -78,14 +78,17 @@ internal fun DrawScope.paintPanel(lines: List<PanelLine>, width: Int, height: In
 
 internal class PanelLine(val text: String, val color: Color = GreyPalette.text, val size: Int = 1)
 
+private fun panelHeight(lines: List<PanelLine>): Int = lines.sumOf { PixelFont.LINE * it.size + 2 } + 12
+
+/** The row of game pixels under the panel of [lines] that [paintPanel] draws on a screen [height] tall. */
+internal fun panelBottom(lines: List<PanelLine>, height: Int): Int = (height - panelHeight(lines)) / 2 + panelHeight(lines)
+
 /**
  * The top row of the choice of scenario over the panel of [lines] that [paintPanel] draws on a screen [height] tall: in
  * the sky, clear of Caro and of what is on the ground.
  */
-internal fun chooserTop(lines: List<PanelLine>, height: Int): Int {
-    val tall = lines.sumOf { PixelFont.LINE * it.size + 2 } + 12
-    return (height - tall) / 2 - CHOOSER_GAP - PixelFont.HEIGHT - 2 * BUTTON_PAD_Y
-}
+internal fun chooserTop(lines: List<PanelLine>, height: Int): Int =
+    (height - panelHeight(lines)) / 2 - CHOOSER_GAP - PixelFont.HEIGHT - 2 * BUTTON_PAD_Y
 
 /**
  * The choice of scenario (UI-20, ADR 0006): its [names] in a row of buttons from [top], centred, the [chosen] one lit. The

@@ -272,6 +272,24 @@ private fun stillFrame(animation: Animation, time: Long, item: Item): Int {
     return if (round < rest) animation.frame(0) else animation.frameAt(round - rest, loops = false)
 }
 
+/**
+ * Caro celebrating a new record at both ends of the end panel, facing us (the record animation GameMaster drew for that
+ * panel): one on each side of the text, her feet on the panel's bottom edge, [bottom] in game pixels from the top.
+ */
+internal fun DrawScope.paintRecordCelebration(
+    art: CaroArt,
+    scenario: Scenario,
+    millis: Long,
+    width: Int,
+    bottom: Int,
+) {
+    val animation = art.animation(CaroPose.Record, Reaction.None)
+    val frame = animation.frameAt(millis, loops = true)
+    val sheet = art.sheet(scenario)
+    drawFrame(sheet, frame, CELEBRATION_X - art.anchorX, bottom - art.anchorY)
+    drawFrame(sheet, frame, width - CELEBRATION_X - art.anchorX, bottom - art.anchorY, flip = true)
+}
+
 /** A fixed shift of each collectible's animations, so a row of them does not move all at once. */
 private fun outOfStep(item: Item): Long = ((item.x * 2_654_435_761L + item.y * 40_503L) ushr 8) % OUT_OF_STEP_MILLIS
 
@@ -282,6 +300,9 @@ private fun variation(column: Int, row: Int): Int {
     h *= 0x2C1B3C6D
     return (h xor (h ushr 12)) and 0xFFFF
 }
+
+/** How far from each side of the screen Caro celebrates a record, in game pixels. */
+private const val CELEBRATION_X = 34
 
 /** How far above its centre the smell sits over the egg and the fish, in game pixels. */
 private const val SMELL_ABOVE = 6

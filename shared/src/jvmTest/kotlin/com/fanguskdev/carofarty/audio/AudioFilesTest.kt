@@ -1,0 +1,35 @@
+package com.fanguskdev.carofarty.audio
+
+import com.fanguskdev.carofarty.game.Scenario
+import java.io.File
+import kotlin.test.Test
+import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
+
+/** The music and the sounds that tools/sonido.py left in the resources are WAV files every platform reads (AUD). */
+class AudioFilesTest {
+    private val resources = File("src/commonMain/composeResources/files")
+
+    private fun wavs(folder: String): List<File> = File(resources, folder).listFiles()?.filter { it.extension == "wav" }.orEmpty()
+
+    @Test
+    fun everyTrackAndSoundIsSixteenBitPcm() {
+        for (file in wavs("musica") + wavs("sonidos")) {
+            val sound = assertNotNull(readWav(file.readBytes()), "${file.name} is not a WAV of 16-bit PCM")
+            assertTrue(sound.samples.isNotEmpty(), "${file.name} is empty")
+        }
+    }
+
+    @Test
+    fun withMusicEachScenarioHasItsOwn() {
+        val tracks = wavs("musica").map { it.nameWithoutExtension }.toSet()
+        if (tracks.isEmpty()) return
+        for (scenario in Scenario.entries) assertTrue(scenario.name.lowercase() in tracks, "no music for $scenario")
+    }
+
+    @Test
+    fun theSoundsHaveTheNamesTheGameLooksFor() {
+        val known = Sound.entries.map { it.file }.toSet()
+        for (file in wavs("sonidos")) assertTrue(file.nameWithoutExtension in known, "${file.name} is not a sound of the game")
+    }
+}

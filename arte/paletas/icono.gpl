@@ -1,0 +1,34 @@
+GIMP Palette
+Name: icono
+Columns: 8
+#
+ 36  22  28	contorno
+251 247 240	blanco
+ 59  33  29	pelo oscuro
+ 90  50  38	pelo
+140  84  52	pelo brillo
+248 217 196	piel
+236 185 159	piel media
+192  57  77	labios
+125  34  56	boca
+242 154 166	rosa (rubor, naricita, lengua, corazones)
+240 106 150	top
+196  71 111	top sombra
+ 47  98 200	tirantes de la mochila
+246 166  76	gatito pelo
+217 122  44	gatito sombra
+181  90  34	gatito rayas
+253 231 196	gatito tripa
+241 195 109	perrito pelo
+204 147  67	perrito sombra
+251 230 184	perrito claro
+ 52 165 222	cielo 1
+ 69 171 233	cielo 2
+ 87 178 241	cielo 3
+104 186 246	cielo 4
+122 195 249	cielo 5
+238 246 255	nube
+188 214 248	nube sombra
+114 157  59	hierba
+162 190  74	hierba clara
+255 255 255	monocromo

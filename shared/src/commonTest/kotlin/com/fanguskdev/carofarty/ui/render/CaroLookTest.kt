@@ -99,6 +99,27 @@ class CaroLookTest {
     }
 
     @Test
+    fun anEggOrAFishPushesHerBackOnTheGroundAndInTheAir() {
+        for (inTheAir in listOf(false, true)) {
+            val run = runOn(Ground(-512, 100_000, 32))
+            val look = CaroLook()
+            run.step(step, pressed = true, held = false)
+            repeat(30) { run.step(step, pressed = false, held = false) }
+            if (inTheAir) repeat(6) { run.step(step, pressed = it == 0, held = true) }
+            assertEquals(inTheAir, !run.caro.state.grounded)
+            run.caro.knockBack()
+            run.step(step, pressed = false, held = false)
+            look.step(step, run, newRecord = false)
+            assertEquals(CaroPose.Retroceso, look.pose, if (inTheAir) "in the air" else "on the ground")
+            repeat(60) {
+                run.step(step, pressed = false, held = false)
+                look.step(step, run, newRecord = false)
+            }
+            assertTrue(look.pose != CaroPose.Retroceso, "and then it is over")
+        }
+    }
+
+    @Test
     fun outOfPointsSheIsSadAndWithARecordSheCelebratesItAfterwards() {
         val run = runOn(Ground(-512, 100_000, 32))
         run.step(step, pressed = true, held = false)

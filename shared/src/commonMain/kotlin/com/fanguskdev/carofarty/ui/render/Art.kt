@@ -197,7 +197,7 @@ internal enum class CaroPose(val key: String, val loops: Boolean, val byDistance
     SinPuntos("sin-puntos", loops = false),
     Record("record", loops = true),
 
-    /** The push back of an egg or a fish, with her face of disgust (Fangusk); until its art arrives, the run with that face. */
+    /** The push back of an egg or a fish, with her face of disgust (Fangusk); without its art, the run with that face. */
     Retroceso("retroceso", loops = false),
 }
 

@@ -4,6 +4,7 @@
     python3 tools/arte.py                        lee arte/ y escribe en shared/src/commonMain/composeResources/files/arte/
     python3 tools/arte.py --desde OTRA/arte --hacia /tmp/arte   para probar una entrega antes de instalarla
     python3 tools/arte.py --comprobar            no escribe nada: falla si lo generado no está al día con arte/
+    python3 tools/arte.py --sin-iconos           sin el icono de la app (la compilación, que no toca androidApp ni iosApp)
 
 Comprueba lo que promete el formato: cada fila mide el ancho del fotograma, cada carácter es un índice de su paleta, las
 variantes tienen tantos colores como su base y los PNG no usan ningún color fuera de su paleta.
@@ -13,6 +14,10 @@ Lo que genera, por cada JSON de sprites (caro, recolectables, efectos y los tile
 - su entrada en indice.json: la hoja, tamaño, ancla, columnas, animaciones (fotogramas, ms y las filas vacías bajo el
   dibujo, para posar a los animales sobre el suelo), variantes (familia, nombre y hoja) y razas.
 Y por cada escenario, su cielo y sus fondos en PNG con transparencia, y las filas que quedan bajo el suelo.
+
+Y el icono de la app (UI-19), de arte/icono/: en androidApp, las tres capas del icono adaptativo (frente, fondo y
+monocromo) en cada densidad y, para antes de Android 8, el frente sobre el fondo en cuadrado y en redondo; en iosApp, el
+AppIcon de 1024. Siempre escalado por enteros con el vecino más próximo.
 """
 import argparse
 import hashlib
@@ -34,6 +39,17 @@ TRANSPARENTE = "."
 COLUMNAS = 16
 ESCENARIOS = ("bosque", "nieve", "desierto")
 FONDOS = (("cielo", "cielo"), ("fondo-lejano", "lejano"), ("fondo-medio", "medio"))
+
+# El icono: las capas del adaptativo miden 54 px, 2 dp cada uno de los 108 dp de Android; el de iOS, 64 (×16 = 1024).
+RES_ANDROID = "androidApp/src/main/res"
+ICONO_IOS = "iosApp/iosApp/Assets.xcassets/AppIcon.appiconset/app-icon-1024.png"
+CAPAS = (("frente", "foreground"), ("fondo", "background"), ("monocromo", "monochrome"))
+LADO_CAPA = 54
+LADO_IOS = 64
+# Cada densidad: su nombre, cuántos píxeles por píxel de las capas y el lado del icono de antes de Android 8 (48 dp).
+DENSIDADES = (("mdpi", 2, 48), ("hdpi", 3, 72), ("xhdpi", 4, 96), ("xxhdpi", 6, 144), ("xxxhdpi", 8, 192))
+# Lo que se ve de un icono de antes de Android 8, como mucho: el centro de las capas, en píxeles de ellas.
+RECORTE_ANTIGUO = 48
 
 
 class ArteMal(Exception):
@@ -283,6 +299,64 @@ def generar(origen):
     return salida
 
 
+def imagen_unica(ruta, origen, lado):
+    """La imagen del único fotograma de un JSON de sprites del icono, comprobada: mide [lado] × [lado]."""
+    datos, base, animaciones, _ = leer_sprites(ruta, origen)
+    donde = f"icono/{ruta.name}"
+    if datos["tamaño"] != [lado, lado]:
+        raise ArteMal(f"{donde}: mide {datos['tamaño']} y tiene que medir {lado} × {lado}")
+    fotogramas = [f for fs, _ in animaciones.values() for f in fs]
+    if len(fotogramas) != 1:
+        raise ArteMal(f"{donde}: tiene {len(fotogramas)} fotogramas y el icono es uno")
+    return rejilla_png(fotogramas[0], lado, lado, base, donde)
+
+
+def opaca(imagen, donde):
+    if imagen.getchannel("A").getextrema()[0] < 255:
+        raise ArteMal(f"{donde}: tiene píxeles transparentes y tiene que ser opaca")
+
+
+def escalar(imagen, factor):
+    return imagen.resize((imagen.width * factor, imagen.height * factor), Image.NEAREST)
+
+
+def redonda(imagen):
+    """[imagen] con lo que queda fuera del círculo que cabe en ella transparente, a su resolución."""
+    lado = imagen.width
+    salida = imagen.copy()
+    pixeles = salida.load()
+    radio = lado / 2
+    for y in range(lado):
+        for x in range(lado):
+            if (x + 0.5 - radio) ** 2 + (y + 0.5 - radio) ** 2 > radio ** 2:
+                pixeles[x, y] = (0, 0, 0, 0)
+    return salida
+
+
+def generar_iconos(origen):
+    """El icono de la app (UI-19), como ruta desde la raíz del repositorio → bytes; nada si no hay arte/icono/."""
+    carpeta = origen / "icono"
+    if not (carpeta / "frente.json").exists():
+        return {}
+    capas = {nombre: imagen_unica(carpeta / f"{nombre}.json", origen, LADO_CAPA) for nombre, _ in CAPAS}
+    opaca(capas["fondo"], "icono/fondo.json")
+    ios = imagen_unica(carpeta / "ios.json", origen, LADO_IOS)
+    opaca(ios, "icono/ios.json")
+    junto = Image.alpha_composite(capas["fondo"], capas["frente"])
+    salida = {}
+    for densidad, factor, lado in DENSIDADES:
+        for nombre, android in CAPAS:
+            salida[f"{RES_ANDROID}/mipmap-{densidad}/ic_launcher_{android}.png"] = png(escalar(capas[nombre], factor))
+        # Antes de Android 8, el frente sobre el fondo: el mayor recorte del centro que llega a su lado por un entero.
+        recorte = next(r for r in range(RECORTE_ANTIGUO, 0, -1) if lado % r == 0 and (LADO_CAPA - r) % 2 == 0)
+        borde = (LADO_CAPA - recorte) // 2
+        cuadrado = junto.crop((borde, borde, borde + recorte, borde + recorte))
+        salida[f"{RES_ANDROID}/mipmap-{densidad}/ic_launcher.png"] = png(escalar(cuadrado, lado // recorte))
+        salida[f"{RES_ANDROID}/mipmap-{densidad}/ic_launcher_round.png"] = png(escalar(redonda(cuadrado), lado // recorte))
+    salida[ICONO_IOS] = png(escalar(ios, 1024 // LADO_IOS))
+    return salida
+
+
 def huella(ficheros):
     return {nombre: hashlib.sha256(datos).hexdigest() for nombre, datos in ficheros.items()}
 
@@ -292,6 +366,7 @@ def main():
     parser.add_argument("--desde", type=Path, default=ORIGEN)
     parser.add_argument("--hacia", type=Path, default=DESTINO)
     parser.add_argument("--comprobar", action="store_true")
+    parser.add_argument("--sin-iconos", action="store_true")
     args = parser.parse_args()
     if Image is None:
         print("arte: falta Pillow (pip install pillow); se usa lo ya generado")
@@ -299,26 +374,35 @@ def main():
     if not args.desde.exists():
         print(f"arte: no hay {args.desde}; el juego usa el prototipo en gris")
         return 0
+    # El icono va a los proyectos de Android y de iOS: solo al instalar en el juego, no al probar una entrega aparte.
+    con_iconos = not args.sin_iconos and args.hacia == DESTINO
     try:
         ficheros = generar(args.desde)
+        iconos = generar_iconos(args.desde) if con_iconos else {}
     except ArteMal as e:
         print(f"arte: {e}")
         return 1
     destino = args.hacia
     actuales = {p.name: p.read_bytes() for p in destino.glob("*")} if destino.exists() else {}
     if args.comprobar:
-        if huella(ficheros) != huella(actuales):
+        atrasados = [r for r, datos in iconos.items() if not (RAIZ / r).exists() or (RAIZ / r).read_bytes() != datos]
+        if huella(ficheros) != huella(actuales) or atrasados:
             print("arte: lo generado no está al día con arte/; ejecuta python3 tools/arte.py")
             return 1
-        print(f"arte: al día ({len(ficheros)} ficheros)")
+        print(f"arte: al día ({len(ficheros)} ficheros y {len(iconos)} del icono)")
         return 0
+    for ruta, datos in iconos.items():
+        fichero = RAIZ / ruta
+        if not fichero.exists() or fichero.read_bytes() != datos:
+            fichero.parent.mkdir(parents=True, exist_ok=True)
+            fichero.write_bytes(datos)
     destino.mkdir(parents=True, exist_ok=True)
     for viejo in set(actuales) - set(ficheros):
         (destino / viejo).unlink()
     for nombre, datos in ficheros.items():
         if actuales.get(nombre) != datos:
             (destino / nombre).write_bytes(datos)
-    print(f"arte: {len(ficheros)} ficheros en {destino}")
+    print(f"arte: {len(ficheros)} ficheros en {destino}" + (f" y {len(iconos)} del icono" if iconos else ""))
     return 0
 
 

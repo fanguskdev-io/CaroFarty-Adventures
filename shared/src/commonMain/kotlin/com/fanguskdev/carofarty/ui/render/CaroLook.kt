@@ -58,7 +58,8 @@ internal class CaroLook(
                 if (newRecord && celebrating) CaroPose.Record else CaroPose.SinPuntos
             }
             caro.state == CaroState.Fallen || (!caro.state.grounded && intoTheGap(run)) -> CaroPose.AlBarranco
-            caro.knockedBack && caro.state.grounded -> CaroPose.Retroceso
+            // The push back of an egg or a fish, on the ground or in the air (GameMaster drew it for both).
+            caro.knockedBack -> CaroPose.Retroceso
             caro.state == CaroState.Landing -> CaroPose.Aterriza
             caro.state.grounded -> if (caro.speed >= FAST_SPEED) CaroPose.CorreRapido else CaroPose.Corre
             caro.vy > APEX_SPEED -> CaroPose.Salta

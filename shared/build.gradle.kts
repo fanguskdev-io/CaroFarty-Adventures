@@ -64,7 +64,8 @@ kotlin {
 val generarArte = tasks.register<Exec>("generarArte") {
     val raiz = rootProject.layout.projectDirectory
     workingDir = raiz.asFile
-    commandLine("python3", "tools/arte.py")
+    // The icon goes to androidApp and iosApp, which this task does not own: tools/arte.py installs it, the gate checks it.
+    commandLine("python3", "tools/arte.py", "--sin-iconos")
     inputs.dir(raiz.dir("arte"))
     inputs.file(raiz.file("tools/arte.py"))
     outputs.dir(layout.projectDirectory.dir("src/commonMain/composeResources/files/arte"))

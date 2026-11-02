@@ -153,7 +153,8 @@ de 250 ms.
 ```bash
 python3 tools/arte.py                  # lee arte/ y escribe shared/src/commonMain/composeResources/files/arte/
 python3 tools/arte.py --comprobar      # no escribe: falla si lo generado no está al día (lo usa la puerta)
-python3 tools/arte.py --desde OTRA/arte --hacia /tmp/arte    # probar una entrega sin instalarla
+python3 tools/arte.py --desde OTRA/arte --hacia /tmp/arte    # probar una entrega sin instalarla (sin el icono)
+python3 tools/arte.py --sin-iconos     # sin el icono de la app: lo que hace la compilación
 ```
 
 Comprueba lo que promete el formato y dice qué y dónde si algo no lo cumple: cada fila mide el ancho del fotograma, cada
@@ -186,13 +187,30 @@ que eligió Fangusk ([pantallas](pantallas.md)):
 El script lo convierte en `ui-<pieza>.png`, `ui-iconos.png` y los demás, y `ui-titulo.png`, con su sección `ui` en el
 índice.
 
+## El icono
+
+El icono de la app (UI-19), «gorrito» sobre cielo, el que eligió Fangusk: Caro con un gatito naranja tumbado en la
+cabeza y un golden en brazos. GameMaster lo entrega en `arte/icono/` con la paleta `icono.gpl`, en el formato de los
+sprites, un fotograma cada uno:
+
+- `frente.json`, `fondo.json` y `monocromo.json`: las capas del icono adaptativo de Android, de 54 × 54, cada píxel 2 dp
+  de sus 108. El fondo, opaco; el monocromo, de un solo color (solo cuenta su alfa), para los iconos temáticos de
+  Android 13.
+- `ios.json`: el de iOS, de 64 × 64 y opaco, redibujado con más detalle.
+
+`python3 tools/arte.py` los escribe en `androidApp` (las tres capas en cada densidad, de ×2 en mdpi a ×8 en xxxhdpi, y,
+para antes de Android 8, el frente sobre el fondo en cuadrado y en redondo, recortado al centro) y en `iosApp` (el
+AppIcon de 1024, ×16). Siempre por enteros y con el vecino más próximo. La compilación no lo hace, porque esas carpetas
+no son suyas (`--sin-iconos`); la puerta comprueba que están al día.
+
 ## Cómo lo coloca el juego
 
 - **Lo que falte se dibuja en gris**: el juego arranca con todo, parte o nada del arte (TEC-18).
 - **Caro**: su ancla va en el centro de sus pies. La pose sale de lo que hace: `espera` antes del primer toque; `corre` y,
   desde 240 px/s, `corre-rapido`, con la zancada al ritmo de la distancia; `salta` mientras sube a más de 80 px/s,
   `apice` arriba y `cae` al bajar (al caerse de un borde sin saltar, `cae` directamente); `aterriza` los 0,1 s del
-  aterrizaje; `al-barranco` cuando ya no hay suelo que la recoja; `sin-puntos` al quedarse sin puntos y, si ha batido un
+  aterrizaje; `retroceso` los 0,3 s que la empuja hacia atrás un huevo o un pescado, en el suelo o en el aire;
+  `al-barranco` cuando ya no hay suelo que la recoja; `sin-puntos` al quedarse sin puntos y, si ha batido un
   récord, `record` en cuanto acaba. La ropa es la variante del escenario.
 - **Los animales** pisan el suelo o la plataforma con la última fila de su dibujo, sea cual sea su fotograma: el juego
   descuenta las filas vacías que tengan debajo. Los perritos caminan o se paran según su paseo y miran hacia donde van;

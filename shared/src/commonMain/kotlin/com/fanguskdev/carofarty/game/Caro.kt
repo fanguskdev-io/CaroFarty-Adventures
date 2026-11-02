@@ -43,6 +43,9 @@ class Caro(private val config: MovementConfig) {
     /** Whether a tap now would jump: on the ground, or just off an edge within the coyote time (PLY-04). */
     val mayStillJump: Boolean get() = state.grounded || (state == CaroState.Falling && coyote > 0f)
 
+    /** Whether a tap in the step of [dt] seconds that comes is the last that would jump: the end of the coyote time. */
+    fun lastChanceToJump(dt: Float): Boolean = state == CaroState.Falling && coyote > 0f && coyote <= dt * LAST_STEP_SLACK
+
     /** How many jumps she has made, and how many came from the coyote time or the jump buffer (PLY-04, for the debug line). */
     var jumps = 0
         private set
@@ -248,6 +251,9 @@ class Caro(private val config: MovementConfig) {
     companion object {
         /** Below this height she has left the screen through a gap. */
         const val FALL_LIMIT = -40f
+
+        /** A step and a little: what is left of the coyote time after the steps before, which add up in floats. */
+        private const val LAST_STEP_SLACK = 1.01f
 
         /** How long the landing lasts, for its animation: she can jump during it. */
         const val LANDING_TIME = 0.1f

@@ -44,11 +44,15 @@ class MetricsReportTest {
                     val band = BANDS.indexOfFirst { item.x / TILE in it }
                     if (band >= 0) counts[band][item.kind.ordinal]++
                 }
+                // The blocks are obstacles in the air (ADR 0007); the platforms with an animal on top, its reward (ADR 0009).
                 for (block in piece.blocks) {
                     val band = BANDS.indexOfFirst { block.start / TILE in it }
-                    // A platform carries an animal on top (ADR 0008); the rest are obstacles in the air (ADR 0007).
-                    val reward = piece.items.any { it.kind.adds && it.x >= block.start && it.x < block.end && it.y > block.top }
-                    if (band >= 0) if (reward) platforms[band]++ else blocks[band]++
+                    if (band >= 0) blocks[band]++
+                }
+                for (platform in piece.platforms) {
+                    val band = BANDS.indexOfFirst { platform.start / TILE in it }
+                    val reward = piece.items.any { it.kind.adds && it.x >= platform.start && it.x < platform.end && it.y > platform.top }
+                    if (band >= 0 && reward) platforms[band]++
                 }
                 end = piece.end
             }

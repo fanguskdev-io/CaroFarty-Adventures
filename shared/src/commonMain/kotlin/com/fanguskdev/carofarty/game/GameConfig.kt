@@ -82,21 +82,27 @@ data class CourseConfig(
     val gapFractionEnd: Float = 0.75f,
     /** How many metres it takes the difficulty to reach its end values: in the first minute it barely moves. */
     val difficultyRampMeters: Float = 3000f,
-    /** The rhythm (GDD-08): a stretch of tension this many metres long, then a calm one of this many easy pieces. */
+    /**
+     * The rhythm (GDD-08): a stretch of tension this many metres long, then a calm one of this many easy pieces, 2 or 3
+     * since the beta 6 (GEN-24).
+     */
     val tensionMinMeters: Int = 150,
     val tensionMaxMeters: Int = 250,
     val calmMinPieces: Int = 2,
-    val calmMaxPieces: Int = 4,
+    val calmMaxPieces: Int = 3,
     /**
-     * The gaps that only platforms cross (ADR 0009): one of every this many challenges, with up to this many platforms,
-     * more of them with the difficulty.
+     * The gaps that only platforms cross (ADR 0009): one of every this many challenges, one of every 2 since the beta 6
+     * (GEN-24), with up to this many platforms, more of them with the difficulty.
      */
     val platformEveryMin: Int = 2,
-    val platformEveryMax: Int = 3,
+    val platformEveryMax: Int = 2,
     val platformMaxCount: Int = 3,
-    /** The moving platforms (ADR 0009): from this speed on, in pixels a second, in this share of the gaps with platforms. */
-    val moverFromSpeed: Float = 250f,
-    val moverShare: Float = 0.5f,
+    /**
+     * The moving platforms (ADR 0009): from this speed on, in pixels a second, in this share of the gaps with platforms;
+     * since the beta 6, from 225 px/s and in a bit more than half (GEN-24).
+     */
+    val moverFromSpeed: Float = 225f,
+    val moverShare: Float = 0.6f,
     /**
      * The obstacles in the air that Fangusk asked for (ADR 0007): from what difficulty they appear, how often a gap gets
      * one (growing with the difficulty) and what share of them are solid blocks instead of a huevo frito or a pescado.
@@ -105,11 +111,25 @@ data class CourseConfig(
     val airChanceStart: Float = 0.35f,
     val airChanceEnd: Float = 0.9f,
     val airBlockShare: Float = 0.5f,
-    val negativesPer100mStart: Float = 2f,
-    val negativesPer100mEnd: Float = 8f,
+    /**
+     * How many collectibles that take points away a stretch of tension asks for every 100 m, from the start to full
+     * difficulty, besides the ones that watch over the animals: more since the beta 6 (GEN-23, Fangusk: «más huevos fritos
+     * y pescado»).
+     */
+    val negativesPer100mStart: Float = 2.5f,
+    val negativesPer100mEnd: Float = 10f,
     val positivesPer100m: Float = 8f,
     /** Of the groups of perritos and gatitos, the share that goes on a platform with a reward instead of a row (ADR 0008). */
     val rewardPlatformShare: Float = 0.35f,
+    /**
+     * The animals watched over (GEN-23, ADR 0010): the share of the groups of perritos and gatitos of the stretches of
+     * tension, a row or a platform with a reward, where one gets a huevo frito or a pescado by it, from the start to full
+     * difficulty, so that it comes to one of every 4 animals or so; and the share of those on the ground that leave no way
+     * to rescue the animal without touching it, a dilemma; the rest ask for skill.
+     */
+    val guardedShareStart: Float = 0.05f,
+    val guardedShareEnd: Float = 1f,
+    val guardedDilemmaShare: Float = 0.33f,
     /** How far inside the next ground a valid jump has to land. */
     val landingMarginTiles: Int = 1,
     /** How many hold lengths, in steps of the simulation, have to work for a gap to count as fair. */

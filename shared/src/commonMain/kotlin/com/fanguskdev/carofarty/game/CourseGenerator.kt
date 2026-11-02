@@ -21,7 +21,7 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
     private val movement = config.movement
     private val terrainRandom = Random(seed)
     private val itemRandom = Random(seed xor ITEM_SALT)
-    private val lab = JumpLab(movement, config.items.negativeBox)
+    private val lab = JumpLab(movement, config.items.negativeBox, config.items.positiveBox)
     private val sandbox = Course()
 
     /** The blocks and the platforms of the piece being made, which the validator's sandbox carries too. */
@@ -38,6 +38,20 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
 
     /** The shapes of the last two pieces (see [shapeOf]), so no difficult piece comes three times alike in a row. */
     private val shapes = intArrayOf(NO_SHAPE, NO_SHAPE)
+
+    /**
+     * The animals of the stretches of tension it has made, on the ground and on platforms with a reward; how many of them
+     * it watched over with a huevo frito or a pescado (GEN-23); and how many of those are a dilemma: for the tests.
+     */
+    internal var animals = 0
+        private set
+    internal var guarded = 0
+        private set
+    internal var dilemmas = 0
+        private set
+
+    /** Whether the next animal watched over on the ground has to be a dilemma, owed by one that did not fit. */
+    private var dilemmaDue = false
 
     /**
      * The next piece of course. The first one is the flat start; then a stretch of tension and a calm one take turns (GDD-08;
@@ -122,14 +136,23 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
         val longest = speed * lab.longestAirtime
         val fraction = course.gapFractionStart + (course.gapFractionEnd - course.gapFractionStart) * difficulty
         val widest = max(course.minGapTiles, floor(fraction * longest / TILE).toInt())
-        val gapTiles = if (easy) course.minGapTiles else terrainRandom.nextInt(course.minGapTiles, widest + 1)
+        val chosenGap = if (easy) course.minGapTiles else terrainRandom.nextInt(course.minGapTiles, widest + 1)
         val stepTiles = if (easy) 0 else terrainRandom.nextInt(-course.maxStepDown, course.maxStepUp + 1)
         val topTiles = (previous.top / TILE + stepTiles).coerceIn(course.minGroundTop, course.maxGroundTop)
         val minRun = shortestGround(speed)
         // A piece with a platform and its reward (ADR 0008) gets a ground long enough for it at the speed of the moment.
         val withPlatform = !easy && itemRandom.nextFloat() < course.rewardPlatformShare
         val platformRun = ceil((course.landingMarginTiles * TILE + speed * PLATFORM_SECONDS) / TILE).toInt() + PLATFORM_MAX_TILES
-        val shortest = if (withPlatform) max(minRun, platformRun) else minRun
+        // And one whose animals are watched over on the ground (GEN-23), room to land past the huevo or the pescado.
+        val guarding = !easy && itemRandom.nextFloat() < guardShare(difficulty) * if (withPlatform) SINGLE_ANIMAL_SHARE else 1f
+        val guardRun = ceil((GUARD_ROOM_TILES * TILE + speed * (RUNWAY_SECONDS + LANDING_SPREAD_SECONDS)) / TILE).toInt()
+        val shortest = when {
+            withPlatform -> max(minRun, platformRun)
+            guarding -> max(minRun, guardRun)
+            else -> minRun
+        }
+        // Over a gap a little narrower than the widest: the jump that leaves the egg or the fish behind is a longer one.
+        val gapTiles = if (guarding && !withPlatform) min(chosenGap, max(course.minGapTiles, widest - GUARD_GAP_SLACK)) else chosenGap
         val runTiles = terrainRandom.nextInt(shortest, max(shortest, course.maxGroundTiles) + 1)
         val start = previous.end + gapTiles * TILE
         val ground = Ground(start, start + runTiles * TILE, topTiles * TILE)
@@ -139,16 +162,21 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
         piecePlatforms.clear()
         val pieceMeters = (ground.end - previous.end).toFloat() / TILE
         val per100m = course.negativesPer100mStart + (course.negativesPer100mEnd - course.negativesPer100mStart) * difficulty
-        if (!easy) negatives(previous, ground, items, count = draw(pieceMeters * per100m / 100f))
+        // Where the animals are watched over on the ground, that is what there is to jump on it.
+        if (!easy) negatives(previous, ground, items, count = draw(pieceMeters * per100m / 100f), onTheGround = !guarding || withPlatform)
         if (!easy) airObstacles(previous, ground, items, difficulty)
         if (!fairGap(previous, ground, items, path = null)) return null
         // The step as built, which the limits of height may have cut short.
         val shape = shapeOf(gapTiles, (ground.top - previous.top) / TILE, ground, items)
         // Never three difficult pieces alike in a row (guía 1): a third one is made again.
         if (!easy && difficult(gapTiles, items) && shape == shapes[0] && shape == shapes[1]) return null
+        val placed = items.size
         val rewarded = positives(previous, ground, items, pieceMeters, withPlatform)
         // A long ground made for a platform with a reward that did not fit is made again: no long flat grounds (ADR 0009).
         if (withPlatform && !rewarded) return null
+        if (!easy) animals += items.size - placed
+        // A ground made long for animals watched over without them is made again, as one made for a platform.
+        if (guarding && !guard(previous, ground, items, placed, rewarded) && !rewarded) return null
         items.sortBy { it.x }
         remember(if (easy) NO_SHAPE else shape)
         return Piece(listOf(ground), items, ground.end, difficulty, pieceBlocks.toList(), piecePlatforms.toList())
@@ -165,24 +193,35 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
 
     /**
      * A gap too wide for any jump, that only platforms cross (ADR 0009, Fangusk: «plataformas sobre las que saltar de
-     * forma obligatoria para salvar distancias imposibles en salto, como se hace en Super Mario»): 1 to 3 platforms, more
-     * of them with the difficulty, each hop between them fair with the same rule as a gap, and the whole gap wider than
-     * the longest jump of the moment. Perritos and gatitos sometimes wait on them. Null if this one did not come out fair.
+     * forma obligatoria para salvar distancias imposibles en salto, como se hace en Super Mario»): 1 or 2 platforms at the
+     * start and 2 or 3 at full difficulty (GEN-24), in some of them a staircase that goes up or down; each hop between them
+     * fair with the same rule as a gap, and the whole gap wider than the longest jump of the moment. Perritos and gatitos
+     * sometimes wait on them. Null if this one did not come out fair.
      */
     private fun platformPiece(previous: Ground): Piece? {
         val meters = meters(previous.end)
         val speed = movement.speedAt(meters)
         val difficulty = difficultyAt(meters)
-        val count = 1 + (terrainRandom.nextFloat() * (1 + difficulty * (course.platformMaxCount - 1))).toInt()
-            .coerceAtMost(course.platformMaxCount - 1)
-        // The heights first: each platform a little higher or lower than what comes before it, and the ground after them.
+        val many = terrainRandom.nextFloat()
+        val count = when {
+            many < ONE_PLATFORM_START + (ONE_PLATFORM_END - ONE_PLATFORM_START) * difficulty -> 1
+            many < 1f - THREE_PLATFORMS_END * difficulty -> 2
+            else -> 3
+        }.coerceAtMost(course.platformMaxCount)
+        // The heights first: a staircase, a tile up or down each time, or each platform a little higher or lower than what
+        // comes before it; and the ground after them.
         val tops = IntArray(count + 1)
         var top = previous.top / TILE
+        val stairs = stairs(top, count)
         for (k in 0..count) {
-            val step = when (val roll = terrainRandom.nextFloat()) {
-                in 0f..PLATFORM_DOWN_SHARE -> -1
-                in PLATFORM_DOWN_SHARE..PLATFORM_LEVEL_SHARE -> 0
-                else -> if (roll > 1f - PLATFORM_UP_TWO_SHARE * difficulty) 2 else 1
+            val step = if (stairs != 0) {
+                stairs
+            } else {
+                when (val roll = terrainRandom.nextFloat()) {
+                    in 0f..PLATFORM_DOWN_SHARE -> -1
+                    in PLATFORM_DOWN_SHARE..PLATFORM_LEVEL_SHARE -> 0
+                    else -> if (roll > 1f - PLATFORM_UP_TWO_SHARE * difficulty) 2 else 1
+                }
             }
             val highest = if (k == count) course.maxGroundTop else course.maxGroundTop + PLATFORM_ABOVE_GROUNDS
             top = (top + step).coerceIn(course.minGroundTop, highest)
@@ -194,13 +233,15 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
             val drop = max(0, (if (k == 0) previous.top else tops[k - 1]) - tops[k]) / TILE
             width + drop + terrainRandom.nextInt(0, PLATFORM_EXTRA_WIDTH + 1)
         }
-        // The hops, as wide as it takes for the whole gap to be beyond the longest jump, falling to the ground after it
-        // too, and none beyond a comfortable one.
+        // The hops, each as wide as a gap of the moment (GEN-24: the platforms ask as much as the gaps they stand for),
+        // and wider where it takes for the whole gap to be beyond the longest jump, falling to the ground after it too;
+        // none beyond the widest gap of the moment.
         val fall = max(0, previous.top - tops[count]).toFloat()
         val longest = speed * (lab.longestAirtime + sqrt(2 * fall / movement.gravity))
-        val maxHop = max(MIN_HOP_TILES, floor(HOP_SHARE * speed * lab.longestAirtime / TILE).toInt())
+        val fraction = course.gapFractionStart + (course.gapFractionEnd - course.gapFractionStart) * difficulty
+        val maxHop = max(MIN_HOP_TILES, floor(fraction * speed * lab.longestAirtime / TILE).toInt())
         val needed = ceil((longest + TILE) / TILE).toInt() - widths.sum()
-        val hops = IntArray(count + 1) { MIN_HOP_TILES }
+        val hops = IntArray(count + 1) { terrainRandom.nextInt(max(MIN_HOP_TILES, maxHop / 2), maxHop + 1) }
         var missing = needed - hops.sum()
         var tries = 0
         while (missing > 0 && tries++ < HOP_TRIES) {
@@ -211,8 +252,6 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
             }
         }
         if (missing > 0) return null
-        // Some more width here and there, so they do not all look alike.
-        for (k in hops.indices) if (hops[k] < maxHop && terrainRandom.nextFloat() < WIDER_HOP_SHARE) hops[k]++
 
         pieceBlocks.clear()
         piecePlatforms.clear()
@@ -241,16 +280,38 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
             move(terrainRandom.nextInt(count), surfaces, grounds)
         }
         val items = mutableListOf<Item>()
-        for (platform in piecePlatforms) {
+        val share = guardShare(difficulty) * SINGLE_ANIMAL_SHARE
+        for ((k, platform) in piecePlatforms.withIndex()) {
             // Never on one that moves: it would be left in the air.
             if (platform.motion != null || itemRandom.nextFloat() >= ANIMAL_ON_PLATFORM_SHARE) continue
             val animal = positive((platform.start + platform.end) / 2, platform.top + Item.ABOVE_GROUND)
             if (animal.kind == ItemKind.Perrito) animal.walk = walkOn(animal, platform.start + PLATFORM_EDGE, platform.end - PLATFORM_EDGE)
             items += animal
+            animals++
+            // Watched over now and then, like the animals on the ground (GEN-23).
+            if (itemRandom.nextFloat() < share) guardOnTheWay(surfaces[k], surfaces[k + 1], surfaces[k + 2], grounds, items, animal)
         }
         if (itemRandom.nextFloat() < course.positivesPer100m * runTiles / 100f) row(next, next.start + ROW_FROM_TILE * TILE, items)
+        items.sortBy { it.x }
         remember(NO_SHAPE)
         return Piece(listOf(next), items, next.end, difficulty, platforms = piecePlatforms.toList())
+    }
+
+    /**
+     * Whether the [count] platforms of a gap that starts at [top] tiles go up (1) or down (-1) a tile each, like a
+     * staircase (GEN-24, Fangusk: «más plataformeo»), or each its own way (0): stairs in [STAIRS_SHARE] of the gaps with
+     * two or three, up or down where there is room for every step.
+     */
+    private fun stairs(top: Int, count: Int): Int {
+        if (count < 2 || terrainRandom.nextFloat() >= STAIRS_SHARE) return 0
+        val up = top + count <= course.maxGroundTop + PLATFORM_ABOVE_GROUNDS
+        val down = top - count >= course.minGroundTop
+        return when {
+            up && down -> if (terrainRandom.nextBoolean()) 1 else -1
+            up -> 1
+            down -> -1
+            else -> 0
+        }
     }
 
     /**
@@ -429,18 +490,19 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
     }
 
     /**
-     * [count] collectibles that take points away, up to two: on the ground where there is room to jump it, high over the
-     * gap, or both. One that cannot be made fair is left out.
+     * [count] collectibles that take points away, up to two: on the ground where there is room to jump it (if
+     * [onTheGround]), high over the gap, or both. One that cannot be made fair is left out.
      */
     private fun negatives(
         previous: Ground,
         ground: Ground,
         items: MutableList<Item>,
         count: Int,
+        onTheGround: Boolean,
     ) {
         if (count == 0) return
-        val onTheGround = (count >= 2 || itemRandom.nextBoolean()) && obstacle(ground, items)
-        if (count >= 2 || !onTheGround) ceiling(previous, ground, items)
+        val placed = onTheGround && (count >= 2 || itemRandom.nextBoolean()) && obstacle(ground, items)
+        if (count >= 2 || !placed) ceiling(previous, ground, items)
     }
 
     /**
@@ -467,6 +529,241 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
     }
 
     private fun negativeKind(): ItemKind = if (itemRandom.nextFloat() < FISH_SHARE) ItemKind.Pescado else ItemKind.Huevo
+
+    /** The share of the groups of animals watched over at [difficulty] (GEN-23): a row, or one alone on a platform. */
+    private fun guardShare(difficulty: Float): Float =
+        course.guardedShareStart + (course.guardedShareEnd - course.guardedShareStart) * difficulty
+
+    /**
+     * A huevo frito or a pescado by the animals just placed, those from [from] in [items] (GEN-23, ADR 0010; Fangusk:
+     * «para que el jugador tenga que a veces elegir no rescatar a un animalito con tal de no coger un pescado o un
+     * huevo»): on their platform with a reward ([onPlatform]), or by the first of their row, where the jump over the gap
+     * lands. In [CourseConfig.guardedDilemmaShare] of those on the ground nothing rescues the animal without touching it,
+     * a dilemma; in the rest some jumps do, by the rule of any jump. Leaving both behind is always fair: if it does not
+     * come out like that, it is taken away. Whether it went in.
+     */
+    private fun guard(
+        previous: Ground,
+        ground: Ground,
+        items: MutableList<Item>,
+        from: Int,
+        onPlatform: Boolean,
+    ): Boolean {
+        if (items.size == from) return false
+        if (onPlatform) {
+            // Always skill: a jump up through it from below rescues the animal whatever is there.
+            if (!guardPlatform(previous, ground, items, from)) return false
+        } else {
+            val dilemma = dilemmaDue || itemRandom.nextFloat() < course.guardedDilemmaShare
+            // A dilemma that did not fit is owed to the next one, so they come in their share.
+            dilemmaDue = dilemma
+            if (!guardRow(previous, ground, items, from, dilemma)) return false
+            dilemmaDue = false
+            if (dilemma) dilemmas++
+        }
+        guarded++
+        return true
+    }
+
+    /**
+     * The row from [from] in [items] laid out again around a huevo frito or a pescado where the jump over the gap from
+     * [previous] lands on [ground]: in a [dilemma], the first animal where the natural jump lands and the other right
+     * behind it, so that rescuing it means touching both; and else the other where the natural jump lands and the first
+     * animal a little further, so that a longer jump rescues it clean. Landing past them is always fair. The animal watched
+     * over stays still, and the others of the row walk clear of it. If none comes out so, the row stays as it was.
+     * Whether it went in.
+     */
+    private fun guardRow(
+        previous: Ground,
+        ground: Ground,
+        items: MutableList<Item>,
+        from: Int,
+        dilemma: Boolean,
+    ): Boolean {
+        val row = items.subList(from, items.size).sortedBy { it.x }
+        val wanted = if (dilemma) DILEMMA else SKILL
+        val kind = negativeKind()
+        val distances = if (dilemma) DILEMMA_DISTANCES else SKILL_DISTANCES
+        val first = itemRandom.nextInt(distances.size)
+        val touching = (config.items.positiveBox + config.items.negativeBox) / 2
+        for (k in distances.indices) {
+            val distance = distances[(first + k) % distances.size]
+            val animalX = ground.start + if (dilemma) DILEMMA_ANIMAL_AT else SKILL_NEGATIVE_AT + distance
+            val negativeX = if (dilemma) animalX + distance else ground.start + SKILL_NEGATIVE_AT
+            if (max(animalX, negativeX) > ground.end - OBSTACLE_TO_END_TILES * TILE) continue
+            // Nothing else to jump on this ground near it.
+            if (items.any { !it.kind.adds && onGround(it, ground) && abs(it.x - negativeX) < ROW_CLEARANCE }) continue
+            val laid = ArrayList<Item>(row.size + 1)
+            var x = animalX
+            for (animal in row) {
+                // The rest of the row after both, clear of the negative.
+                if (laid.isNotEmpty() && abs(x - negativeX) <= touching) x = max(x, negativeX + touching + ROW_SPACING / 2)
+                if (x > ground.end - TILE) break
+                laid += Item(animal.kind, x, animal.y).also {
+                    it.coat = animal.coat
+                    it.breed = animal.breed
+                }
+                x += ROW_SPACING
+            }
+            val negative = Item(kind, negativeX, ground.top + Item.ABOVE_GROUND)
+            items.subList(from, items.size).clear()
+            items += laid
+            items += negative
+            if (fairGap(previous, ground, items, path = null) && rescueAcross(previous, ground, laid[0], items) == wanted) {
+                for (animal in laid) if (animal !== laid[0] && animal.kind == ItemKind.Perrito) animal.walk = walkFor(animal, ground, items)
+                return true
+            }
+        }
+        items.subList(from, items.size).clear()
+        items += row
+        return false
+    }
+
+    /**
+     * [animal], on the platform [on] of a gap with platforms, with a huevo frito or a pescado where the hop from [before]
+     * lands, as on the ground ([guardRow]): a dilemma in [CourseConfig.guardedDilemmaShare] of them, else skill. The hops
+     * onto the platform and off it to [after] stay fair, landing past it; if not, it is taken away and the animal goes
+     * back to its place.
+     */
+    private fun guardOnTheWay(
+        before: Surface,
+        on: Surface,
+        after: Surface,
+        grounds: List<Ground>,
+        items: MutableList<Item>,
+        animal: Item,
+    ) {
+        val dilemma = dilemmaDue || itemRandom.nextFloat() < course.guardedDilemmaShare
+        val distances = if (dilemma) DILEMMA_DISTANCES else SKILL_DISTANCES
+        val first = itemRandom.nextInt(distances.size)
+        val kind = negativeKind()
+        val index = items.indexOf(animal)
+        for (k in distances.indices) {
+            val distance = distances[(first + k) % distances.size]
+            val animalX = on.start + if (dilemma) DILEMMA_ANIMAL_AT else SKILL_NEGATIVE_AT + distance
+            val negativeX = if (dilemma) animalX + distance else on.start + SKILL_NEGATIVE_AT
+            if (max(animalX, negativeX) > on.end - PLATFORM_EDGE) continue
+            val moved = Item(animal.kind, animalX, animal.y).also {
+                it.coat = animal.coat
+                it.breed = animal.breed
+            }
+            val negative = Item(kind, negativeX, on.top + Item.ABOVE_GROUND)
+            items[index] = moved
+            items += negative
+            val fair = fairHop(before, on, grounds, items, path = null) && fairHop(on, after, grounds, items, path = null)
+            if (fair && rescueHop(before, on, grounds, moved, items) == if (dilemma) DILEMMA else SKILL) {
+                dilemmaDue = false
+                guarded++
+                if (dilemma) dilemmas++
+                return
+            }
+            items -= negative
+            items[index] = animal
+        }
+        if (dilemma) dilemmaDue = true
+    }
+
+    /** Whether [item] sits on [ground], not in the air over it or over the gap before it. */
+    private fun onGround(item: Item, ground: Ground): Boolean =
+        item.x >= ground.start && item.x < ground.end && item.y - ground.top in 0 until Item.SIZE
+
+    /**
+     * The animal on the platform with a reward just made, the only one there, with a huevo frito or a pescado where the
+     * jump onto it lands, before it, so that a longer jump rescues it clean. Running under the platform leaves both
+     * behind. Whether it went in.
+     */
+    private fun guardPlatform(
+        previous: Ground,
+        ground: Ground,
+        items: MutableList<Item>,
+        from: Int,
+    ): Boolean {
+        val platform = piecePlatforms.lastOrNull() ?: return false
+        if (items.size - from != 1) return false
+        val animal = items[from]
+        val near = platform.start + PLATFORM_EDGE
+        val far = platform.end - PLATFORM_EDGE
+        // Moved to the far end of the platform, and still: a perrito that walked would take the room the other needs.
+        val moved = Item(animal.kind, far - GUARD_ON_PLATFORM, animal.y)
+        moved.coat = animal.coat
+        moved.breed = animal.breed
+        val negative = Item(negativeKind(), near, platform.top + Item.ABOVE_GROUND)
+        if (rescueOnPlatform(ground, platform, moved, negative) != SKILL) return false
+        items[from] = moved
+        items += negative
+        if (fairGap(previous, ground, items, path = null)) return true
+        items -= negative
+        items[from] = animal
+        return false
+    }
+
+    /**
+     * Whether a jump over the gap from [previous] lands well on [ground] and rescues [animal] there without touching what
+     * takes points away in [items], running on after it lands: by the rule of any jump ([SKILL]), never ([DILEMMA]), or
+     * only now and then ([NEITHER]).
+     */
+    private fun rescueAcross(
+        previous: Ground,
+        ground: Ground,
+        animal: Item,
+        items: List<Item>,
+    ): Int = rescueHop(
+        Surface(previous.start, previous.end, previous.top),
+        Surface(ground.start, ground.end, ground.top),
+        listOf(previous, ground),
+        animal,
+        items,
+    )
+
+    /** What [rescueAcross] says of a hop from [from] to [to], grounds or platforms that stand still, with the [grounds] around. */
+    private fun rescueHop(
+        from: Surface,
+        to: Surface,
+        grounds: List<Ground>,
+        animal: Item,
+        items: List<Item>,
+    ): Int {
+        sandbox.clear()
+        sandbox.append(Piece(grounds, emptyList(), grounds.last().end, blocks = pieceBlocks, platforms = piecePlatforms))
+        val speed = movement.speedAt(meters(from.end))
+        val windowSteps = ceil(PRESS_WINDOW_SECONDS / JumpLab.STEP).toInt()
+        val lastPress = windowSteps + floor(movement.coyoteTime / JumpLab.STEP).toInt()
+        val startX = max(from.start + half.toDouble(), from.end - half - speed.toDouble() * (windowSteps + 1) * JumpLab.STEP)
+        val rule = LandingRule(to, items, speed)
+        // After landing, on past the animal and what watches over it.
+        var farthest = animal.x
+        for (item in items) if (!item.kind.adds && item.x > to.start && item.x < to.end) farthest = max(farthest, item.x)
+        val runAfter = ceil((farthest + TILE - to.start) / (speed * JumpLab.STEP)).toInt()
+        val y = from.top.toFloat()
+        if (fair(lastPress, y, startX, items, watch = animal, runAfter = runAfter) { rule.good(it) && it.touchedWatched }) return SKILL
+        val any = any(lastPress, y, startX, items, watch = animal, runAfter = runAfter) { rule.good(it) && it.touchedWatched }
+        return if (any) NEITHER else DILEMMA
+    }
+
+    /**
+     * Whether a jump from [ground] rescues [animal] on the [platform] and touches nothing that takes points away, running on
+     * after it lands, off the platform and down to the ground: as [rescueAcross] says it.
+     */
+    private fun rescueOnPlatform(
+        ground: Ground,
+        platform: Platform,
+        animal: Item,
+        negative: Item,
+    ): Int {
+        sandbox.clear()
+        sandbox.append(Piece(listOf(ground), emptyList(), ground.end, blocks = pieceBlocks, platforms = piecePlatforms))
+        val speed = movement.speedAt(meters(platform.start)).toDouble()
+        val windowSteps = ceil(PLATFORM_WINDOW_SECONDS / JumpLab.STEP).toInt()
+        val startX = max(ground.start + half.toDouble(), platform.start - half - speed * (windowSteps + 1) * JumpLab.STEP)
+        // Up to passing under its end, and after landing, on until she is off it.
+        val lastPress = ceil((platform.end - startX) / (speed * JumpLab.STEP)).toInt()
+        val runAfter = ceil((platform.end - platform.start + 2 * TILE) / (speed * JumpLab.STEP)).toInt()
+        val items = listOf(negative)
+        val y = ground.top.toFloat()
+        fun rescued(landing: JumpLab.Landing) = landing.landed && landing.touchedWatched
+        if (fair(lastPress, y, startX, items, watch = animal, runAfter = runAfter) { rescued(it) }) return SKILL
+        return if (any(lastPress, y, startX, items, watch = animal, runAfter = runAfter) { rescued(it) }) NEITHER else DILEMMA
+    }
 
     /** Perritos and gatitos: on a platform with a reward if [withPlatform] and it fits (then true), or a row on the ground. */
     private fun positives(
@@ -614,27 +911,45 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
         val coyoteSteps = floor(movement.coyoteTime / JumpLab.STEP).toInt()
         val startX = max(from.startAt(time) + half, from.endAt(time) - half - speed.toDouble() * (windowSteps + 1) * JumpLab.STEP)
         val lastPress = windowSteps + coyoteSteps
-        val margin = course.landingMarginTiles * TILE
-        var maxLand = to.end - speed.toDouble() * RUNWAY_SECONDS
-        // Something to jump on the ground she lands on: she has to land with the whole run-up to jump it still ahead.
-        for (item in items) {
-            if (!item.kind.adds && item.x > to.start && item.x < to.end && item.y - to.top < Item.SIZE) {
-                maxLand = min(maxLand, item.x - Item.SIZE / 2 - half - speed.toDouble() * OBSTACLE_WINDOW_SECONDS)
+        val rule = LandingRule(to, items, speed)
+        val y = from.topAt(time).toFloat()
+        return fair(lastPress, y, startX, items, time) { rule.good(it) }.also {
+            if (it && path != null) {
+                val margin = course.landingMarginTiles * TILE
+                recordGoodPath(path, from.top.toFloat(), startX, items, lastPress, to.start + margin, to.end + rule.beforeShift, to.top)
             }
         }
-        // On a moving platform, where it is when she lands.
-        val shift = maxLand - to.end
-        val y = from.topAt(time).toFloat()
-        return fair(lastPress, y, startX, items, time) { landing ->
-            val at = landing.time
-            landing.landed &&
-                abs(landing.top - to.topAt(at)) < 1.0 &&
-                landing.x >= to.startAt(at) + margin &&
-                landing.x <= to.endAt(at) + shift
-        }.also {
-            if (it && path != null) {
-                recordGoodPath(path, from.top.toFloat(), startX, items, lastPress, to.start + margin, maxLand, to.top)
+    }
+
+    /**
+     * Where a landing on [to] is good (GEN-10): with margin after its start, and before what there is to jump on it with
+     * the whole run-up to jump it still ahead, or past all of it (GEN-23, where the jump over the gap leaves an egg or a
+     * fish behind); either way, with room to run up to the next jump. On a moving platform, where it is when she lands.
+     */
+    private inner class LandingRule(private val to: Surface, items: List<Item>, speed: Float) {
+        private val margin = course.landingMarginTiles * TILE
+        private val endShift = -speed.toDouble() * RUNWAY_SECONDS
+        var beforeShift = endShift
+            private set
+        private var past = Double.POSITIVE_INFINITY
+
+        init {
+            var last = Double.NEGATIVE_INFINITY
+            for (item in items) {
+                if (!item.kind.adds && item.x > to.start && item.x < to.end && item.y - to.top < Item.SIZE) {
+                    val before = item.x - Item.SIZE / 2 - half - speed.toDouble() * OBSTACLE_WINDOW_SECONDS - to.end
+                    beforeShift = min(beforeShift, before)
+                    last = max(last, item.x + Item.SIZE / 2 + half.toDouble())
+                }
             }
+            if (last > Double.NEGATIVE_INFINITY) past = last
+        }
+
+        fun good(landing: JumpLab.Landing): Boolean {
+            val at = landing.time
+            if (!landing.landed || abs(landing.top - to.topAt(at)) >= 1.0 || landing.x < to.startAt(at) + margin) return false
+            val end = to.endAt(at)
+            return landing.x <= end + beforeShift || (landing.x >= past && landing.x <= end + endShift)
         }
     }
 
@@ -688,6 +1003,8 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
         startX: Double,
         items: List<Item>,
         time: Double = 0.0,
+        watch: Item? = null,
+        runAfter: Int = 0,
         good: (JumpLab.Landing) -> Boolean,
     ): Boolean {
         var fairPresses = 0
@@ -698,10 +1015,29 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
             for (hold in 0..maxHold) {
                 // Enough good holds for this press, or no longer possible: the rest need not be tried.
                 if (holds >= course.fairHoldSteps || holds + (maxHold - hold + 1) < course.fairHoldSteps) break
-                val landing = lab.tryJump(sandbox, items, startX, y, runStart, press, hold, time = time)
+                val landing = lab.tryJump(sandbox, items, startX, y, runStart, press, hold, time = time, watch = watch, runAfter = runAfter)
                 if (!landing.touchedNegative && good(landing)) holds++
             }
             if (holds >= course.fairHoldSteps && ++fairPresses >= FAIR_PRESSES) return true
+        }
+        return false
+    }
+
+    /** Whether any jump of those [fair] tries is [good] and touches nothing that takes points away. */
+    private inline fun any(
+        lastPress: Int,
+        y: Float,
+        startX: Double,
+        items: List<Item>,
+        watch: Item? = null,
+        runAfter: Int = 0,
+        good: (JumpLab.Landing) -> Boolean,
+    ): Boolean {
+        for (press in lastPress downTo 0) {
+            for (hold in 0..maxHold) {
+                val landing = lab.tryJump(sandbox, items, startX, y, runStart, press, hold, watch = watch, runAfter = runAfter)
+                if (!landing.touchedNegative && good(landing)) return true
+            }
         }
         return false
     }
@@ -799,21 +1135,29 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
         const val PLATFORM_EDGE = 6
 
         /**
-         * The gaps with platforms (ADR 0009): a hop of 1 tile at least and of at most this share of the longest jump, some
-         * a tile wider; the platforms up to this many tiles wider than the shortest ground, and a tile wider for each one
+         * The gaps with platforms (ADR 0009): a hop of 1 tile at least, as wide as a gap of the moment at most; the
+         * platforms up to this many tiles wider than the shortest ground, and a tile wider for each one
          * they are lower than what comes before them; each a tile lower than what comes before it in this share, at the
          * same height up to the next and higher in the rest (two tiles in this share of those at full difficulty), and at
          * most this many tiles over the highest ground; a perrito or a gatito on this share of them; and the farthest
          * jumps tried to see that the gap needs them.
          */
         const val MIN_HOP_TILES = 1
-        const val HOP_SHARE = 0.55f
         const val HOP_TRIES = 64
-        const val WIDER_HOP_SHARE = 0.3f
         const val PLATFORM_EXTRA_WIDTH = 1
         const val PLATFORM_DOWN_SHARE = 0.25f
         const val PLATFORM_LEVEL_SHARE = 0.55f
         const val PLATFORM_UP_TWO_SHARE = 0.15f
+
+        /**
+         * How many platforms a gap has (GEN-24): one in this share of them at the start and in this other at full
+         * difficulty; three in this share at full difficulty; two in the rest. And the share of those with two or three
+         * that are a staircase.
+         */
+        const val ONE_PLATFORM_START = 0.5f
+        const val ONE_PLATFORM_END = 0.15f
+        const val THREE_PLATFORMS_END = 0.45f
+        const val STAIRS_SHARE = 0.6f
         const val PLATFORM_ABOVE_GROUNDS = 2
         const val ANIMAL_ON_PLATFORM_SHARE = 0.4f
         const val DIRECT_PRESSES = 4
@@ -828,5 +1172,35 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
         const val MOVER_MIN_PERIOD = 2.4
         const val MOVER_MAX_PERIOD = 3.6
         const val MOVER_SAMPLES = 6
+
+        /**
+         * The animals watched over (GEN-23): how far apart the animal and the huevo frito or the pescado are on the ground,
+         * in pixels between their middles: in a dilemma, the egg right behind the animal, their boxes almost touching; when
+         * it asks for skill, the egg before the animal, two and a half to four tiles; and on a platform with a reward.
+         */
+        val DILEMMA_DISTANCES = intArrayOf(14, 16, 18)
+        val SKILL_DISTANCES = intArrayOf(40, 48, 56, 64)
+        const val GUARD_ON_PLATFORM = 16
+
+        /** Where the natural jump over the gap lands, from the ground's start: the animal of a dilemma, the egg of skill. */
+        const val DILEMMA_ANIMAL_AT = 3 * TILE / 2
+        const val SKILL_NEGATIVE_AT = 3 * TILE / 2
+
+        /** How many tiles narrower than the widest the gap before animals watched over on the ground is at least. */
+        const val GUARD_GAP_SLACK = 1
+
+        /** An animal alone on a platform is watched over a little less often than a row: one of every 4 or so in all. */
+        const val SINGLE_ANIMAL_SHARE = 0.75f
+
+        /**
+         * The ground of a piece whose animals may be watched over: room for the landing, the first animals and what
+         * watches over them, in tiles, besides the landing spread and the run-up to the next jump.
+         */
+        const val GUARD_ROOM_TILES = 5
+
+        /** What [rescue] says. */
+        const val SKILL = 0
+        const val DILEMMA = 1
+        const val NEITHER = 2
     }
 }

@@ -125,13 +125,18 @@ class CourseGeneratorTest {
                 for (ground in piece.grounds) {
                     assertTrue(ground.top in course.minGroundTop * TILE..course.maxGroundTop * TILE, "height ${ground.top}")
                     assertTrue(ground.end - ground.start >= course.minGroundTiles * TILE, "a ground of ${ground.end - ground.start} px")
-                    // Short grounds (ADR 0009), but for the start and those that carry a platform with a reward.
+                    // Short grounds (ADR 0009), but for the start, those that carry a platform with a reward and those with
+                    // animals watched over (GEN-23), with room to land past the egg or the fish.
                     val reward = piece.platforms.any { it.start >= ground.start && it.end <= ground.end }
+                    val guarded = piece.items.any {
+                        !it.kind.adds && it.x in ground.start until ground.end && it.y == ground.top + SITTING_HEIGHT
+                    }
+                    val speed = config.movement.speedAt((ground.start - GameRun.START_X) / TILE)
+                    val after = CourseGenerator.RUNWAY_SECONDS + CourseGenerator.LANDING_SPREAD_SECONDS
+                    val guardRun = ceil((CourseGenerator.GUARD_ROOM_TILES * TILE + speed * after) / TILE).toInt()
+                    val longest = if (guarded) maxOf(course.maxGroundTiles, guardRun) else course.maxGroundTiles
                     if (previous != null && !reward) {
-                        assertTrue(
-                            ground.end - ground.start <= course.maxGroundTiles * TILE,
-                            "a ground of ${(ground.end - ground.start) / TILE} tiles",
-                        )
+                        assertTrue(ground.end - ground.start <= longest * TILE, "a ground of ${(ground.end - ground.start) / TILE} tiles")
                     }
                     previous?.let { before ->
                         val gap = ground.start - before.end
@@ -299,13 +304,42 @@ class CourseGeneratorTest {
     }
 
     @Test
-    fun aCarefulPilotRunsKilometresWithoutFalling() {
+    fun aCarefulPilotRunsKilometresWithoutFallingOrTouchingAnEggOrAFish() {
+        // GEN-23: next to the animals watched over too, there is always a way that touches nothing that takes points away.
         for (seed in 1L..3L) {
             val run = GameRun(config, Scenario.Bosque, seed)
-            Pilot(run).play(seconds = 240f)
+            val pilot = Pilot(run)
+            var touched = 0
+            repeat((240f / JumpLab.STEP).toInt()) {
+                if (run.phase == RunPhase.Over) return@repeat
+                pilot.step()
+                touched += run.events.count { it is RunEvent.Picked && it.points < 0 }
+                run.events.clear()
+            }
             assertTrue(run.endCause != EndCause.Fall, "seed $seed: fell at ${run.meters.toInt()} m")
             assertTrue(run.meters > 2_000, "seed $seed: only ${run.meters.toInt()} m")
+            assertEquals(0, touched, "seed $seed: touched $touched eggs and fish")
         }
+    }
+
+    @Test
+    fun someAnimalsAreWatchedOverMoreAsTheRunGoesOn() {
+        // GEN-23, ADR 0010: few at the start and about one of every 5 animals at full difficulty, a third or so dilemmas.
+        val generator = CourseGenerator(config, seed = 31, runStart = GameRun.START_X)
+        var end = 0
+        while ((end - GameRun.START_X) / TILE < EARLY_METERS) end = generator.next().end
+        val early = generator.guarded.toFloat() / generator.animals
+        while ((end - GameRun.START_X) / TILE < course.difficultyRampMeters) end = generator.next().end
+        val animals = generator.animals
+        val guarded = generator.guarded
+        val dilemmas = generator.dilemmas
+        repeat(LATE_PIECES) { generator.next() }
+        val late = (generator.guarded - guarded).toFloat() / (generator.animals - animals)
+        val dilemma = (generator.dilemmas - dilemmas).toFloat() / (generator.guarded - guarded)
+        println("Animales vigilados: $early al principio, $late a toda dificultad; dilemas, $dilemma")
+        assertTrue(early < EARLY_MOST, "at the start $early of the animals watched over")
+        assertTrue(late in LATE_LEAST..LATE_MOST, "at full difficulty $late of the animals watched over")
+        assertTrue(dilemma in DILEMMA_LEAST..DILEMMA_MOST, "$dilemma of them dilemmas")
     }
 
     @Test
@@ -329,7 +363,7 @@ class CourseGeneratorTest {
     private companion object {
         const val FNV_OFFSET = -3750763034362895579L
         const val FNV_PRIME = 1099511628211L
-        const val SAME_RUN = 3704572404370904362L
+        const val SAME_RUN = 3207752924683724233L
 
         /** How high an animal's centre sits over what it stands on, and the highest jump of docs/movimiento.md. */
         const val SITTING_HEIGHT = 8
@@ -348,5 +382,14 @@ class CourseGeneratorTest {
          * hops checked one by one (ADR 0009), about 40 ms there and 1,4 ms on the JVM.
          */
         const val MAX_MILLIS_PER_PIECE = 80.0
+
+        /** The animals watched over (GEN-23): how many in the first metres, and how many at full difficulty. */
+        const val EARLY_METERS = 600
+        const val LATE_PIECES = 600
+        const val EARLY_MOST = 0.1f
+        const val LATE_LEAST = 0.15f
+        const val LATE_MOST = 0.35f
+        const val DILEMMA_LEAST = 0.2f
+        const val DILEMMA_MOST = 0.45f
     }
 }

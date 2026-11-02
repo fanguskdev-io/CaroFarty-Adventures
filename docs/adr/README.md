@@ -18,7 +18,8 @@ y estas decisiones existen antes de G4 porque Fangusk pidió construir ya. Las r
 | [0003](0003-horizontal-y-pixel-perfecto.md) | En horizontal, 320×180 como mínimo, tiles de 16 px y escalado entero | Aceptada | GDD-04 |
 | [0004](0004-generacion-por-reglas-con-validador.md) | Un recorrido generado por reglas y comprobado por un validador de saltos | Aceptada | GDD-07 |
 | [0005](0005-un-regalo-sin-conexion.md) | Un regalo sin conexión: sin anuncios, analítica ni nada que salga del teléfono | Aceptada | PRD-01 |
-| [0006](0006-tres-escenarios-a-elegir.md) | Tres escenarios distintos y ella elige dónde jugar | Aceptada; los récords por escenario, propuesta | GDD-12 |
+| [0006](0006-tres-escenarios-a-elegir.md) | Tres escenarios distintos y ella elige dónde jugar | Aceptada, también los récords por escenario | GDD-12 |
 | [0007](0007-la-dificultad-velocidad-y-obstaculos-en-el-aire.md) | La velocidad sigue subiendo y hay obstáculos en el aire: huevos y pescados en el camino del salto y bloques sólidos | Aceptada; los números y la colocación, propuesta | GDD-08, GDD-22 |
 | [0008](0008-perritos-que-caminan-y-gatitos-de-ocho-pelajes.md) | Los perritos pasean o se quedan quietos; los gatitos, quietos y con ocho pelajes al azar; ningún animal en el aire, salvo en una plataforma | Aceptada; cómo pasean, propuesta; la plataforma con premio, semisólida desde la 0009 | ITM-18, ITM-19, GEN-21 |
-| [0009](0009-mas-plataformeo-plataformas-semisolidas-y-moviles.md) | Más plataformeo: plataformas semisólidas y móviles, suelos más cortos y barrancos que solo se cruzan con plataformas | Aceptada; los números, propuesta | PLY-17, ITM-20, GEN-22, ART-26 |
+| [0009](0009-mas-plataformeo-plataformas-semisolidas-y-moviles.md) | Más plataformeo: plataformas semisólidas y móviles, suelos más cortos y barrancos que solo se cruzan con plataformas; tras la beta 6, algo más | Aceptada; los números, propuesta | PLY-17, ITM-20, GEN-22, ART-26, GEN-24 |
+| [0010](0010-animales-vigilados.md) | Huevos y pescados junto a los animales: a veces hay que elegir no rescatar uno | Aceptada; los números, propuesta | GEN-23 |

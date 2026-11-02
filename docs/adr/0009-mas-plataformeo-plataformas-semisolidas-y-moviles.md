@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Estado** | aceptada: el qué lo decidió Fangusk el 2026-11-02 tras jugar la beta 4 en su Nothing, y GameMaster lo transmitió con sus palabras · propuesta: los números (largos, anchos, cada cuánto, alturas y velocidades de las móviles), que se afinan jugando |
-| **Fecha** | 2026-11-02 · **Fase:** P0 · Borrador anticipado, sin ninguna puerta confirmada · **Hito:** M5 · **Tarea:** PLY-17, ITM-20, GEN-22, ART-26 |
+| **Fecha** | 2026-11-02 · **Fase:** P0 · Borrador anticipado, sin ninguna puerta confirmada · **Hito:** M5 · **Tarea:** PLY-17, ITM-20, GEN-22, ART-26; tras la beta 6, GEN-24 |
 | **Propone · decide** | Fangusk · Fangusk |
 | **Reversibilidad** | media · las reglas viven en datos (`course` en `files/ajustes.json`), pero las plataformas tocan la física, el generador, el validador y el piloto |
 
@@ -52,6 +52,23 @@ Cómo, propuesta del agente ([generación](../generacion.md)):
   (nombres de GameMaster). Las dibujó GameMaster: un tablón con musgo en el Bosque, con nieve y carámbanos en la Nieve y
   atado con cuerdas en el Desierto; y, para las móviles, una hoja dorada que aletea, un trineo con destellos y una
   alfombra voladora con flecos, de dos fotogramas. Sin su arte, el juego las pinta como una tabla gris.
+
+## Tras la beta 6: algo más de plataformeo (GEN-24)
+
+Fangusk, el mismo día tras jugar la beta 6: «pondría un poco más de plataformeo para que la experiencia sea algo más
+retante». Estuvo de acuerdo con lo que le propuso GameMaster, como punto de partida que se afina con el piloto y
+`ajustes.json`:
+
+- Retos con plataformas obligatorias en **uno de cada 2** (antes, uno de cada 2 o 3).
+- **Más cadenas de 2 y 3 plataformas a distintas alturas, como escaleras** que suben o bajan: 1 o 2 plataformas al
+  empezar y 2 o 3 a toda dificultad, y en el 60 % de las de 2 o 3 una escalera, un tile cada vez, hasta el suelo de
+  después.
+- **Las móviles, antes y más a menudo**: desde 225 px/s y en el 60 % de esos barrancos (antes, desde 250 y en la mitad).
+- **Las calmas, de 2 a 3 piezas** (antes, de 2 a 4); el arranque, igual de suave (30 tiles llanos y la rampa de siempre).
+
+Además, propuesta del agente para que las plataformas pidan tanto como los barrancos a los que sustituyen: cada salto
+entre ellas, de la mitad al todo del barranco más ancho de ese momento (antes, desde 1 tile, lo justo para que el conjunto
+pasara del salto más largo). Lo que se mide con todo ello está en [métricas](../metricas.md#el-equilibrio).
 
 ## Alternativas
 

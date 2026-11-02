@@ -23,6 +23,9 @@ internal object Texts {
     const val NEXT = "SIGUIENTE"
     const val PLAY = "¡A JUGAR!"
     const val UNDERSTOOD = "¡ENTENDIDO!"
+    const val QUIT_QUESTION = "¿SALIR DEL JUEGO?"
+    const val YES = "SÍ"
+    const val NO = "NO"
 
     const val HOW_TO_TITLE = "CÓMO SE JUEGA"
 

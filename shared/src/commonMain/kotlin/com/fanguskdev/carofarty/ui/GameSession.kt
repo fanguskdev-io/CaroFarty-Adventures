@@ -79,6 +79,7 @@ internal class GameSession(
     debugAtStart: Boolean = false,
     autopilot: Boolean = false,
     private val openedAt: TimeSource.Monotonic.ValueTimeMark = TimeSource.Monotonic.markNow(),
+    private val quit: (() -> Unit)? = null,
 ) {
     var scenario = choices.scenario
         private set
@@ -158,6 +159,17 @@ internal class GameSession(
         private set
     var panelButtonIcons: List<Icon?> = emptyList()
         private set
+
+    /** Whether the start screen has the button to leave the game: on Android and the desktop, not on iOS (UI-22). */
+    val canQuit: Boolean get() = quit != null
+
+    /** Whether the start screen is asking whether to leave the game (Fangusk chose to ask), with its panel and buttons. */
+    var askingToQuit = false
+        private set
+    val quitPanel = listOf(PanelLine(Texts.QUIT_QUESTION, size = 2))
+    val quitButtonTexts = listOf(Texts.YES, Texts.NO)
+    val quitButtons: List<Box>
+        get() = layout.row(quitButtonTexts, panelBottom(quitPanel, viewport.height) + MenuLayout.GAP, atLeast = MenuLayout.ANSWER_WIDTH)
 
     /** The button under the finger, drawn pressed, and what it does when the finger goes up. */
     var pressed: Box? = null
@@ -282,6 +294,7 @@ internal class GameSession(
     /** The back button of the phone: the pause in a run, a page back in how to play, and else the start screen. */
     fun back() {
         when {
+            askingToQuit -> stopAskingToQuit()
             screen == Screen.Game && run.phase == RunPhase.Running && !paused -> pause()
             screen == Screen.HowTo -> goBackInHowTo()
             screen != Screen.Title -> goHome()
@@ -313,7 +326,16 @@ internal class GameSession(
 
     private fun titleTap(x: Float, y: Float) {
         val layout = layout
+        if (askingToQuit) {
+            val buttons = quitButtons
+            when {
+                buttons[0].contains(x, y) -> press(buttons[0]) { quit?.invoke() }
+                buttons[1].contains(x, y) -> press(buttons[1]) { stopAskingToQuit() }
+            }
+            return
+        }
         when {
+            canQuit && layout.exit.contains(x, y) -> press(layout.exit) { askToQuit() }
             layout.titleSound.contains(x, y) -> press(layout.titleSound) { toggleSound() }
             layout.recordsButton.contains(x, y) -> press(layout.recordsButton) { openRecords() }
             layout.howToButton.contains(x, y) -> press(layout.howToButton) { openHowTo() }
@@ -387,6 +409,18 @@ internal class GameSession(
             return
         }
         input.press()
+    }
+
+    private fun askToQuit() {
+        audio?.play(Sound.Tap)
+        askingToQuit = true
+        backEnabled = true
+    }
+
+    private fun stopAskingToQuit() {
+        audio?.play(Sound.Back)
+        askingToQuit = false
+        backEnabled = screen != Screen.Title
     }
 
     private fun toggleSound() {

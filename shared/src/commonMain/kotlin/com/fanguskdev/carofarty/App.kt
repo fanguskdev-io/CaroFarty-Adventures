@@ -11,7 +11,8 @@ import com.fanguskdev.carofarty.ui.GameScreen
  * the start (a launch extra of the debug builds, for the emulator and the simulator, which cannot tap with two fingers).
  * [autopilot], another launch extra of the debug builds, lets the pilot of the tests play by itself: to watch runs where
  * nobody can tap and to measure long ones on a phone (MOB-02). [sound] plays the music and the sounds: the phones and the
- * desktop do, the tests do not.
+ * desktop do, the tests do not. [quit] closes the game, from the button of the start screen (Fangusk): Android and the
+ * desktop can, iOS cannot (Apple does not let an app close itself), so there it is null and the button does not show.
  */
 @Composable
 fun App(
@@ -20,6 +21,7 @@ fun App(
     debugAtStart: Boolean = false,
     autopilot: Boolean = false,
     sound: Boolean = false,
+    quit: (() -> Unit)? = null,
 ) {
-    GameScreen(store, debug, debugAtStart, autopilot, sound)
+    GameScreen(store, debug, debugAtStart, autopilot, sound, quit)
 }

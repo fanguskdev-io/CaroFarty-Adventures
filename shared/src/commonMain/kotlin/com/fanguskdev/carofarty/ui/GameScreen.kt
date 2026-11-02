@@ -41,11 +41,13 @@ import com.fanguskdev.carofarty.storage.KeyValueStore
 import com.fanguskdev.carofarty.storage.Records
 import com.fanguskdev.carofarty.storage.dayText
 import com.fanguskdev.carofarty.ui.render.Art
+import com.fanguskdev.carofarty.ui.render.Box
 import com.fanguskdev.carofarty.ui.render.CARO_HEIGHT
 import com.fanguskdev.carofarty.ui.render.GreyPalette
 import com.fanguskdev.carofarty.ui.render.PixelBuffer
 import com.fanguskdev.carofarty.ui.render.RecordTexts
 import com.fanguskdev.carofarty.ui.render.SafeInsets
+import com.fanguskdev.carofarty.ui.render.UiArt
 import com.fanguskdev.carofarty.ui.render.paintBackground
 import com.fanguskdev.carofarty.ui.render.paintButton
 import com.fanguskdev.carofarty.ui.render.paintCaro
@@ -57,6 +59,7 @@ import com.fanguskdev.carofarty.ui.render.paintMenuGround
 import com.fanguskdev.carofarty.ui.render.paintPanel
 import com.fanguskdev.carofarty.ui.render.paintRecordCelebration
 import com.fanguskdev.carofarty.ui.render.paintRecords
+import com.fanguskdev.carofarty.ui.render.paintShade
 import com.fanguskdev.carofarty.ui.render.paintTitle
 import com.fanguskdev.carofarty.ui.render.paintWorld
 import com.fanguskdev.carofarty.ui.render.panelBox
@@ -82,6 +85,7 @@ internal fun GameScreen(
     debugAtStart: Boolean = false,
     autopilot: Boolean = false,
     sound: Boolean = false,
+    quit: (() -> Unit)? = null,
 ) {
     val openedAt = remember { TimeSource.Monotonic.markNow() }
     val resources by produceState<Loaded?>(null) {
@@ -99,7 +103,7 @@ internal fun GameScreen(
     DisposableEffect(audio) { onDispose { audio?.release() } }
     val session =
         remember(loaded) {
-            GameSession(loaded.config, loaded.art, audio, scope, records, choices, debugBuild, debugAtStart, autopilot, openedAt)
+            GameSession(loaded.config, loaded.art, audio, scope, records, choices, debugBuild, debugAtStart, autopilot, openedAt, quit)
         }
     val world = remember { PixelBuffer() }
 
@@ -253,7 +257,19 @@ private fun DrawScope.drawMenu(session: GameSession, scenes: List<PixelBuffer>, 
             if (ui == null) paintMenuGround(scenery, palette, viewport.width, viewport.height)
             val pressed = session.pressed
             when (session.screen) {
-                Screen.Title -> paintTitle(session.layout, art, session.scenarioNames, session.scenario, session.soundOn, millis, pressed)
+                Screen.Title -> {
+                    paintTitle(
+                        session.layout,
+                        art,
+                        session.scenarioNames,
+                        session.scenario,
+                        session.soundOn,
+                        millis,
+                        pressed,
+                        session.canQuit,
+                    )
+                    if (session.askingToQuit) paintQuestion(session, viewport, ui, pressed)
+                }
                 Screen.Records -> paintRecords(
                     session.layout,
                     session.scenarioNames,
@@ -269,6 +285,19 @@ private fun DrawScope.drawMenu(session: GameSession, scenes: List<PixelBuffer>, 
             if (session.showDebug) paintDebug(session.debugLines, viewport.height, session.insets)
         }
     }
+}
+
+/** Whether to leave the game, over the start screen dimmed: the panel of the kit and its two buttons. */
+private fun DrawScope.paintQuestion(
+    session: GameSession,
+    viewport: PixelViewport,
+    ui: UiArt?,
+    pressed: Box?,
+) {
+    paintShade(viewport.width, viewport.height)
+    paintPanel(session.quitPanel, viewport.width, viewport.height, ui)
+    val buttons = session.quitButtons
+    for (i in buttons.indices) paintButton(buttons[i], session.quitButtonTexts[i], ui, pressed = buttons[i] == pressed, lit = i == 1)
 }
 
 private val RECORD_TEXTS = RecordTexts(Texts.RECORDS_TITLE, Texts.NO_RECORDS, Texts.METERS, Texts.POINTS, Texts.DAY) { dayText(it) }

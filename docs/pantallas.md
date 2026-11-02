@@ -14,6 +14,7 @@ flowchart LR
     C -->|una fase| D[Partida]
     C -->|«Récords»| E[Récords]
     C -->|«Cómo se juega»| B
+    C -->|salir y «Sí»| H[Fuera del juego]
     E -->|volver| C
     D -->|pausa| F[Pausa]
     F -->|un toque| D
@@ -41,6 +42,10 @@ Nieve y Desierto, con el nombre en su placa y una vista de su escenario que pasa
 y la última que jugó en un marco dorado (Fangusk: «Sí, me parece buena idea»); debajo, «Récords» y «Cómo se juega» con
 sus iconos, y el botón de sonido a la derecha de la fila. Lo que sobra en vertical se reparte en cuatro huecos iguales.
 Al tocar una fase empieza la partida en ella, ya corriendo, con el jingle de inicio.
+
+Arriba a la izquierda, el botón de salir, con una puerta (Fangusk, tras la beta 4): pregunta «¿SALIR DEL JUEGO?» con «SÍ»
+y «NO» en el panel del kit, sobre la pantalla oscurecida, y con «SÍ» cierra la app y la quita de las recientes. El botón
+de atrás de Android, con la pregunta abierta, la cierra. En iOS no sale: Apple no deja que una app se cierre sola.
 
 ## Partida
 

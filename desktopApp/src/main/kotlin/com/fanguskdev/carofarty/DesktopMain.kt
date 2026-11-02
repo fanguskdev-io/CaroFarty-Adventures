@@ -17,6 +17,6 @@ fun main(args: Array<String>) = application {
         title = "CaroFarty",
         state = rememberWindowState(width = 1280.dp, height = 720.dp),
     ) {
-        App(store, debug = true, autopilot = "--autopilot" in args, sound = "--silencio" !in args)
+        App(store, debug = true, autopilot = "--autopilot" in args, sound = "--silencio" !in args, quit = ::exitApplication)
     }
 }

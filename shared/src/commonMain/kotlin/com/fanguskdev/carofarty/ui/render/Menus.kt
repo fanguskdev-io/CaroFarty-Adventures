@@ -36,6 +36,7 @@ internal enum class Icon(val key: String) {
     Help("ayuda"),
     Back("volver"),
     Again("reintentar"),
+    Exit("salir"),
 }
 
 /**
@@ -59,6 +60,9 @@ internal class MenuLayout(val width: Int, val height: Int, val insets: SafeInset
 
     /** The way back, at the top left of the records and of how to play. */
     val back = Box(insets.left + SIDE_MARGIN, insets.top + TOP_MARGIN, SMALL, SMALL)
+
+    /** The way out of the game, at the top left of the start screen (UI-22). */
+    val exit = back
 
     /** The texts of the marker: their top, where the points begin and where the metres end, left of the sound. */
     val hudTextTop = corner.top + HUD_TEXT_DOWN
@@ -146,15 +150,26 @@ internal class MenuLayout(val width: Int, val height: Int, val insets: SafeInset
         return Box(width - insets.right - SIDE_MARGIN - across, insets.top + TOP_MARGIN, across, BUTTON_HEIGHT)
     }
 
-    /** Buttons in a row for [names], centred, from [top]; with the icons of [icons] where they are not null. */
-    fun row(names: List<String>, top: Int, icons: List<Icon?> = emptyList()): List<Box> {
-        val widths = names.mapIndexed { i, name -> buttonWidth(name, icon = icons.getOrNull(i) != null) }
+    /**
+     * Buttons in a row for [names], centred, from [top]; with the icons of [icons] where they are not null, and [atLeast]
+     * wide, so a short answer is as easy to tap as a long one.
+     */
+    fun row(
+        names: List<String>,
+        top: Int,
+        icons: List<Icon?> = emptyList(),
+        atLeast: Int = 0,
+    ): List<Box> {
+        val widths = names.mapIndexed { i, name -> max(atLeast, buttonWidth(name, icon = icons.getOrNull(i) != null)) }
         var x = centred(widths.sum() + GAP * (names.size - 1))
         return widths.map { across -> Box(x, top, across, BUTTON_HEIGHT).also { x += across + GAP } }
     }
 
     companion object {
         const val GAP = 8
+
+        /** The narrowest a button with an answer is: «SÍ» and «NO». */
+        const val ANSWER_WIDTH = 56
         const val SMALL = 20
         const val SMALL_GAP = 4
         const val MARGIN = 6
@@ -253,19 +268,29 @@ internal fun DrawScope.paintIconButton(
     val icons = ui?.icons
     if (piece != null && icons != null) {
         drawPiece(piece, box)
-        drawUiSprite(icons, icon.key, box.left + piece.icon[0], box.top + piece.icon[1])
+        // An icon that has not arrived yet in GameMaster's sheet: the prototype's, in the colour of the text.
+        if (!drawUiSprite(icons, icon.key, box.left + piece.icon[0], box.top + piece.icon[1])) {
+            val face = piece.inside(box)
+            drawGreyIcon(icon, Box(face.left, face.top - piece.content[1] + piece.icon[1], face.width, MenuLayout.ICON), ui.colors.text)
+        }
         return
     }
     drawRect(GreyPalette.panel, Offset(box.left.toFloat(), box.top.toFloat()), Size(box.width.toFloat(), box.height.toFloat()))
+    drawGreyIcon(icon, box, GreyPalette.text)
+}
+
+/** The prototype's drawing of [icon], centred in [box], in [color]. */
+private fun DrawScope.drawGreyIcon(icon: Icon, box: Box, color: Color) {
     val pattern = when (icon) {
         Icon.SoundOn -> SOUND_ON
         Icon.SoundOff -> SOUND_OFF
         Icon.Back -> BACK
+        Icon.Exit -> EXIT
         else -> PAUSE
     }
     pattern.draw(this, box.left + (box.width - GREY_ICON) / 2, box.top + (box.height - GREY_ICON) / 2, size = 1) { code ->
         when (code) {
-            'x' -> GreyPalette.text
+            'x' -> color
             'r' -> GreyPalette.bad
             else -> null
         }
@@ -364,6 +389,24 @@ private val SOUND_OFF = PixelRuns(
         "...xxx.r...r",
         "....xx......",
         ".....x......",
+        "............",
+    ),
+)
+
+/** A door, open, and the way out through it. */
+private val EXIT = PixelRuns(
+    listOf(
+        "............",
+        "..xxxxxx....",
+        "..x....x....",
+        "..x....x....",
+        "..x....x.x..",
+        "..x..x.xxxx.",
+        "..x....x.x..",
+        "..x....x....",
+        "..x....x....",
+        "..xxxxxx....",
+        "............",
         "............",
     ),
 )

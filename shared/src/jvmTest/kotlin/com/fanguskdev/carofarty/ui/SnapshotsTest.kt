@@ -14,13 +14,17 @@ import com.fanguskdev.carofarty.storage.MemoryStore
 import com.fanguskdev.carofarty.storage.Records
 import com.fanguskdev.carofarty.ui.render.Box
 import com.fanguskdev.carofarty.ui.render.MenuLayout
+import com.fanguskdev.carofarty.ui.render.PanelLine
 import com.fanguskdev.carofarty.ui.render.SafeInsets
+import com.fanguskdev.carofarty.ui.render.panelBottom
 import org.jetbrains.skia.Bitmap
 import org.jetbrains.skia.EncodedImageFormat
 import org.jetbrains.skia.Image
 import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 import kotlin.test.fail
 
 /**
@@ -44,10 +48,11 @@ class SnapshotsTest {
         height: Int,
         script: Script,
         store: MemoryStore = MemoryStore(),
+        quit: (() -> Unit)? = null,
     ): Image {
         var image: Image? = null
         ImageComposeScene(width, height, Density(3f)) {
-            if (script.debug) GameScreen(store, debugBuild = true, debugAtStart = true) else App(store)
+            if (script.debug) GameScreen(store, debugBuild = true, debugAtStart = true) else App(store, quit = quit)
         }.use { scene ->
             var time = 0L
             val centre = Offset(width * 0.6f, height * 0.6f)
@@ -145,6 +150,28 @@ class SnapshotsTest {
         val held = Tap(hold = 100, at = at(2400, 1080) { it.cards[0] })
         render("inicio-pulsado", 2400, 1080, Script(frames = 30, taps = mapOf(10 to held)), seen())
         render("inicio-320x180", 320 * 3, 180 * 3, Script(frames = 30), seen())
+    }
+
+    @Test
+    fun theStartScreenAsksBeforeLeavingTheGame() {
+        var left = false
+        val exit = Tap(hold = 2, at = at(2400, 1080) { it.exit })
+        val question = listOf(PanelLine(Texts.QUIT_QUESTION, size = 2))
+        val answers = { layout: MenuLayout ->
+            layout.row(
+                listOf(Texts.YES, Texts.NO),
+                panelBottom(question, layout.height) + MenuLayout.GAP,
+                atLeast = MenuLayout.ANSWER_WIDTH,
+            )
+        }
+        val no = Tap(hold = 2, at = at(2400, 1080) { answers(it)[1] })
+        val yes = Tap(hold = 2, at = at(2400, 1080) { answers(it)[0] })
+        render("inicio-salir", 2400, 1080, Script(frames = 40, taps = mapOf(10 to exit)), seen()) { left = true }
+        assertFalse(left, "it only asks")
+        render("inicio-salir-no", 2400, 1080, Script(frames = 60, taps = mapOf(10 to exit, 30 to no)), seen()) { left = true }
+        assertFalse(left, "«NO» stays")
+        render("inicio-salir-si", 2400, 1080, Script(frames = 60, taps = mapOf(10 to exit, 30 to yes)), seen()) { left = true }
+        assertTrue(left, "«SÍ» leaves")
     }
 
     @Test

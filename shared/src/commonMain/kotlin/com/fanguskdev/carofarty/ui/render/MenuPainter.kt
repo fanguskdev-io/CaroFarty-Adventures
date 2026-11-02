@@ -18,8 +18,9 @@ import kotlin.math.floor
 /**
  * The start screen (UI-07, UI-20), as GameMaster's mockup that Fangusk chose: the title, a card for each scenario with its
  * name on its plate and a view of it going by with Caro running dressed for it, the one she played last ([chosen]) in a
- * golden frame (Fangusk: «Sí, me parece buena idea»), and the buttons of the records, of how to play and of the sound.
- * [pressed] is the box under the finger, drawn pressed.
+ * golden frame (Fangusk: «Sí, me parece buena idea»), and the buttons of the records, of how to play and of the sound;
+ * and, where the game can close itself ([canQuit]), the way out at the top left. [pressed] is the box under the finger,
+ * drawn pressed.
  */
 internal fun DrawScope.paintTitle(
     layout: MenuLayout,
@@ -29,6 +30,7 @@ internal fun DrawScope.paintTitle(
     soundOn: Boolean,
     millis: Long,
     pressed: Box?,
+    canQuit: Boolean,
 ) {
     val ui = art?.ui
     paintMenuBackground(ui, layout.width, layout.height)
@@ -52,6 +54,7 @@ internal fun DrawScope.paintTitle(
     paintButton(layout.recordsButton, MenuLayout.RECORDS_TEXT, ui, Icon.Records, pressed = layout.recordsButton == pressed)
     paintButton(layout.howToButton, MenuLayout.HOW_TO_TEXT, ui, Icon.Help, pressed = layout.howToButton == pressed)
     paintIconButton(layout.titleSound, if (soundOn) Icon.SoundOn else Icon.SoundOff, ui, pressed = layout.titleSound == pressed)
+    if (canQuit) paintIconButton(layout.exit, Icon.Exit, ui, pressed = layout.exit == pressed)
 }
 
 /**

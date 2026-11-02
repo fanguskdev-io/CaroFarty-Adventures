@@ -27,7 +27,8 @@ class MainActivity : ComponentActivity() {
         val autopilot = BuildConfig.DEBUG && intent.getBooleanExtra("autopilot", false)
         val sound = !(BuildConfig.DEBUG && intent.getBooleanExtra("silencio", false))
         setContent {
-            App(store, debug = BuildConfig.DEBUG, debugAtStart = debugAtStart, autopilot = autopilot, sound = sound)
+            // The button to leave the game of the start screen (UI-22) closes the app and takes it out of the recent ones.
+            App(store, BuildConfig.DEBUG, debugAtStart, autopilot, sound, quit = { finishAndRemoveTask() })
         }
     }
 

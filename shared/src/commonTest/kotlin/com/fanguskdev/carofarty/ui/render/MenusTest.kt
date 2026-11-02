@@ -33,6 +33,7 @@ class MenusTest {
                 layout.corner,
                 layout.hudSound,
                 layout.back,
+                layout.exit,
                 layout.title,
                 layout.recordsButton,
                 layout.howToButton,
@@ -51,7 +52,7 @@ class MenusTest {
     @Test
     fun nothingOfTheMenusIsOnTopOfSomethingElse() {
         for (layout in layouts()) {
-            val start = listOf(layout.title, layout.recordsButton, layout.howToButton, layout.titleSound) + layout.cards
+            val start = listOf(layout.exit, layout.title, layout.recordsButton, layout.howToButton, layout.titleSound) + layout.cards
             for (i in start.indices) {
                 for (j in i + 1 until start.size) assertFalse(start[i].overlaps(start[j]), "${start[i]} and ${start[j]}, ${layout.width}")
             }

@@ -102,8 +102,8 @@ internal fun FloatArray.finished(peak: Float = 0.92f, drive: Float = 1.4f): Floa
 /** 16-bit PCM, what the phones play. */
 fun toPcm16(samples: FloatArray): ShortArray = ShortArray(samples.size) { (samples[it].coerceIn(-1f, 1f) * 32_767f).toInt().toShort() }
 
-/** [pcm] as a mono 16-bit WAV file at [SAMPLE_RATE], which every platform knows how to play. */
-fun wav(pcm: ShortArray): ByteArray {
+/** [pcm] as a mono 16-bit WAV file at [rate] Hz, which every platform knows how to play. */
+fun wav(pcm: ShortArray, rate: Int = SAMPLE_RATE): ByteArray {
     val dataBytes = pcm.size * 2
     val out = ByteArray(WAV_HEADER + dataBytes)
 
@@ -124,8 +124,8 @@ fun wav(pcm: ShortArray): ByteArray {
     int32(16, 16)
     int16(20, 1) // PCM
     int16(22, 1) // mono
-    int32(24, SAMPLE_RATE)
-    int32(28, SAMPLE_RATE * 2)
+    int32(24, rate)
+    int32(28, rate * 2)
     int16(32, 2)
     int16(34, 16)
     text(36, "data")

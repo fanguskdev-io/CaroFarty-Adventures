@@ -40,6 +40,10 @@ gris azulado, calicó, crema, negro, blanco, chocolate y siamés.
   - Caro pone cara de contenta al «rescatar» un gatito o un perrito y de asco al coger un huevo o un pescado. Cuánto dura
     es propuesta de GameMaster: 0,4 s (`reactionSeconds` en `files/ajustes.json`).
 
+- **Cambio del 2026-11-02** ([ADR 0009](0009-mas-plataformeo-plataformas-semisolidas-y-moviles.md)): la plataforma con
+  premio deja de ser un bloque y pasa a ser una plataforma semisólida, como las demás, que se atraviesa saltando desde
+  abajo. Fangusk: «Vale, acepto tu recomendación».
+
 ## Consecuencias
 
 - Tareas en el backlog: el paseo de los perritos (ITM-18) y los pelajes de los gatitos (ITM-19). Su arte (camina y

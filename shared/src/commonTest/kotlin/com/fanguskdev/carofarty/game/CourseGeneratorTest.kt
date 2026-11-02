@@ -126,7 +126,7 @@ class CourseGeneratorTest {
                     assertTrue(ground.top in course.minGroundTop * TILE..course.maxGroundTop * TILE, "height ${ground.top}")
                     assertTrue(ground.end - ground.start >= course.minGroundTiles * TILE, "a ground of ${ground.end - ground.start} px")
                     // Short grounds (ADR 0009), but for the start and those that carry a platform with a reward.
-                    val reward = piece.blocks.any { it.start >= ground.start && it.end <= ground.end }
+                    val reward = piece.platforms.any { it.start >= ground.start && it.end <= ground.end }
                     if (previous != null && !reward) {
                         assertTrue(
                             ground.end - ground.start <= course.maxGroundTiles * TILE,
@@ -183,8 +183,10 @@ class CourseGeneratorTest {
         val generator = CourseGenerator(config, seed = 17)
         val all = Course()
         repeat(800) { all.append(generator.next()) }
-        val platforms = all.blocks.filter { block ->
-            all.items.any { it.kind.adds && it.x >= block.start && it.x < block.end && it.y == block.top + SITTING_HEIGHT }
+        // Semisolid since ADR 0009, over a ground: those over a gap are the way across it.
+        val platforms = all.platforms.filter { platform ->
+            all.groundTopUnder(platform.start.toDouble(), platform.end.toDouble()) != null &&
+                all.items.any { it.kind.adds && it.x >= platform.start && it.x < platform.end && it.y == platform.top + SITTING_HEIGHT }
         }
         assertTrue(platforms.isNotEmpty(), "there are platforms with a reward")
         for (platform in platforms) {
@@ -327,7 +329,7 @@ class CourseGeneratorTest {
     private companion object {
         const val FNV_OFFSET = -3750763034362895579L
         const val FNV_PRIME = 1099511628211L
-        const val SAME_RUN = -2923099033310780332L
+        const val SAME_RUN = 3704572404370904362L
 
         /** How high an animal's centre sits over what it stands on, and the highest jump of docs/movimiento.md. */
         const val SITTING_HEIGHT = 8

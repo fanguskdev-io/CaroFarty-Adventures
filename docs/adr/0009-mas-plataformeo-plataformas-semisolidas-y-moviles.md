@@ -37,9 +37,10 @@ Cómo, propuesta del agente ([generación](../generacion.md)):
 - **Los barrancos con plataformas**: uno de cada 2 o 3 retos, con 1 a 3 plataformas, más a menudo varias con la
   dificultad; el barranco, más ancho que el salto más largo de ese momento más un tile; cada salto, justo con la regla de
   siempre; y si algún salto llega al otro lado sin ellas, se hace otro.
-- **Las plataformas con premio** de la [ADR 0008](0008-perritos-que-caminan-y-gatitos-de-ocho-pelajes.md) siguen siendo
-  el bloque que eligió Fangusk. La propuesta de pasarlas a semisólidas, con estos tiles, se la ha preguntado GameMaster;
-  hasta que conteste no cambian. Los bloques sólidos del aire de la
+- **Las plataformas con premio** de la [ADR 0008](0008-perritos-que-caminan-y-gatitos-de-ocho-pelajes.md) pasan a ser
+  plataformas semisólidas, con los mismos tiles. Era una propuesta del agente que cambiaba una decisión anterior de
+  Fangusk (el mismo bloque que los obstáculos); GameMaster se la explicó (rescatar en una plataforma será algo más fácil y
+  el reto queda en los barrancos) y la aceptó: «Vale, acepto tu recomendación». Los bloques sólidos del aire de la
   [ADR 0007](0007-la-dificultad-velocidad-y-obstaculos-en-el-aire.md) se quedan como estaban.
 - **Las calmas**: de 2 a 4 piezas en vez de 3 a 8, con suelos llanos de 6 a 10 tiles.
 - **Las móviles**: desde 250 px/s, en la mitad de los barrancos con plataformas, una de ellas se mueve de 1 a 3 tiles de

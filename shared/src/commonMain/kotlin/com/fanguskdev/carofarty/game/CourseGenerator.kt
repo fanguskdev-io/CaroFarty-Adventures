@@ -484,10 +484,10 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
     }
 
     /**
-     * A platform with its reward (ADR 0008): a block over [ground], high enough to run under, with a gatito sitting or a
-     * perrito walking on top, which a jump with the finger held reaches. Without jumping she runs under it; on it, she picks
-     * the reward up and drops back to the same ground. Whether it went in. (Whether it becomes a semisolid platform, as
-     * the others of ADR 0009, Fangusk has not said yet: it stays the block he chose.)
+     * A platform with its reward (ADR 0008), semisolid like the others since Fangusk accepted it (ADR 0009: «Vale, acepto
+     * tu recomendación»): over [ground], high enough to run under, with a gatito sitting or a perrito walking on top,
+     * which a jump with the finger held reaches, from before it or through it from below. Without jumping she runs under
+     * it; on it, she picks the reward up and drops back to the same ground. Whether it went in.
      */
     private fun rewardPlatform(previous: Ground, ground: Ground, items: MutableList<Item>): Boolean {
         val speed = movement.speedAt(meters(ground.start))
@@ -497,14 +497,15 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
         val to = ground.end - (speed * PLATFORM_DROP_SECONDS).toInt() - tiles * TILE
         if (to < from) return false
         val start = from + itemRandom.nextInt(0, (to - from) / TILE + 1) * TILE
-        val bottom = ground.top + BLOCK_CLEARANCE + itemRandom.nextInt(0, PLATFORM_EXTRA_HEIGHT + 1)
-        val platform = Block(start, start + tiles * TILE, bottom, bottom + TILE)
-        // Nothing that takes points away under it or near it, and no other block by it.
+        // Its top where the block's was: as high over the ground, so the reward sits just as high.
+        val top = ground.top + BLOCK_CLEARANCE + TILE + itemRandom.nextInt(0, PLATFORM_EXTRA_HEIGHT + 1)
+        val platform = Platform(start, start + tiles * TILE, top)
+        // Nothing that takes points away under it or near it, and no block by it.
         if (items.any { !it.kind.adds && it.x > platform.start - ROW_CLEARANCE && it.x < platform.end + ROW_CLEARANCE }) return false
         if (pieceBlocks.any { it.end > platform.start - TILE && it.start < platform.end + TILE }) return false
-        pieceBlocks += platform
+        piecePlatforms += platform
         if (!reachable(ground, platform) || !fairGap(previous, ground, items, path = null)) {
-            pieceBlocks -= platform
+            piecePlatforms -= platform
             return false
         }
         val count = if (tiles >= PLATFORM_MAX_TILES && itemRandom.nextBoolean()) 2 else 1
@@ -518,7 +519,7 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
     }
 
     /** Whether some jumps from [ground] before it land on top of the [platform]: getting its reward has to be fair too. */
-    private fun reachable(ground: Ground, platform: Block): Boolean {
+    private fun reachable(ground: Ground, platform: Platform): Boolean {
         sandbox.clear()
         sandbox.append(Piece(listOf(ground), emptyList(), ground.end, blocks = pieceBlocks, platforms = piecePlatforms))
         val speed = movement.speedAt(meters(platform.start))

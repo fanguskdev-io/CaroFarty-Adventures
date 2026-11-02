@@ -102,6 +102,10 @@ internal fun GameScreen(
             GameSession(loaded.config, loaded.art, audio, scope, records, choices, debugBuild, debugAtStart, autopilot, openedAt)
         }
     val world = remember { PixelBuffer() }
+
+    // A buffer for each scene of how to play: the phone draws the frame later, so two scenes in one buffer would both
+    // show the last one drawn (Fangusk saw it on his Nothing).
+    val scenes = remember { List(TutorialScene.PER_PAGE) { PixelBuffer() } }
     val safe = WindowInsets.safeDrawing
 
     LaunchedEffect(session) {
@@ -135,7 +139,7 @@ internal fun GameScreen(
                 right = ceil(safe.getRight(this, layoutDirection).toFloat() / viewport.scale).toInt(),
             )
         val drawing = TimeSource.Monotonic.markNow()
-        if (session.screen == Screen.Game) drawGame(session, world, viewport) else drawMenu(session, world, viewport)
+        if (session.screen == Screen.Game) drawGame(session, world, viewport) else drawMenu(session, scenes, viewport)
         session.drawn(drawing.elapsedNow())
     }
 }
@@ -226,7 +230,7 @@ private fun DrawScope.drawGame(session: GameSession, world: PixelBuffer, viewpor
  * The screens around the runs (UI-01, UI-07, UI-20): the start screen, the records and how to play, on the same pixel grid
  * as the game; over the day sky of the interface's art or, in the grey prototype, over the scenario she chose, still.
  */
-private fun DrawScope.drawMenu(session: GameSession, world: PixelBuffer, viewport: PixelViewport) {
+private fun DrawScope.drawMenu(session: GameSession, scenes: List<PixelBuffer>, viewport: PixelViewport) {
     val art = session.art
     val scenario = if (session.screen == Screen.Records) session.recordsScenario else session.scenario
     val palette = GreyPalette.of(scenario)
@@ -259,7 +263,7 @@ private fun DrawScope.drawMenu(session: GameSession, world: PixelBuffer, viewpor
                     ui,
                     pressed,
                 )
-                Screen.HowTo -> paintHowTo(session, world)
+                Screen.HowTo -> paintHowTo(session, scenes)
                 Screen.Game -> Unit
             }
             if (session.showDebug) paintDebug(session.debugLines, viewport.height, session.insets)

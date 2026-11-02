@@ -33,7 +33,28 @@ class TutorialTest {
             holding = if (it.held) holding + 1 else 0
             longest = maxOf(longest, holding)
         }
-        assertTrue(longest > 6, "a jump held long enough to see it: $longest steps")
+        assertTrue(longest > 3, "a jump held long enough to see it: $longest steps")
+    }
+
+    @Test
+    fun aTapForTheNarrowGapAHoldForTheWideOneAndBothFitInTheScene() {
+        val scene = scene(TutorialScene.JUMPING)
+        val peaks = mutableListOf<Float>()
+        var peak = 0f
+        play(scene, seconds = 6f) {
+            val height = it.run.caro.y - TutorialScene.TOP
+            if (height > 0f) {
+                peak = maxOf(peak, height)
+            } else if (peak > 0f) {
+                peaks += peak
+                peak = 0f
+            }
+        }
+        assertTrue(peaks.size >= 2, "two jumps: $peaks")
+        assertTrue(peaks[0] < 20f, "the tap is short: $peaks")
+        assertTrue(peaks[1] > peaks[0] + 5f, "the hold goes higher: $peaks")
+        // Low enough for the scene, whose camera goes up with her: some of the ground is still seen at the top of it.
+        assertTrue(peaks.all { it <= 30f }, "it fits: $peaks")
     }
 
     @Test
@@ -67,8 +88,8 @@ class TutorialTest {
         var tapped = false
         var held = false
         play(scene, seconds = 10f) {
-            if (it.touching > 0f && it.heldFor <= TutorialScene.TAP_SECONDS) tapped = true
-            if (it.heldFor > TutorialScene.TAP_SECONDS) held = true
+            if (it.touching > 0f && it.holding <= 0f) tapped = true
+            if (it.holding > 0f) held = true
         }
         assertTrue(tapped && held, "a tap and a hold: $tapped, $held")
     }

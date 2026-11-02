@@ -39,10 +39,10 @@ import kotlin.math.roundToInt
 /**
  * A page of how to play (GDD-17, UI-12), as GameMaster's mockup: the way back, the ribbon and the button forward on top;
  * in the panel, two scenes in their frames, each a small run playing with the finger when it is down and the points
- * floating up from what she picks up, and their two lines under them; and the page dots under the panel. The runs are
- * drawn into [buffer], like the world of a run.
+ * floating up from what she picks up, and their two lines under them; and the page dots under the panel. Each run is
+ * drawn into its own of [buffers], like the world of a run.
  */
-internal fun DrawScope.paintHowTo(session: GameSession, buffer: PixelBuffer) {
+internal fun DrawScope.paintHowTo(session: GameSession, buffers: List<PixelBuffer>) {
     val layout = session.layout
     val art = session.art
     val ui = art?.ui
@@ -61,7 +61,7 @@ internal fun DrawScope.paintHowTo(session: GameSession, buffer: PixelBuffer) {
     for ((i, scene) in session.tutorial.withIndex()) {
         val frame = layout.frames[i]
         if (marco == null) drawRect(GreyPalette.ink, Offset(frame.left - 1f, frame.top - 1f), Size(frame.width + 2f, frame.height + 2f))
-        paintScene(scene, marco?.inside(frame) ?: frame, art, buffer, session.millis, session.alpha)
+        paintScene(scene, marco?.inside(frame) ?: frame, art, buffers[i], session.millis, session.alpha)
         if (marco != null) drawPiece(marco, frame)
         for ((j, line) in Texts.howTo(scene.index).withIndex()) {
             drawTextAround(line, frame.centreX, frame.bottom + MenuLayout.CAPTION_GAP + j * PixelFont.LINE, text, shadow)
@@ -87,8 +87,8 @@ private fun DrawScope.paintPageDots(page: Int, panel: Box, ui: UiArt?) {
 
 /**
  * A small run in its [box]: the scenery, the ground and what is on it, Caro, the points floating up and, in the scene of
- * jumping, the finger. The camera follows her, with the ground low in the box and her head free to leave it a little at
- * the top of a long jump before it goes up with her.
+ * jumping, the finger. The camera follows her, with the ground low in the box; when she jumps, it goes up with her
+ * before her head reaches the top, so she is always seen whole.
  */
 private fun DrawScope.paintScene(
     scene: TutorialScene,
@@ -104,7 +104,7 @@ private fun DrawScope.paintScene(
     val y = caro.previousY + (caro.y - caro.previousY) * alpha
     val cameraLeft = floor(x).toLong() - box.width / CARO_PART
     val feetY = y.roundToInt()
-    val cameraBottom = max(TutorialScene.TOP - scene.groundShown, feetY + CARO_HEIGHT - SCENE_HEAD_OUT - box.height)
+    val cameraBottom = max(TutorialScene.TOP - scene.groundShown, feetY + CARO_HEIGHT + SCENE_HEAD_ROOM - box.height)
     val palette = GreyPalette.of(scene.scenario)
     clipRect(box.left.toFloat(), box.top.toFloat(), box.right.toFloat(), box.bottom.toFloat()) {
         val ground = box.bottom - TutorialScene.TOP + cameraBottom
@@ -166,7 +166,7 @@ private fun DrawScope.paintFinger(
     val y = box.bottom - FINGER_FROM_EDGE
     val icons = ui?.icons
     if (icons != null) {
-        val holding = scene.heldFor > TutorialScene.TAP_SECONDS
+        val holding = scene.holding > 0f
         val animation = icons.animation(if (holding) "dedo-mantiene" else "dedo-toca") ?: return
         val frame = when {
             holding -> animation.frameAt(millis, loops = true)
@@ -176,7 +176,7 @@ private fun DrawScope.paintFinger(
         drawFrame(icons.sheet, frame, x, y)
         return
     }
-    val down = scene.held || scene.touching > 0f
+    val down = scene.held || scene.touching > 0f || scene.holding > 0f
     drawRect(GreyPalette.panel, Offset(x.toFloat(), y.toFloat()), Size(FINGER.toFloat(), FINGER.toFloat()))
     val inner = if (down) FINGER - 4 else FINGER - 8
     val offset = (FINGER - inner) / 2
@@ -190,8 +190,8 @@ private fun DrawScope.paintFinger(
 /** Caro in the scenes: a third of the way in, so what comes can be seen. */
 private const val CARO_PART = 3
 
-/** How far her head may leave the top of a scene in a long jump before the camera goes up with her. */
-private const val SCENE_HEAD_OUT = 10
+/** What the camera leaves over her head when she jumps: it goes up with her, so she never leaves the scene. */
+private const val SCENE_HEAD_ROOM = 2
 private const val RISE = 30f
 
 /** The numbers start a little over her head, and a little ahead of her middle. */

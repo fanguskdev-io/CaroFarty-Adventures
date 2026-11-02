@@ -49,8 +49,10 @@ internal class TutorialScene(
     var touching = 0f
         private set
 
-    /** For how long the finger has been down, to tell a tap from a hold. */
+    /** For how long the finger has been down, to tell a tap from a hold; and for how long a hold still shows. */
     var heldFor = 0f
+        private set
+    var holding = 0f
         private set
 
     /** How many rows of ground show under her feet: more where there is a gap to see. */
@@ -62,6 +64,7 @@ internal class TutorialScene(
         held = pilot?.held == true || pilot?.pressed == true
         touching = if (pilot?.pressed == true) TOUCH_SECONDS else maxOf(0f, touching - JumpLab.STEP)
         heldFor = if (held) heldFor + JumpLab.STEP else 0f
+        holding = if (heldFor > TAP_SECONDS) HOLD_SHOWN_SECONDS else maxOf(0f, holding - JumpLab.STEP)
         run.step(JumpLab.STEP, pilot?.pressed ?: false, held)
         for (event in run.events) {
             if (event is RunEvent.Picked) {
@@ -88,17 +91,19 @@ internal class TutorialScene(
         held = false
         touching = 0f
         heldFor = 0f
+        holding = 0f
     }
 
-    private fun pilotFor(run: GameRun): Pilot? = if (index == JUMPING) Pilot(run) else null
+    private fun pilotFor(run: GameRun): Pilot? = if (index == JUMPING) Pilot(run, shortest = true) else null
 
     /** A new look already on the pose of [run], so it never shows her waiting for a moment as the scene starts again. */
     private fun lookFor(run: GameRun): CaroLook = newLook().also { it.step(0f, run, newRecord = false) }
 
     private fun newRun(): GameRun {
         val piece = when (index) {
+            // A narrow gap that a tap clears and a wider one that needs a hold, both low enough to fit in the scene.
             JUMPING -> Piece(
-                listOf(Ground(-SIDE, 21 * TILE, TOP), Ground(23 * TILE, 44 * TILE, TOP), Ground(48 * TILE, FAR, TOP)),
+                listOf(Ground(-SIDE, 21 * TILE, TOP), Ground(23 * TILE, 40 * TILE, TOP), Ground(44 * TILE, FAR, TOP)),
                 emptyList(),
                 FAR,
             )
@@ -140,8 +145,9 @@ internal class TutorialScene(
         const val PAGES = 2
         const val PER_PAGE = 2
 
-        /** A finger down longer than this is holding the jump, not tapping. */
-        const val TAP_SECONDS = 0.1f
+        /** A finger down longer than this is holding the jump, not tapping; and the hold shows a moment after it ends. */
+        const val TAP_SECONDS = 0.04f
+        private const val HOLD_SHOWN_SECONDS = 0.3f
 
         /** The ground's top in the scenes, two tiles over the bottom, like the start of a run. */
         const val TOP = 2 * TILE
@@ -154,7 +160,7 @@ internal class TutorialScene(
         private const val FAR = 400 * TILE
 
         /** Where each scene starts again, in world pixels; the last one, a moment after she fell. */
-        private val LOOP_AT = doubleArrayOf(56.0 * TILE, 30.0 * TILE, 38.0 * TILE, Double.MAX_VALUE)
+        private val LOOP_AT = doubleArrayOf(50.0 * TILE, 30.0 * TILE, 38.0 * TILE, Double.MAX_VALUE)
         private const val OVER_SECONDS = 1.2f
         const val FLOAT_SECONDS = 0.7f
     }

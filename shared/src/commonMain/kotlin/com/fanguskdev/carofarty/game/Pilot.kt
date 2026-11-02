@@ -7,8 +7,11 @@ import kotlin.math.ceil
  * tries every hold length with [JumpLab] from where Caro is and, once two or more land her safely past it, jumps with the
  * middle one. The tests use it to show the course is fair: if it can run for kilometres, it is; if it falls, the generator
  * let an unfair piece through. Debug builds can let it play by itself (TEC-10), so deciding allocates nothing.
+ *
+ * With [shortest], the way the scene of jumping in how to play shows it: from the edge, as late as it can, and with the
+ * shortest hold that clears it, so a narrow gap takes a tap and a wide one a hold, and the jumps fit in the small scene.
  */
-internal class Pilot(private val run: GameRun) {
+internal class Pilot(private val run: GameRun, private val shortest: Boolean = false) {
     private val movement = run.config.movement
     private val lab = JumpLab(movement, run.config.items.negativeBox)
     private val maxHold = ceil(movement.holdWindow / JumpLab.STEP).toInt()
@@ -86,14 +89,31 @@ internal class Pilot(private val run: GameRun) {
         // She has to land with her whole body past the gap or the obstacle, not on the edge she jumped from.
         val half = movement.hitboxWidth / 2.0
         val past = if (obstacle != null) obstacle.x + Item.SIZE / 2.0 + half else runway + half
+        val count = fairHolds(caro, items, past, pressAfter = 0)
+        if (!shortest) return if (count >= 2) good[count / 2] else -1
+        if (count == 0) return -1
+        val first = good[0]
+        // A step later, if she would still be on this side of the edge and could still clear it, it waits.
+        val room = obstacle == null && caro.state.grounded && caro.right + caro.speed * JumpLab.STEP < runway
+        return if (room && fairHolds(caro, items, past, pressAfter = 1) > 0) -1 else first
+    }
+
+    /** How many hold lengths land her safely [past] the gap or the obstacle, pressing [pressAfter] steps from now: in [good]. */
+    private fun fairHolds(
+        caro: Caro,
+        items: List<Item>,
+        past: Double,
+        pressAfter: Int,
+    ): Int {
+        val half = movement.hitboxWidth / 2.0
         var count = 0
         for (hold in 0..maxHold) {
-            val landing = lab.tryJump(run.course, items, caro.x, caro.y, GameRun.START_X, pressAfter = 0, hold = hold)
+            val landing = lab.tryJump(run.course, items, caro.x, caro.y, GameRun.START_X, pressAfter = pressAfter, hold = hold)
             // On a ground, like the validator: on top of a block over the gap she would run off its end.
             val onAGround = run.course.groundTopUnder(landing.x - half, landing.x + half) == landing.top
             if (landing.landed && !landing.touchedNegative && landing.x >= past && onAGround) good[count++] = hold
         }
-        return if (count >= 2) good[count / 2] else -1
+        return count
     }
 
     private companion object {

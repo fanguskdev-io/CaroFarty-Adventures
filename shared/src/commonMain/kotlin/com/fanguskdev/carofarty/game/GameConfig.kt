@@ -69,7 +69,8 @@ data class MovementConfig(
 data class CourseConfig(
     val startFlatTiles: Int = 30,
     val minGroundTiles: Int = 3,
-    val maxGroundTiles: Int = 20,
+    /** The longest ground (ADR 0009, Fangusk: «suelos más cortos, de 3 a 10 tiles»): shorter grounds, more gaps. */
+    val maxGroundTiles: Int = 10,
     /** The ground's top, in tiles above the bottom edge of the minimum area (ADR 0003). */
     val minGroundTop: Int = 2,
     val maxGroundTop: Int = 6,
@@ -84,8 +85,18 @@ data class CourseConfig(
     /** The rhythm (GDD-08): a stretch of tension this many metres long, then a calm one of this many easy pieces. */
     val tensionMinMeters: Int = 150,
     val tensionMaxMeters: Int = 250,
-    val calmMinPieces: Int = 3,
-    val calmMaxPieces: Int = 8,
+    val calmMinPieces: Int = 2,
+    val calmMaxPieces: Int = 4,
+    /**
+     * The gaps that only platforms cross (ADR 0009): one of every this many challenges, with up to this many platforms,
+     * more of them with the difficulty.
+     */
+    val platformEveryMin: Int = 2,
+    val platformEveryMax: Int = 3,
+    val platformMaxCount: Int = 3,
+    /** The moving platforms (ADR 0009): from this speed on, in pixels a second, in this share of the gaps with platforms. */
+    val moverFromSpeed: Float = 250f,
+    val moverShare: Float = 0.5f,
     /**
      * The obstacles in the air that Fangusk asked for (ADR 0007): from what difficulty they appear, how often a gap gets
      * one (growing with the difficulty) and what share of them are solid blocks instead of a huevo frito or a pescado.

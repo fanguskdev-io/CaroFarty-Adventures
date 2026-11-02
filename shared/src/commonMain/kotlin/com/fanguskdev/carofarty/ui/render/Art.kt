@@ -323,6 +323,8 @@ internal class ScenarioArt private constructor(
     val fillLeft: Int,
     val fillRight: Int,
     val block: Int,
+    val platform: PlatformTiles?,
+    val mover: PlatformTiles?,
     val sky: ImageBitmap?,
     val far: Layer?,
     val mid: Layer?,
@@ -344,6 +346,11 @@ internal class ScenarioArt private constructor(
             // A decoration that reaches the bottom of its tile stands on the ground; one that does not floats in the air.
             val decoration = set.firstAnimation(DECORATION)
             val planted = decoration != null && decoration.emptyBelow == 0
+            fun platform(name: String): PlatformTiles? {
+                val middle = set.animation(name) ?: return null
+                return PlatformTiles(set.animation("$name-izq") ?: middle, middle, set.animation("$name-der") ?: middle)
+            }
+            val platform = platform(PLATFORM)
             return ScenarioArt(
                 tiles = set.sheet,
                 surface = surface.toIntArray(),
@@ -353,6 +360,9 @@ internal class ScenarioArt private constructor(
                 fillLeft = tile("relleno-izq") ?: fill[0],
                 fillRight = tile("relleno-der") ?: fill[0],
                 block = tile("bloque") ?: fill[0],
+                platform = platform,
+                // Until the moving ones arrive, the fixed ones: they will still move.
+                mover = platform(MOVER) ?: platform,
                 sky = sky,
                 far = far,
                 mid = mid,
@@ -362,8 +372,18 @@ internal class ScenarioArt private constructor(
         }
 
         private const val DECORATION = "decoracion-"
+
+        /** The names of the platforms' tiles (ADR 0009), with -izq and -der for their ends. */
+        private const val PLATFORM = "plataforma"
+        private const val MOVER = "plataforma-movil"
     }
 }
+
+/**
+ * The three tiles of a platform: its left end, its middle, which repeats, and its right end; each an animation, still for
+ * the fixed ones and of two frames for the moving ones (GameMaster's leaf, sleigh and carpet).
+ */
+internal class PlatformTiles(val left: Animation, val middle: Animation, val right: Animation)
 
 /**
  * A decoration in the air as a mosaic, as GameMaster draws the copos: staggered, every other tile in a row and the next

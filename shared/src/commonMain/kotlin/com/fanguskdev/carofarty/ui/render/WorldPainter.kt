@@ -9,6 +9,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import com.fanguskdev.carofarty.engine.PixelViewport
 import com.fanguskdev.carofarty.game.GameRun
 import com.fanguskdev.carofarty.game.Item
+import com.fanguskdev.carofarty.game.JumpLab
 import com.fanguskdev.carofarty.game.TILE
 import com.fanguskdev.carofarty.ui.render.PixelFont.drawText
 import kotlin.math.floor
@@ -47,6 +48,8 @@ internal fun DrawScope.paintWorld(
         paintGrounds(run, cameraLeft, width, base, palette)
         paintBlocks(run, cameraLeft, width, base, palette)
     }
+    // The moving platforms where they are between the last two steps, like Caro, so she stays on them on the screen.
+    paintPlatforms(run, scenery, cameraLeft, width, base, palette, run.course.time - (1f - alpha) * JumpLab.STEP, millis)
     val items = art?.items
     if (items !=
         null
@@ -135,6 +138,48 @@ private fun DrawScope.paintGrounds(
 }
 
 /** The solid blocks in the air (ADR 0007), outlined and split in tiles so a row of them reads as blocks. */
+/**
+ * The platforms (ADR 0009), at [time]: the scenario's tiles, its left end, its middle again and again and its right end,
+ * with their top on the platform's; the moving ones with theirs, which flutter and sparkle at [millis]. Without them, a
+ * thin grey slab.
+ */
+private fun DrawScope.paintPlatforms(
+    run: GameRun,
+    scenery: ScenarioArt?,
+    cameraLeft: Long,
+    width: Int,
+    base: Int,
+    palette: GreyPalette,
+    time: Double,
+    millis: Long,
+) {
+    val platforms = run.course.platforms
+    for (i in 0 until platforms.size) {
+        val platform = platforms[i]
+        val left = (platform.leftAt(time) - cameraLeft).roundToLong().toInt()
+        val across = platform.end - platform.start
+        if (left >= width || left + across <= 0) continue
+        val top = base - platform.topAt(time).roundToLong().toInt()
+        val tiles = if (platform.motion != null) scenery?.mover else scenery?.platform
+        if (scenery == null || tiles == null) {
+            drawRect(GreyPalette.ink, Offset(left.toFloat(), top.toFloat()), Size(across.toFloat(), PLATFORM_SLAB.toFloat()))
+            val fill = if (platform.motion != null) palette.groundLine else palette.groundTop
+            drawRect(fill, Offset(left + 1f, top + 1f), Size(across - 2f, PLATFORM_SLAB - 2f))
+            continue
+        }
+        var x = 0
+        while (x < across) {
+            val animation = when {
+                x == 0 -> tiles.left
+                x + TILE >= across -> tiles.right
+                else -> tiles.middle
+            }
+            drawFrame(scenery.tiles, animation.frameAt(millis, loops = true), left + x, top)
+            x += TILE
+        }
+    }
+}
+
 private fun DrawScope.paintBlocks(
     run: GameRun,
     cameraLeft: Long,
@@ -225,3 +270,6 @@ private const val FAR_SPEED = 0.3
 private const val FAR_COLUMN = 24L
 private const val FAR_MIN = 50
 private const val FAR_RANGE = 50L
+
+/** How thick the grey platforms of the prototype are. */
+private const val PLATFORM_SLAB = 6

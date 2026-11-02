@@ -1,5 +1,7 @@
 package com.fanguskdev.carofarty.game
 
+import kotlin.math.abs
+import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.min
 
@@ -37,6 +39,69 @@ class Block(
     val bottom: Int,
     val top: Int,
 )
+
+/**
+ * A platform (ADR 0009, Fangusk after the beta 4): semisolid, as in Mario. She jumps through it from below and lands on
+ * its top; its sides and its underside stop nothing, and on top she runs as on the ground. From [start] to [end] across
+ * and its top at [top], in world pixels. One with a [motion] goes back and forth by itself and carries her along.
+ */
+class Platform(
+    val start: Int,
+    val end: Int,
+    val top: Int,
+    val motion: Motion? = null,
+) {
+    /** How far it has gone across from its place at [time] seconds of the run. */
+    fun shiftAt(time: Double): Double = motion?.let { it.dx * it.share(time) } ?: 0.0
+
+    /** How far it has gone up from its place at [time]. */
+    fun riseAt(time: Double): Double = motion?.let { it.dy * it.share(time) } ?: 0.0
+
+    fun leftAt(time: Double): Double = start + shiftAt(time)
+
+    fun rightAt(time: Double): Double = end + shiftAt(time)
+
+    fun topAt(time: Double): Double = top + riseAt(time)
+
+    /** How fast it goes across at [time], in pixels a second: what it carries her by. */
+    fun speedAt(time: Double): Double = motion?.let { it.dx * it.rate(time) } ?: 0.0
+}
+
+/**
+ * How a moving platform moves (ADR 0009): [dx] pixels across and [dy] up, there and back every [period] seconds, starting
+ * [phase] of the way round, slowing down at both ends. Only sums and products, so it moves the same on every phone.
+ */
+class Motion(
+    val dx: Int,
+    val dy: Int,
+    val period: Double,
+    val phase: Double,
+) {
+    /** How far along its way it is at [time]: 0 at its place, 1 at the other end. */
+    fun share(time: Double): Double {
+        val s = there(time)
+        return s * s * (3 - 2 * s)
+    }
+
+    /** How fast [share] changes at [time], per second. */
+    fun rate(time: Double): Double {
+        val u = time / period + phase
+        val going = u - floor(u) < HALF
+        val s = there(time)
+        return 6 * s * (1 - s) * (if (going) 2 else -2) / period
+    }
+
+    /** Where it is on its way, from 0 to 1 and back, evenly. */
+    private fun there(time: Double): Double {
+        val u = time / period + phase
+        val f = u - floor(u)
+        return if (f < HALF) 2 * f else 2 - 2 * f
+    }
+
+    private companion object {
+        const val HALF = 0.5
+    }
+}
 
 /** A collectible placed at ([x], [y]) in world pixels, [y] above the bottom edge. */
 class Item(val kind: ItemKind, val x: Int, val y: Int) {
@@ -147,16 +212,23 @@ class Walk(
     }
 }
 
-/** What Caro collides with: the grounds and the blocks in the air. */
+/** What Caro collides with: the grounds, the blocks in the air and the platforms, as they are at [time]. */
 interface Terrain {
+    /** The seconds of the run the terrain is at: where its moving platforms are. */
+    var time: Double
+
+    /** How fast the moving platform she stands on, under the span from [left] to [right] at her [feet], goes across; 0 if none. */
+    fun carryUnder(left: Double, right: Double, feet: Float): Double
+
     /** The highest ground top under the span from [left] to [right], or null if it is all gap. Grounds only. */
     fun groundTopUnder(left: Double, right: Double): Int?
 
     /**
-     * What she can stand on under the span from [left] to [right]: the highest top of a ground there, or of a block whose
-     * top is not above her [feet], or null if there is nothing.
+     * What she can stand on under the span from [left] to [right]: the highest top of a ground there, or of a block or a
+     * platform whose top is not above her [feet], or null if there is nothing. A moving platform's top may fall between
+     * two pixels.
      */
-    fun supportUnder(left: Double, right: Double, feet: Float): Int?
+    fun supportUnder(left: Double, right: Double, feet: Float): Float?
 
     /**
      * The start of the nearest ground or block in her way: it begins after [fromRight] and up to [toRight], and its side
@@ -199,13 +271,17 @@ class Course : Terrain {
     val grounds = ArrayDeque<Ground>()
     val items = ArrayDeque<Item>()
     val blocks = ArrayDeque<Block>()
+    val platforms = ArrayDeque<Platform>()
     var end = 0
         private set
+
+    override var time = 0.0
 
     fun append(piece: Piece) {
         grounds.addAll(piece.grounds)
         items.addAll(piece.items)
         blocks.addAll(piece.blocks)
+        platforms.addAll(piece.platforms)
         end = piece.end
     }
 
@@ -214,13 +290,16 @@ class Course : Terrain {
         while (grounds.size > 1 && grounds.first().end < x) grounds.removeFirst()
         while (items.isNotEmpty() && items.first().x + Item.SIZE < x) items.removeFirst()
         while (blocks.isNotEmpty() && blocks.first().end < x) blocks.removeFirst()
+        while (platforms.isNotEmpty() && platforms.first().end + abs(platforms.first().motion?.dx ?: 0) < x) platforms.removeFirst()
     }
 
     fun clear() {
         grounds.clear()
         items.clear()
         blocks.clear()
+        platforms.clear()
         end = 0
+        time = 0.0
     }
 
     override fun groundTopUnder(left: Double, right: Double): Int? {
@@ -232,13 +311,27 @@ class Course : Terrain {
         return if (best == Int.MIN_VALUE) null else best
     }
 
-    override fun supportUnder(left: Double, right: Double, feet: Float): Int? {
-        var best = groundTopUnder(left, right) ?: Int.MIN_VALUE
+    override fun supportUnder(left: Double, right: Double, feet: Float): Float? {
+        var best = groundTopUnder(left, right)?.toFloat() ?: Float.NEGATIVE_INFINITY
         for (i in 0 until blocks.size) {
             val block = blocks[i]
-            if (block.end > left && block.start < right && block.top <= feet + CORNER_TOLERANCE) best = max(best, block.top)
+            if (block.end > left && block.start < right && block.top <= feet + CORNER_TOLERANCE) best = max(best, block.top.toFloat())
         }
-        return if (best == Int.MIN_VALUE) null else best
+        for (i in 0 until platforms.size) {
+            val platform = platforms[i]
+            val top = platform.topAt(time).toFloat()
+            if (platform.rightAt(time) > left && platform.leftAt(time) < right && top <= feet + CORNER_TOLERANCE) best = max(best, top)
+        }
+        return if (best == Float.NEGATIVE_INFINITY) null else best
+    }
+
+    override fun carryUnder(left: Double, right: Double, feet: Float): Double {
+        for (i in 0 until platforms.size) {
+            val platform = platforms[i]
+            if (platform.motion == null || platform.rightAt(time) <= left || platform.leftAt(time) >= right) continue
+            if (abs(platform.topAt(time) - feet) <= CORNER_TOLERANCE) return platform.speedAt(time)
+        }
+        return 0.0
     }
 
     override fun wallAhead(
@@ -318,6 +411,7 @@ class Piece(
     val end: Int,
     val difficulty: Float = 0f,
     val blocks: List<Block> = emptyList(),
+    val platforms: List<Platform> = emptyList(),
 ) {
     val exitTop: Int get() = grounds.last().top
     val entryTop: Int get() = grounds.first().top

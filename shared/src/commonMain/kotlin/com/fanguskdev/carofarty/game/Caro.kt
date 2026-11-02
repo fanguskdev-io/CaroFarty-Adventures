@@ -160,16 +160,22 @@ class Caro(private val config: MovementConfig) {
 
     private fun run(dt: Float, terrain: Terrain) {
         speed = config.speedAt(meters)
-        var across = speed
+        // On a moving platform she runs as on the ground, and the platform carries her along with it (ADR 0009).
+        val carry = if (state.grounded) terrain.carryUnder(left, right, y).toFloat() else 0f
+        var across = speed + carry
         if (knockback > 0f) {
             // From going back to running again, along the push.
             val done = 1f - knockback / config.knockbackSeconds
-            across = -config.knockbackSpeed + (speed + config.knockbackSpeed) * done
+            across = carry - config.knockbackSpeed + (speed + config.knockbackSpeed) * done
             knockback = max(0f, knockback - dt)
         }
         previousLag = cameraLag
         cameraLag =
-            if (across < speed) cameraLag + (speed - across) * dt * LAG_SHOWN else cameraLag * (1f - dt / LAG_RECOVERY).coerceAtLeast(0f)
+            if (across < speed + carry) {
+                cameraLag + (speed + carry - across) * dt * LAG_SHOWN
+            } else {
+                cameraLag * (1f - dt / LAG_RECOVERY).coerceAtLeast(0f)
+            }
         var next = x + across * dt
         if (across >= 0f) {
             val wall = terrain.wallAhead(right, next + halfWidth, y, y + config.hitboxHeight)
@@ -196,13 +202,14 @@ class Caro(private val config: MovementConfig) {
 
     private fun stayOnGround(dt: Float, terrain: Terrain) {
         val ground = terrain.supportUnder(left, right, y)
-        if (ground == null || ground < y) {
+        // A platform going down takes her with it: a little lower is still under her feet.
+        if (ground == null || ground < y - STICK) {
             state = CaroState.Falling
             coyote = config.coyoteTime
             vy = 0f
             return
         }
-        y = ground.toFloat()
+        y = ground
         if (state == CaroState.Landing) {
             landingTime -= dt
             if (landingTime <= 0f) state = CaroState.Running
@@ -231,8 +238,8 @@ class Caro(private val config: MovementConfig) {
         if (y < FALL_LIMIT) state = CaroState.Fallen
     }
 
-    private fun land(ground: Int) {
-        y = ground.toFloat()
+    private fun land(ground: Float) {
+        y = ground
         vy = 0f
         landingTime = LANDING_TIME
         state = CaroState.Landing
@@ -244,6 +251,9 @@ class Caro(private val config: MovementConfig) {
 
         /** How long the landing lasts, for its animation: she can jump during it. */
         const val LANDING_TIME = 0.1f
+
+        /** How far a moving platform can go down under her in a step and still keep her on it. */
+        const val STICK = 2f
 
         /** The share of the push back that shows on the screen, and how fast the camera catches her up after, in seconds. */
         const val LAG_SHOWN = 0.5f

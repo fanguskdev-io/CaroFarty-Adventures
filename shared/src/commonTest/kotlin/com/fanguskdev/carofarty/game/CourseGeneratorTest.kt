@@ -1,6 +1,7 @@
 package com.fanguskdev.carofarty.game
 
 import kotlin.math.ceil
+import kotlin.math.min
 import kotlin.math.roundToLong
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -124,12 +125,23 @@ class CourseGeneratorTest {
                 for (ground in piece.grounds) {
                     assertTrue(ground.top in course.minGroundTop * TILE..course.maxGroundTop * TILE, "height ${ground.top}")
                     assertTrue(ground.end - ground.start >= course.minGroundTiles * TILE, "a ground of ${ground.end - ground.start} px")
+                    // Short grounds (ADR 0009), but for the start and those that carry a platform with a reward.
+                    val reward = piece.blocks.any { it.start >= ground.start && it.end <= ground.end }
+                    if (previous != null && !reward) {
+                        assertTrue(
+                            ground.end - ground.start <= course.maxGroundTiles * TILE,
+                            "a ground of ${(ground.end - ground.start) / TILE} tiles",
+                        )
+                    }
                     previous?.let { before ->
                         val gap = ground.start - before.end
                         assertTrue(gap == 0 || gap >= course.minGapTiles * TILE, "a gap of $gap px at ${before.end}")
                         if (gap == 0) assertEquals(before.top, ground.top, "a breather keeps the height")
+                        // Over a gap with platforms the step goes from the last platform, not from the ground before.
                         val step = (ground.top - before.top) / TILE
-                        assertTrue(step in -course.maxStepDown..course.maxStepUp, "a step of $step tiles at ${ground.start}")
+                        if (piece.platforms.none { it.start >= before.end && it.end <= ground.start }) {
+                            assertTrue(step in -course.maxStepDown..course.maxStepUp, "a step of $step tiles at ${ground.start}")
+                        }
                     }
                     previous = ground
                 }
@@ -161,7 +173,8 @@ class CourseGeneratorTest {
         for (animal in all.items.filter { it.kind.adds }) {
             val onAGround = all.groundTopUnder(animal.x - 1.0, animal.x + 1.0) == animal.y - SITTING_HEIGHT
             val onABlock = all.blocks.any { animal.x >= it.start && animal.x < it.end && it.top == animal.y - SITTING_HEIGHT }
-            assertTrue(onAGround || onABlock, "a ${animal.kind} in the air at ${animal.x}, ${animal.y}")
+            val onAPlatform = all.platforms.any { animal.x >= it.start && animal.x < it.end && it.top == animal.y - SITTING_HEIGHT }
+            assertTrue(onAGround || onABlock || onAPlatform, "a ${animal.kind} in the air at ${animal.x}, ${animal.y}")
         }
     }
 
@@ -171,12 +184,7 @@ class CourseGeneratorTest {
         val all = Course()
         repeat(800) { all.append(generator.next()) }
         val platforms = all.blocks.filter { block ->
-            all.items.any {
-                it.kind.adds &&
-                    it.x >= block.start &&
-                    it.x < block.end &&
-                    it.y == block.top + SITTING_HEIGHT
-            }
+            all.items.any { it.kind.adds && it.x >= block.start && it.x < block.end && it.y == block.top + SITTING_HEIGHT }
         }
         assertTrue(platforms.isNotEmpty(), "there are platforms with a reward")
         for (platform in platforms) {
@@ -223,9 +231,17 @@ class CourseGeneratorTest {
         for (perrito in all.items) {
             val walk = perrito.walk ?: continue
             assertEquals(ItemKind.Perrito, perrito.kind)
-            val ground = all.grounds.first { perrito.x >= it.start && perrito.x < it.end }
             val from = perrito.x + walk.from
             val to = perrito.x + walk.to
+            // On a block or a platform, it turns before its edges.
+            val block = all.blocks.firstOrNull { perrito.x >= it.start && perrito.x < it.end && it.top == perrito.y - SITTING_HEIGHT }
+            val platform = all.platforms.firstOrNull { perrito.x >= it.start && perrito.x < it.end && it.top == perrito.y - SITTING_HEIGHT }
+            val under = block?.let { it.start to it.end } ?: platform?.let { it.start to it.end }
+            if (under != null) {
+                assertTrue(from >= under.first && to <= under.second, "a perrito off its platform at ${perrito.x}")
+                continue
+            }
+            val ground = all.grounds.first { perrito.x >= it.start && perrito.x < it.end }
             assertTrue(from >= ground.start + 2 * TILE && to <= ground.end - 2 * TILE, "a perrito near the edge at ${perrito.x}")
             for (other in all.items) {
                 val onTheGround = !other.kind.adds && other.x >= ground.start && other.x < ground.end && other.y - ground.top < Item.SIZE
@@ -241,6 +257,43 @@ class CourseGeneratorTest {
         assertEquals((0 until Item.COATS).toSet(), coats, "the gatitos wear all eight coats")
         val breeds = all.items.filter { it.kind == ItemKind.Perrito }.map { it.breed }.toSet()
         assertEquals((0 until Item.BREEDS).toSet(), breeds, "the perritos come in all nine breeds")
+    }
+
+    @Test
+    fun someGapsAreOnlyCrossedOnPlatforms() {
+        // ADR 0009: one of every 2 or 3 challenges, a gap wider than the longest jump with 1 to 3 platforms over it.
+        val lab = JumpLab(config.movement)
+        val generator = CourseGenerator(config, seed = 23)
+        val all = Course()
+        repeat(600) { all.append(generator.next()) }
+        val overGaps = all.platforms.filter { all.groundTopUnder(it.start.toDouble(), it.end.toDouble()) == null }
+        assertTrue(overGaps.size > 40, "${overGaps.size} platforms over gaps")
+        for (platform in overGaps) {
+            val before = all.grounds.last { it.end <= platform.start }
+            val after = all.grounds.first { it.start >= platform.end }
+            val longest = config.movement.speedAt((before.end - GameRun.START_X) / TILE) * lab.longestAirtime
+            assertTrue(after.start - before.end > longest, "a gap of ${after.start - before.end} px a jump of $longest px could cross")
+            assertTrue(platform.top % TILE == 0 && platform.top >= course.minGroundTop * TILE, "a platform at ${platform.top}")
+        }
+        val counts = overGaps.groupBy { platform -> all.grounds.last { it.end <= platform.start }.end }.values.map { it.size }
+        assertTrue(counts.all { it in 1..course.platformMaxCount } && counts.any { it > 1 }, "from 1 to 3 platforms: $counts")
+    }
+
+    @Test
+    fun movingPlatformsComeWhenTheRunGoesFastAndCarryNothing() {
+        // ADR 0009: «también móviles desde ya», when the run is already fast; never with an animal on them.
+        val generator = CourseGenerator(config, seed = 29)
+        val all = Course()
+        repeat(1_500) { all.append(generator.next()) }
+        val movers = all.platforms.mapNotNull { platform -> platform.motion?.let { platform to it } }
+        assertTrue(movers.size > 10, "${movers.size} moving platforms")
+        assertTrue(movers.any { it.second.dx != 0 } && movers.any { it.second.dy != 0 }, "across and up and down")
+        for ((mover, motion) in movers) {
+            val speed = config.movement.speedAt((mover.start - GameRun.START_X) / TILE)
+            assertTrue(speed >= course.moverFromSpeed, "a moving platform at $speed px/s")
+            assertTrue(mover.top + min(0, motion.dy) >= course.minGroundTop * TILE, "a moving platform too low")
+            assertTrue(all.items.none { it.x >= mover.start && it.x < mover.end + motion.dx && it.y > mover.top }, "an animal on it")
+        }
     }
 
     @Test
@@ -274,7 +327,7 @@ class CourseGeneratorTest {
     private companion object {
         const val FNV_OFFSET = -3750763034362895579L
         const val FNV_PRIME = 1099511628211L
-        const val SAME_RUN = 3697109979829440507L
+        const val SAME_RUN = -2923099033310780332L
 
         /** How high an animal's centre sits over what it stands on, and the highest jump of docs/movimiento.md. */
         const val SITTING_HEIGHT = 8
@@ -289,8 +342,9 @@ class CourseGeneratorTest {
 
         /**
          * Pieces are made in the background (BufferedPieces) and the run uses about one a second, so a piece only has to
-         * be far quicker than that, also in the unoptimised test builds of iOS (about 8 ms there; 0,4 ms on the JVM).
+         * be far quicker than that, also in the unoptimised test builds of iOS: with the gaps with platforms and their
+         * hops checked one by one (ADR 0009), about 40 ms there and 1,4 ms on the JVM.
          */
-        const val MAX_MILLIS_PER_PIECE = 40.0
+        const val MAX_MILLIS_PER_PIECE = 80.0
     }
 }

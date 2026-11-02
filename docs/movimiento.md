@@ -105,6 +105,18 @@ chocan con la caja de colisión de Caro:
 - **A su favor**: si al subir solo roza con 3 px o menos la esquina de atrás de un bloque que ya deja atrás, no la frena
   (PLY-05); y si sus pies llegan al costado a 4 px o menos de la parte de arriba, se sube encima en vez de chocar.
 
+## Las plataformas
+
+Las plataformas que pidió Fangusk tras la beta 4 son semisólidas, como en Mario
+([ADR 0009](adr/0009-mas-plataformeo-plataformas-semisolidas-y-moviles.md), PLY-17):
+
+- **Desde abajo y de costado** no la frenan: el salto la atraviesa y la carrera pasa por debajo.
+- **Encima**, cuando cae sobre ella con los pies a 4 px o menos por encima de su cara, aterriza y corre como sobre el
+  suelo; al acabar la plataforma cae con su coyote time.
+- **Las móviles** (ITM-20) van y vienen de lado o de arriba abajo, más despacio en los extremos. Si está encima, la que
+  va de lado le suma su velocidad y la que baja la lleva pegada, hasta 2 px por paso, sin que vuelva a aterrizar a cada
+  momento. Se mueven con el reloj de la partida, el mismo con el que el validador y el piloto prueban los saltos.
+
 ## El retroceso de un huevo o un pescado
 
 Lo pidió Fangusk tras jugar la beta: «que haga un pequeño retroceso parpadeando durante un corto periodo de tiempo (como

@@ -233,6 +233,78 @@ class CaroTest {
         assertTrue(caro.x > block.end && caro.state.grounded && caro.y == 32f, "and dropped back to the ground after it")
     }
 
+    /** A course of the given grounds and platforms. */
+    private fun withPlatforms(platforms: List<Platform>, vararg grounds: Ground) =
+        Course().apply { append(Piece(grounds.toList(), emptyList(), grounds.last().end, platforms = platforms)) }
+
+    @Test
+    fun sheJumpsThroughAPlatformFromBelowLandsOnItAndRunsOffItsEnd() {
+        // Low over the ground: a held jump from under it goes through it and comes down on top (ADR 0009).
+        val platform = Platform(150, 350, top = 32 + 40)
+        val course = withPlatforms(listOf(platform), Ground(0, 100_000, 32))
+        val caro = runningOn(course, x = 170.0)
+        caro.step(step, pressed = true, held = true, terrain = course)
+        var onTop = false
+        var highest = caro.y
+        repeat(240) {
+            caro.step(step, pressed = false, held = true, terrain = course)
+            highest = max(highest, caro.y)
+            if (caro.state.grounded && caro.y == platform.top.toFloat()) onTop = true
+        }
+        assertTrue(highest > platform.top, "through it from below")
+        assertTrue(onTop, "and on top of it")
+        assertTrue(caro.x > platform.end && caro.state.grounded && caro.y == 32f, "then off its end, back on the ground")
+    }
+
+    @Test
+    fun aPlatformStopsNothingFromTheSide() {
+        // At the height of her body, ahead of her: she runs on under it.
+        val platform = Platform(200, 260, top = 32 + 12)
+        val course = withPlatforms(listOf(platform), Ground(0, 100_000, 32))
+        val caro = runningOn(course, x = 150.0)
+        repeat(60) { caro.step(step, pressed = false, held = false, terrain = course) }
+        assertTrue(caro.x > platform.end, "she ran past it: ${caro.x}")
+        assertEquals(32f, caro.y)
+    }
+
+    @Test
+    fun aPlatformThatGoesAcrossCarriesHer() {
+        // Long, over a long gap, moving forward and back by 64 px every 2 s.
+        val mover = Platform(100, 1_600, top = 32, motion = Motion(dx = 64, dy = 0, period = 2.0, phase = 0.0))
+        val still = Platform(100, 1_600, top = 32)
+        fun runOn(platform: Platform): Double {
+            val course = withPlatforms(listOf(platform), Ground(0, 100, 32), Ground(2_000, 100_000, 32))
+            val caro = Caro(config).apply {
+                place(120.0, 32f)
+                start()
+            }
+            repeat(30) {
+                course.time += step
+                caro.step(step, pressed = false, held = false, terrain = course)
+            }
+            assertTrue(caro.state.grounded, "on the platform all the time")
+            return caro.x
+        }
+        // In half a second going forward, the platform took her farther than running alone.
+        assertTrue(runOn(mover) > runOn(still) + 10.0, "${runOn(mover)} against ${runOn(still)}")
+    }
+
+    @Test
+    fun aPlatformThatGoesDownKeepsHerOnItWithoutLandingAgain() {
+        val lift = Platform(0, 100_000, top = 120, motion = Motion(dx = 0, dy = -48, period = 4.0, phase = 0.0))
+        val course = withPlatforms(listOf(lift), Ground(0, 100_000, 16))
+        val caro = Caro(config).apply {
+            place(100.0, 120f)
+            start()
+        }
+        repeat(120) {
+            course.time += step
+            caro.step(step, pressed = false, held = false, terrain = course)
+            assertTrue(caro.state == CaroState.Running, "she keeps running on it: ${caro.state} at ${caro.y}")
+            assertEquals(lift.topAt(course.time).toFloat(), caro.y, absoluteTolerance = 0.01f)
+        }
+    }
+
     @Test
     fun grazingTheBackCornerOfABlockDoesNotStopTheJump() {
         // Her left edge is two pixels short of the block's end when her head reaches its bottom: she is leaving it behind.

@@ -94,6 +94,8 @@ class GameRun(
         fillAhead(MAX_PIECES_PER_STEP)
         // If the pieces made in the background ever fell behind, she waits for them rather than run off the course.
         if (course.end - caro.x < MIN_AHEAD) return
+        // The moving platforms go on with the run (ADR 0009), before she moves on them.
+        course.time += dt
         caro.step(dt, pressed, held, course)
         for (i in 0 until course.items.size) course.items[i].walk?.step(dt)
         reactionTime -= dt

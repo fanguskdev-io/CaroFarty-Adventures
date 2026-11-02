@@ -1,5 +1,7 @@
 package com.fanguskdev.carofarty.game
 
+import kotlin.math.roundToInt
+
 /**
  * The jump validator (GEN-10, ADR 0004): it tries the jumps a player can make with the very code that runs the game, a Caro
  * of its own on a terrain it is given, so what it says can be done can be done. One instance is reused for every try:
@@ -18,6 +20,10 @@ class JumpLab(private val movement: MovementConfig, private val negativeBox: Int
             internal set
         var touchedNegative = false
             internal set
+
+        /** The seconds of the run when she landed: where the moving platforms were. */
+        var time = 0.0
+            internal set
     }
 
     private val landing = Landing()
@@ -25,7 +31,8 @@ class JumpLab(private val movement: MovementConfig, private val negativeBox: Int
     /**
      * Runs her from ([x], [y]) on [terrain], presses after [pressAfter] steps, keeps the finger down [hold] steps and
      * follows her until she lands, falls or [maxSteps] go by. [path], if given, receives the centre of her body at every
-     * step from the press on. The result is reused by the next try.
+     * step from the press on. The terrain goes on from [time], as in a run, and is left at the time it had. The result is
+     * reused by the next try.
      */
     fun tryJump(
         terrain: Terrain,
@@ -37,7 +44,10 @@ class JumpLab(private val movement: MovementConfig, private val negativeBox: Int
         hold: Int,
         maxSteps: Int = 240,
         path: MutableList<Pair<Double, Float>>? = null,
+        time: Double = terrain.time,
     ): Landing {
+        val before = terrain.time
+        terrain.time = time
         caro.place(x, y, runStart)
         caro.start()
         landing.landed = false
@@ -46,18 +56,21 @@ class JumpLab(private val movement: MovementConfig, private val negativeBox: Int
         for (step in 0 until maxSteps) {
             val pressed = step == pressAfter
             val held = step >= pressAfter && step < pressAfter + hold
+            terrain.time += STEP
             caro.step(STEP, pressed, held, terrain)
             if (touchesNegative(items)) landing.touchedNegative = true
             if (step >= pressAfter) path?.add(caro.x to caro.y + movement.hitboxHeight / 2)
             if (caro.state == CaroState.Jumping || caro.state == CaroState.Falling) airborne = true
             if (airborne && caro.state.grounded) {
                 landing.landed = true
-                landing.top = caro.y.toInt()
+                landing.top = caro.y.roundToInt()
                 landing.x = caro.x
-                return landing
+                landing.time = terrain.time
+                break
             }
-            if (caro.state.over) return landing
+            if (caro.state.over) break
         }
+        terrain.time = before
         return landing
     }
 

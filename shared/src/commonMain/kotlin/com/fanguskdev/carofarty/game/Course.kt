@@ -54,6 +54,12 @@ class Item(val kind: ItemKind, val x: Int, val y: Int) {
     /** Where its centre is now across: its place, plus what it has walked. */
     val currentX: Double get() = x + (walk?.offset ?: 0f).toDouble()
 
+    /** Where its centre is drawn, [alpha] of the way from the step before to this one. */
+    fun drawnX(alpha: Float): Double {
+        val walk = walk ?: return x.toDouble()
+        return x + (walk.previousOffset + (walk.offset - walk.previousOffset) * alpha).toDouble()
+    }
+
     companion object {
         /** The side of a collectible's drawing in the prototype (CHR-08). */
         const val SIZE = 12
@@ -85,6 +91,10 @@ class Walk(
 ) {
     var offset = 0f
         private set
+
+    /** The offset of the step before, to draw it between the two on screens faster than the steps (TEC-05). */
+    var previousOffset = 0f
+        private set
     var facingLeft = false
         private set
     var walking = true
@@ -98,6 +108,7 @@ class Walk(
     }
 
     fun step(dt: Float) {
+        previousOffset = offset
         timer -= dt
         if (timer <= 0f) {
             walking = !walking

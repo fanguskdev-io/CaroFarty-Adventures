@@ -33,6 +33,7 @@ internal fun DrawScope.paintWorld(
     debugBoxes: Boolean,
     caroX: Double,
     caroY: Float,
+    alpha: Float = 1f,
 ) {
     // The buffer row of the world's y = 0, which goes down out of the buffer when the camera goes up (PLY-13).
     val base = height + cameraBottom
@@ -47,7 +48,13 @@ internal fun DrawScope.paintWorld(
         paintBlocks(run, cameraLeft, width, base, palette)
     }
     val items = art?.items
-    if (items != null) paintItemSprites(run, items, cameraLeft, width, base, millis) else paintItems(run, cameraLeft, width, base)
+    if (items !=
+        null
+    ) {
+        paintItemSprites(run, items, cameraLeft, width, base, millis, alpha)
+    } else {
+        paintItems(run, cameraLeft, width, base, alpha)
+    }
     if (debugBoxes) paintBoxes(run, cameraLeft, base, caroX, caroY)
 }
 
@@ -158,6 +165,7 @@ private fun DrawScope.paintItems(
     cameraLeft: Long,
     width: Int,
     base: Int,
+    alpha: Float,
 ) {
     val items = run.course.items
     val half = Item.SIZE / 2
@@ -165,7 +173,7 @@ private fun DrawScope.paintItems(
         val item = items[i]
         if (item.taken) continue
         // Where it is now: the perritos walk (ADR 0008).
-        val x = item.currentX.roundToLong() - cameraLeft
+        val x = item.drawnX(alpha).roundToLong() - cameraLeft
         if (x - half > width || x + half < 0) continue
         paintGreyItem(item, x.toInt(), base - item.y)
     }

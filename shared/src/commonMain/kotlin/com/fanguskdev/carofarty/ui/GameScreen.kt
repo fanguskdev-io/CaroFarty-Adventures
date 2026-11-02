@@ -159,7 +159,7 @@ private fun DrawScope.drawGame(session: GameSession, world: PixelBuffer, viewpor
     val millis = session.millis
     val image =
         world.paint(width, viewport.height) {
-            paintWorld(run, cameraLeft, cameraBottom, width, viewport.height, palette, art, millis, session.showDebug, x, y)
+            paintWorld(run, cameraLeft, cameraBottom, width, viewport.height, palette, art, millis, session.showDebug, x, y, session.alpha)
         }
 
     drawRect(Color.Black)

@@ -105,12 +105,13 @@ internal fun DrawScope.paintItemSprites(
     width: Int,
     base: Int,
     millis: Long,
+    alpha: Float,
 ) {
     val items = run.course.items
     for (i in 0 until items.size) {
         val item = items[i]
         if (item.taken) continue
-        val x = (item.currentX.roundToLong() - cameraLeft).toInt()
+        val x = (item.drawnX(alpha).roundToLong() - cameraLeft).toInt()
         if (x - art.anchorX >= width || x - art.anchorX + art.sheet.width <= 0) continue
         val y = base - item.y
         val time = millis + outOfStep(item)

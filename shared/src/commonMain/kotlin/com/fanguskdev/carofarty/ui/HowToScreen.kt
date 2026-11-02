@@ -47,7 +47,7 @@ internal fun DrawScope.paintHowTo(session: GameSession, buffer: PixelBuffer) {
     val tall = linesTop - MenuLayout.GAP - top
     val across = min(layout.width - 2 * SIDE, tall * WIDE / TALL)
     val box = Box((layout.width - across) / 2, top, across, tall)
-    session.tutorial?.let { paintScene(it, box, session.art, buffer, session.millis) }
+    session.tutorial?.let { paintScene(it, box, session.art, buffer, session.millis, session.alpha) }
     var y = linesTop
     for ((i, line) in lines.withIndex()) {
         drawText(
@@ -75,6 +75,7 @@ private fun DrawScope.paintScene(
     art: Art?,
     buffer: PixelBuffer,
     millis: Long,
+    alpha: Float,
 ) {
     drawRect(GreyPalette.ink, Offset(box.left - 1f, box.top - 1f), Size(box.width + 2f, box.height + 2f))
     val run = scene.run
@@ -87,7 +88,7 @@ private fun DrawScope.paintScene(
         val ground = box.bottom - GROUND + cameraBottom
         paintMiniScenery(box, art?.scenario(scene.scenario), palette, ground, millis, withGround = false)
         val image = buffer.paint(box.width, box.height) {
-            paintWorld(run, cameraLeft, cameraBottom, box.width, box.height, palette, art, millis, false, caro.x, caro.y)
+            paintWorld(run, cameraLeft, cameraBottom, box.width, box.height, palette, art, millis, false, caro.x, caro.y, alpha)
         }
         drawImage(
             image,

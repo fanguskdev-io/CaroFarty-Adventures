@@ -141,7 +141,8 @@ class SnapshotsTest {
 
     @Test
     fun theStartScreenWithAButtonPressed() {
-        val held = Tap(hold = 100, at = at(2400, 1080) { it.cards[1] })
+        // The card of the scenario she played last, in its golden frame, pressed.
+        val held = Tap(hold = 100, at = at(2400, 1080) { it.cards[0] })
         render("inicio-pulsado", 2400, 1080, Script(frames = 30, taps = mapOf(10 to held)), seen())
         render("inicio-320x180", 320 * 3, 180 * 3, Script(frames = 30), seen())
     }

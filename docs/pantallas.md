@@ -37,9 +37,10 @@ flowchart LR
 ## Inicio
 
 El título (la variante B, «Asomados», con el gatito y el perrito asomados a las letras); una tarjeta por fase, Bosque,
-Nieve y Desierto, con el nombre en su placa y una vista de su escenario que pasa despacio con Caro corriendo con su ropa;
-debajo, «Récords» y «Cómo se juega» con sus iconos, y el botón de sonido a la derecha de la fila. Lo que sobra en vertical
-se reparte en cuatro huecos iguales. Al tocar una fase empieza la partida en ella, ya corriendo, con el jingle de inicio.
+Nieve y Desierto, con el nombre en su placa y una vista de su escenario que pasa despacio con Caro corriendo con su ropa,
+y la última que jugó en un marco dorado (Fangusk: «Sí, me parece buena idea»); debajo, «Récords» y «Cómo se juega» con
+sus iconos, y el botón de sonido a la derecha de la fila. Lo que sobra en vertical se reparte en cuatro huecos iguales.
+Al tocar una fase empieza la partida en ella, ya corriendo, con el jingle de inicio.
 
 ## Partida
 

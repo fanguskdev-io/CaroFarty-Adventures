@@ -17,9 +17,9 @@ import kotlin.math.floor
 
 /**
  * The start screen (UI-07, UI-20), as GameMaster's mockup that Fangusk chose: the title, a card for each scenario with its
- * name on its plate and a view of it going by with Caro running dressed for it, and the buttons of the records, of how to
- * play and of the sound. [pressed] is the box under the finger, drawn pressed. Without the interface's art, the grey
- * prototype's, with the [chosen] scenario outlined.
+ * name on its plate and a view of it going by with Caro running dressed for it, the one she played last ([chosen]) in a
+ * golden frame (Fangusk: «Sí, me parece buena idea»), and the buttons of the records, of how to play and of the sound.
+ * [pressed] is the box under the finger, drawn pressed.
  */
 internal fun DrawScope.paintTitle(
     layout: MenuLayout,
@@ -47,7 +47,7 @@ internal fun DrawScope.paintTitle(
     }
     for (scenario in Scenario.entries) {
         val box = layout.cards[scenario.ordinal]
-        paintCard(box, art, scenario, names[scenario.ordinal], millis, lit = ui == null && scenario == chosen, pressed = box == pressed)
+        paintCard(box, art, scenario, names[scenario.ordinal], millis, lit = scenario == chosen, pressed = box == pressed)
     }
     paintButton(layout.recordsButton, MenuLayout.RECORDS_TEXT, ui, Icon.Records, pressed = layout.recordsButton == pressed)
     paintButton(layout.howToButton, MenuLayout.HOW_TO_TEXT, ui, Icon.Help, pressed = layout.howToButton == pressed)
@@ -156,8 +156,8 @@ internal class RecordTexts(
 /**
  * A scenario in a card of the start screen, as GameMaster's mockup: in GameMaster's card, its view going by slowly, the
  * sky, the two layers and the ground, with Caro running in its clothes a quarter of the way in; and its name on the
- * plate. Pressed, the card sinks. Without the interface's art, a frame with the name over it, [lit] if it is the
- * scenario she chose; without the scenario's art, its grey colours.
+ * plate. Pressed, the card sinks. [lit], the one she played last, in a golden frame with the outline of the pieces.
+ * Without the interface's art, a frame with the name over it; without the scenario's art, its grey colours.
  */
 private fun DrawScope.paintCard(
     box: Box,
@@ -193,6 +193,10 @@ private fun DrawScope.paintCard(
         }
     }
     if (piece != null) {
+        if (lit) {
+            paintRing(box, inner = 0, outer = FRAME_WIDTH, ui.colors.record)
+            paintRing(box, inner = FRAME_WIDTH, outer = FRAME_WIDTH + 1, ui.colors.shadow)
+        }
         drawPiece(piece, box)
         drawTextAround(name, box.centreX, box.top + piece.content[1] - PLATE_TEXT_UP, ui.colors.text, ui.colors.shadow)
     } else {
@@ -203,6 +207,64 @@ private fun DrawScope.paintCard(
             GreyPalette.shadow,
         )
     }
+}
+
+/**
+ * A ring of [color] around [box], from [inner] to [outer] pixels out of it, with the rounded corners of GameMaster's
+ * pieces (two pixels cut on the first row, one on the second) on both its edges: nothing is drawn inside, so a card that
+ * sinks when pressed leaves the sky over it.
+ */
+private fun DrawScope.paintRing(
+    box: Box,
+    inner: Int,
+    outer: Int,
+    color: Color,
+) {
+    val top = box.top - outer
+    val tall = box.height + 2 * outer
+    val innerTop = box.top - inner
+    val innerTall = box.height + 2 * inner
+    var from = top
+    var spans = ringSpans(box, 0, tall, innerTop, innerTall, inner, outer)
+    for (row in 1..tall) {
+        val next = if (row < tall) ringSpans(box, row, tall, innerTop, innerTall, inner, outer) else null
+        if (next == spans) continue
+        // The rows from [from] up to this one have the same spans: one rectangle for each.
+        val rows = (top + row - from).toFloat()
+        var i = 0
+        while (i < spans.size) {
+            drawRect(color, Offset(spans[i].toFloat(), from.toFloat()), Size((spans[i + 1] - spans[i]).toFloat(), rows))
+            i += 2
+        }
+        from = top + row
+        spans = next ?: break
+    }
+}
+
+/** What a ring of [paintRing] covers on a [row] of its [tall]: the start and the end of each of its spans, one after another. */
+private fun ringSpans(
+    box: Box,
+    row: Int,
+    tall: Int,
+    innerTop: Int,
+    innerTall: Int,
+    inner: Int,
+    outer: Int,
+): List<Int> {
+    val outerCut = cornerCut(row, tall)
+    val start = box.left - outer + outerCut
+    val end = box.right + outer - outerCut
+    val innerRow = box.top - outer + row - innerTop
+    if (innerRow !in 0 until innerTall) return listOf(start, end)
+    val innerCut = cornerCut(innerRow, innerTall)
+    return listOf(start, box.left - inner + innerCut, box.right + inner - innerCut, end)
+}
+
+/** How many pixels a rounded corner of GameMaster's pieces cuts from [row] of a shape [tall] rows high. */
+private fun cornerCut(row: Int, tall: Int): Int = when (minOf(row, tall - 1 - row)) {
+    0 -> 2
+    1 -> 1
+    else -> 0
 }
 
 /**
@@ -303,6 +365,9 @@ internal fun DrawScope.paintMenuGround(
 private const val TITLE = "CAROFARTY"
 private const val TITLE_SIZE = 3
 private const val CARD_PLATE = 14
+
+/** The golden frame of the card she played last: its width, and one pixel of outline outside it. */
+private const val FRAME_WIDTH = 2
 private const val PLATE_TEXT_UP = 10
 private const val CARD_GROUND = 12
 private const val TAB_TEXT = 6

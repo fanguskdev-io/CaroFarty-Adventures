@@ -28,8 +28,8 @@ falta el de un escenario, suena el genérico. El botón de sonido, junto al de p
 encendido la primera vez y el juego recuerda cómo lo dejó ([pantallas](pantallas.md)).
 
 La mezcla, la que propuso GameMaster para empezar: la música a 0,8 y los efectos de la partida, cada vez un poco distintos
-(±40 cents de tono y ±1,5 dB al azar), para que una racha de ellos no suene a máquina; los jingles y los botones, siempre
-iguales. En el escritorio solo cambia el volumen, no el tono.
+(±40 cents de tono y ±1,5 dB al azar), para que una racha de ellos no suene a máquina; la cola del salto largo, con el
+mismo tono que su salto corto, para que empalmen; los jingles y los botones, siempre iguales. En el escritorio solo cambia el volumen, no el tono.
 
 ## Cómo suena en cada teléfono
 

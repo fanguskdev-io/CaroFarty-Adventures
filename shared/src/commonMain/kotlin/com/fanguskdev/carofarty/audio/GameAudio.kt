@@ -58,6 +58,8 @@ internal class GameAudio(private val music: MusicPlayer, private val sounds: Sou
     private var loading: Job? = null
     private var after: Job? = null
     private val random = Random.Default
+    private var jumpRate = 1f
+    private var jumpVolume = 1f
 
     /** The files loaded, and how long each lasts in milliseconds. */
     private val millis = HashMap<String, Long>()
@@ -110,10 +112,19 @@ internal class GameAudio(private val music: MusicPlayer, private val sounds: Sou
             sounds.play(file)
             return
         }
+        // The tail of a long jump splices onto its short jump: it goes at the same pitch and volume.
+        if (sound == Sound.LongJump) {
+            sounds.play(file, jumpRate, jumpVolume)
+            return
+        }
         val cents = random.nextDouble(-MAX_CENTS, MAX_CENTS)
         val decibels = random.nextDouble(-MAX_DECIBELS, MAX_DECIBELS)
         val rate = 2.0.pow(cents / CENTS_IN_OCTAVE).toFloat()
         val volume = (EFFECTS_VOLUME * 10.0.pow(decibels / DECIBELS_TO_AMPLITUDE)).toFloat().coerceAtMost(1f)
+        if (sound == Sound.Jump) {
+            jumpRate = rate
+            jumpVolume = volume
+        }
         sounds.play(file, rate, volume)
     }
 

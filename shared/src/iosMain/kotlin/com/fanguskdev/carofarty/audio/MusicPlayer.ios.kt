@@ -6,6 +6,17 @@ import kotlinx.cinterop.usePinned
 import platform.AVFAudio.AVAudioPlayer
 import platform.Foundation.NSData
 import platform.Foundation.dataWithBytes
+import platform.darwin.dispatch_async
+import platform.darwin.dispatch_queue_create
+
+/**
+ * Where every AVAudioPlayer is made and told what to do: a queue of its own, because playing a sound can keep the thread
+ * that asks for it busy for some milliseconds, and on the main one that showed as stutters in the run. Everything the
+ * players below keep is only touched from here.
+ */
+private val audioQueue = dispatch_queue_create("com.fanguskdev.carofarty.audio", null)
+
+private fun onAudioQueue(block: () -> Unit) = dispatch_async(audioQueue, block)
 
 internal actual fun musicPlayer(): MusicPlayer = IosMusicPlayer()
 
@@ -13,24 +24,28 @@ internal actual fun musicPlayer(): MusicPlayer = IosMusicPlayer()
 private class IosMusicPlayer : MusicPlayer {
     private var player: AVAudioPlayer? = null
 
-    override fun play(wav: ByteArray) {
-        stop()
-        val player = audioPlayer(wav) ?: return
-        player.numberOfLoops = -1
-        player.prepareToPlay()
-        player.play()
-        this.player = player
+    override fun play(wav: ByteArray) = onAudioQueue {
+        player?.stop()
+        player =
+            audioPlayer(wav)?.apply {
+                numberOfLoops = -1
+                prepareToPlay()
+                play()
+            }
     }
 
-    override fun pause() {
-        player?.pause()
+    override fun pause() = onAudioQueue { player?.pause() }
+
+    override fun resume() = onAudioQueue { player?.play() }
+
+    override fun restart() = onAudioQueue {
+        player?.let {
+            it.currentTime = 0.0
+            it.play()
+        }
     }
 
-    override fun resume() {
-        player?.play()
-    }
-
-    override fun stop() {
+    override fun stop() = onAudioQueue {
         player?.stop()
         player = null
     }
@@ -42,19 +57,21 @@ internal actual fun soundPlayer(): SoundPlayer = IosSoundPlayer()
 private class IosSoundPlayer : SoundPlayer {
     private val players = HashMap<String, AVAudioPlayer>()
 
-    override fun load(name: String, wav: ByteArray) {
-        val player = audioPlayer(wav) ?: return
-        player.prepareToPlay()
-        players[name] = player
+    override fun load(name: String, wav: ByteArray) = onAudioQueue {
+        audioPlayer(wav)?.let {
+            it.prepareToPlay()
+            players[name] = it
+        }
     }
 
-    override fun play(name: String) {
-        val player = players[name] ?: return
-        player.currentTime = 0.0
-        player.play()
+    override fun play(name: String) = onAudioQueue {
+        players[name]?.let {
+            it.currentTime = 0.0
+            it.play()
+        }
     }
 
-    override fun release() {
+    override fun release() = onAudioQueue {
         for (player in players.values) player.stop()
         players.clear()
     }

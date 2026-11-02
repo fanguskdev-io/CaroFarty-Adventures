@@ -22,11 +22,12 @@ class MainActivity : ComponentActivity() {
         hideSystemBars()
         val store = AndroidKeyValueStore(applicationContext)
         // `adb shell am start -n com.fanguskdev.carofarty/.MainActivity --ez debug true` opens the debugging tools at once,
-        // and `--ez autopilot true` lets the pilot play.
+        // `--ez autopilot true` lets the pilot play and `--ez silencio true` turns the sound off, to measure without it.
         val debugAtStart = BuildConfig.DEBUG && intent.getBooleanExtra("debug", false)
         val autopilot = BuildConfig.DEBUG && intent.getBooleanExtra("autopilot", false)
+        val sound = !(BuildConfig.DEBUG && intent.getBooleanExtra("silencio", false))
         setContent {
-            App(store, debug = BuildConfig.DEBUG, debugAtStart = debugAtStart, autopilot = autopilot, sound = true)
+            App(store, debug = BuildConfig.DEBUG, debugAtStart = debugAtStart, autopilot = autopilot, sound = sound)
         }
     }
 

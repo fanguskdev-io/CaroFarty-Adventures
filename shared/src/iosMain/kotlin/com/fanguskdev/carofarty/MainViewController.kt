@@ -15,10 +15,11 @@ import kotlin.experimental.ExperimentalNativeApi
 fun MainViewController(): UIViewController {
     val store = IosKeyValueStore()
     val debug = Platform.isDebugBinary
-    // `xcrun simctl launch <simulador> com.fanguskdev.carofarty.CaroFarty -debug` opens the debugging tools at once, and
-    // `-autopilot` lets the pilot play.
+    // `xcrun simctl launch <simulador> com.fanguskdev.carofarty.CaroFarty -debug` opens the debugging tools at once,
+    // `-autopilot` lets the pilot play and `-silencio` turns the sound off, to measure without it.
     val arguments = NSProcessInfo.processInfo.arguments
     val debugAtStart = debug && arguments.contains("-debug")
     val autopilot = debug && arguments.contains("-autopilot")
-    return ComposeUIViewController { App(store, debug, debugAtStart, autopilot, sound = true) }
+    val sound = !(debug && arguments.contains("-silencio"))
+    return ComposeUIViewController { App(store, debug, debugAtStart, autopilot, sound) }
 }

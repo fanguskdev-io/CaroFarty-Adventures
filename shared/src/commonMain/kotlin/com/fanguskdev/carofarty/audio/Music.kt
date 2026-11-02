@@ -11,6 +11,9 @@ interface MusicPlayer {
 
     fun resume()
 
+    /** The same track again from its start, without reading it again: a new run in the same scenario. */
+    fun restart()
+
     fun stop()
 }
 

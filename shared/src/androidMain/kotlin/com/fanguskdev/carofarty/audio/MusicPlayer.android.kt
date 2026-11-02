@@ -20,6 +20,8 @@ private class AndroidMusicPlayer : MusicPlayer {
 
     @Volatile private var running = false
 
+    @Volatile private var rewind = false
+
     override fun play(wav: ByteArray) {
         stop()
         val sound = readWav(wav) ?: return
@@ -54,6 +56,10 @@ private class AndroidMusicPlayer : MusicPlayer {
             Thread {
                 var position = 0
                 while (running && samples.isNotEmpty()) {
+                    if (rewind) {
+                        rewind = false
+                        position = 0
+                    }
                     val written = track.write(samples, position, min(CHUNK, samples.size - position))
                     if (written < 0) break
                     position = (position + written) % samples.size
@@ -71,6 +77,16 @@ private class AndroidMusicPlayer : MusicPlayer {
 
     override fun resume() {
         runCatching { track?.play() }
+    }
+
+    override fun restart() {
+        val track = track ?: return
+        rewind = true
+        runCatching {
+            track.pause()
+            track.flush()
+            track.play()
+        }
     }
 
     override fun stop() {

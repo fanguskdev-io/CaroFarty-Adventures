@@ -53,8 +53,9 @@ internal class GameAudio(private val music: MusicPlayer, private val sounds: Sou
     fun music(scenario: Scenario, restart: Boolean = false) {
         after?.cancel()
         playing = true
-        if (current == scenario && !restart) {
-            music.resume()
+        // The same track is never read again: that would take a frame or two in the middle of a run.
+        if (current == scenario) {
+            if (restart) music.restart() else music.resume()
             return
         }
         current = scenario

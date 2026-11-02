@@ -1,8 +1,20 @@
 package com.fanguskdev.carofarty.audio
 
 import java.io.ByteArrayInputStream
+import java.util.concurrent.Executors
 import javax.sound.sampled.AudioSystem
 import javax.sound.sampled.Clip
+
+/**
+ * Where every Clip is opened and told what to do: a thread of its own, so the window never waits for the sound card.
+ * Everything the players below keep is only touched from here.
+ */
+private val audioThread =
+    Executors.newSingleThreadExecutor { task -> Thread(task, "audio").apply { isDaemon = true } }
+
+private fun onAudioThread(block: () -> Unit) {
+    audioThread.execute { runCatching(block) }
+}
 
 internal actual fun musicPlayer(): MusicPlayer = DesktopMusicPlayer()
 
@@ -10,26 +22,24 @@ internal actual fun musicPlayer(): MusicPlayer = DesktopMusicPlayer()
 private class DesktopMusicPlayer : MusicPlayer {
     private var clip: Clip? = null
 
-    override fun play(wav: ByteArray) {
-        stop()
-        clip =
-            runCatching {
-                AudioSystem.getClip().apply {
-                    open(AudioSystem.getAudioInputStream(ByteArrayInputStream(wav)))
-                    loop(Clip.LOOP_CONTINUOUSLY)
-                }
-            }.getOrNull()
+    override fun play(wav: ByteArray) = onAudioThread {
+        clip?.close()
+        clip = clip(wav)?.apply { loop(Clip.LOOP_CONTINUOUSLY) }
     }
 
-    override fun pause() {
-        clip?.stop()
+    override fun pause() = onAudioThread { clip?.stop() }
+
+    override fun resume() = onAudioThread { clip?.loop(Clip.LOOP_CONTINUOUSLY) }
+
+    override fun restart() = onAudioThread {
+        clip?.let {
+            it.stop()
+            it.framePosition = 0
+            it.loop(Clip.LOOP_CONTINUOUSLY)
+        }
     }
 
-    override fun resume() {
-        clip?.loop(Clip.LOOP_CONTINUOUSLY)
-    }
-
-    override fun stop() {
+    override fun stop() = onAudioThread {
         clip?.close()
         clip = null
     }
@@ -41,23 +51,24 @@ internal actual fun soundPlayer(): SoundPlayer = DesktopSoundPlayer()
 private class DesktopSoundPlayer : SoundPlayer {
     private val clips = HashMap<String, Clip>()
 
-    override fun load(name: String, wav: ByteArray) {
-        val clip =
-            runCatching {
-                AudioSystem.getClip().apply { open(AudioSystem.getAudioInputStream(ByteArrayInputStream(wav))) }
-            }.getOrNull() ?: return
-        clips[name] = clip
+    override fun load(name: String, wav: ByteArray) = onAudioThread {
+        clip(wav)?.let { clips[name] = it }
     }
 
-    override fun play(name: String) {
-        val clip = clips[name] ?: return
-        clip.stop()
-        clip.framePosition = 0
-        clip.start()
+    override fun play(name: String) = onAudioThread {
+        clips[name]?.let {
+            it.stop()
+            it.framePosition = 0
+            it.start()
+        }
     }
 
-    override fun release() {
+    override fun release() = onAudioThread {
         for (clip in clips.values) clip.close()
         clips.clear()
     }
 }
+
+/** A Clip open with the WAV in [wav], or null if the computer cannot play it. */
+private fun clip(wav: ByteArray): Clip? =
+    runCatching { AudioSystem.getClip().apply { open(AudioSystem.getAudioInputStream(ByteArrayInputStream(wav))) } }.getOrNull()

@@ -26,7 +26,7 @@ class MainActivity : ComponentActivity() {
         val debugAtStart = BuildConfig.DEBUG && intent.getBooleanExtra("debug", false)
         val autopilot = BuildConfig.DEBUG && intent.getBooleanExtra("autopilot", false)
         setContent {
-            App(store, debug = BuildConfig.DEBUG, debugAtStart = debugAtStart, autopilot = autopilot)
+            App(store, debug = BuildConfig.DEBUG, debugAtStart = debugAtStart, autopilot = autopilot, sound = true)
         }
     }
 

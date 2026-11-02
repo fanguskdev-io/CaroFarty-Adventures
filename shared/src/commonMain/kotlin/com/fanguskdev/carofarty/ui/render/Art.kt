@@ -79,7 +79,8 @@ internal class Sheet(
  * drawing are transparent in every frame: what to lower it so it stands on the ground.
  */
 internal class Animation(private val frames: IntArray, private val millis: IntArray, val emptyBelow: Int) {
-    private val total = millis.sum()
+    /** How long a round of it lasts, in milliseconds. */
+    val duration = millis.sum()
     val size: Int get() = frames.size
 
     /** Its frame number [index], round and round. */
@@ -87,8 +88,8 @@ internal class Animation(private val frames: IntArray, private val millis: IntAr
 
     /** Its frame [time] milliseconds after it started: round and round if it [loops], or else it stays on the last one. */
     fun frameAt(time: Long, loops: Boolean): Int {
-        if (total <= 0) return frames[0]
-        var left = if (loops) time.mod(total.toLong()) else time.coerceIn(0L, total - 1L)
+        if (duration <= 0) return frames[0]
+        var left = if (loops) time.mod(duration.toLong()) else time.coerceIn(0L, duration - 1L)
         for (i in frames.indices) {
             left -= millis[i]
             if (left < 0) return frames[i]

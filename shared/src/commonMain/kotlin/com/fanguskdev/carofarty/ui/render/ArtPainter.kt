@@ -122,8 +122,9 @@ internal fun DrawScope.paintItemSprites(
                 } else {
                     val breed = art.breeds[item.breed % art.breeds.size]
                     val walk = item.walk
-                    val animation = if (walk?.walking == true) breed.walk else breed.still
-                    val frame = animation.frameAt(time, loops = true)
+                    val walking = walk?.walking == true
+                    val animation = if (walking) breed.walk else breed.still
+                    val frame = if (walking) animation.frameAt(time, loops = true) else stillFrame(animation, time, item)
                     val top = y - art.anchorY + animation.emptyBelow
                     drawFrame(breed.sheet, frame, x - art.anchorX, top, flip = walk?.facingLeft == true)
                 }
@@ -221,6 +222,16 @@ internal fun DrawScope.paintCaroSprite(
     drawFrame(art.sheet(scenario), look.frame(animation), x - art.anchorX, feet - art.anchorY)
 }
 
+/**
+ * The frame of a perrito standing still: its first frame lasts 1 to 3 s longer each round, a different time for each
+ * perrito, so they do not pant and blink all the time nor all at once (GameMaster's advice with the art).
+ */
+private fun stillFrame(animation: Animation, time: Long, item: Item): Int {
+    val rest = REST_MILLIS + 2 * outOfStep(item)
+    val round = (time - outOfStep(item)).mod(animation.duration + rest)
+    return if (round < rest) animation.frame(0) else animation.frameAt(round - rest, loops = false)
+}
+
 /** A fixed shift of each collectible's animations, so a row of them does not move all at once. */
 private fun outOfStep(item: Item): Long = ((item.x * 2_654_435_761L + item.y * 40_503L) ushr 8) % OUT_OF_STEP_MILLIS
 
@@ -235,5 +246,6 @@ private fun variation(column: Int, row: Int): Int {
 /** How far above its centre the smell sits over the egg and the fish, in game pixels. */
 private const val SMELL_ABOVE = 6
 private const val OUT_OF_STEP_MILLIS = 1000L
+private const val REST_MILLIS = 1000L
 private const val FAR_SPEED = 0.3
 private const val MID_SPEED = 0.6

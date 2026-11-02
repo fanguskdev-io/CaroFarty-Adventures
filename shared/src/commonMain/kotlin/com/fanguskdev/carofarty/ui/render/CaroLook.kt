@@ -83,8 +83,8 @@ internal class CaroLook(private val runFrames: Int = DEFAULT_FRAMES, private val
         const val FAST_SPEED = 240f
         const val MIN_FRAME_SECONDS = 0.04
 
-        /** How slowly she rises or falls at the top of a jump, in pixels a second: the apice. */
-        const val APEX_SPEED = 80f
+        /** How slowly she rises or falls at the top of a jump, in pixels a second: the apice (GameMaster: 45 to 60). */
+        const val APEX_SPEED = 60f
 
         /** How long she is sad out of points before celebrating a record: the four frames of sin-puntos. */
         const val SAD_SECONDS = 0.6f

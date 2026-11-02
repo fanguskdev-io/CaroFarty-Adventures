@@ -20,5 +20,5 @@ fun MainViewController(): UIViewController {
     val arguments = NSProcessInfo.processInfo.arguments
     val debugAtStart = debug && arguments.contains("-debug")
     val autopilot = debug && arguments.contains("-autopilot")
-    return ComposeUIViewController { App(store, debug, debugAtStart, autopilot) }
+    return ComposeUIViewController { App(store, debug, debugAtStart, autopilot, sound = true) }
 }

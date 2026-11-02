@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
@@ -27,6 +28,9 @@ import androidx.compose.ui.unit.IntSize
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import carofarty.shared.generated.resources.Res
+import com.fanguskdev.carofarty.audio.GameAudio
+import com.fanguskdev.carofarty.audio.musicPlayer
+import com.fanguskdev.carofarty.audio.soundPlayer
 import com.fanguskdev.carofarty.engine.PixelViewport
 import com.fanguskdev.carofarty.game.GameConfig
 import com.fanguskdev.carofarty.game.GameRun
@@ -69,6 +73,7 @@ internal fun GameScreen(
     debugBuild: Boolean,
     debugAtStart: Boolean = false,
     autopilot: Boolean = false,
+    sound: Boolean = false,
 ) {
     val openedAt = remember { TimeSource.Monotonic.markNow() }
     val resources by produceState<Loaded?>(null) {
@@ -82,9 +87,11 @@ internal fun GameScreen(
     val scope = rememberCoroutineScope()
     val records = remember(store) { Records(store) }
     val choices = remember(store) { Choices(store) }
+    val audio = remember(sound) { if (sound) GameAudio(musicPlayer(), soundPlayer(), scope) else null }
+    DisposableEffect(audio) { onDispose { audio?.release() } }
     val session =
         remember(loaded) {
-            GameSession(loaded.config, loaded.art, scope, records, choices, debugBuild, debugAtStart, autopilot, openedAt)
+            GameSession(loaded.config, loaded.art, audio, scope, records, choices, debugBuild, debugAtStart, autopilot, openedAt)
         }
     val world = remember { PixelBuffer() }
     val safe = WindowInsets.safeDrawing
@@ -92,7 +99,8 @@ internal fun GameScreen(
     LaunchedEffect(session) {
         while (isActive) withFrameNanos { session.onFrame(it) }
     }
-    LifecycleEventEffect(Lifecycle.Event.ON_PAUSE) { session.pause() }
+    LifecycleEventEffect(Lifecycle.Event.ON_PAUSE) { session.background() }
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { session.foreground() }
     PlatformBackHandler(enabled = session.running) { session.pause() }
 
     Canvas(

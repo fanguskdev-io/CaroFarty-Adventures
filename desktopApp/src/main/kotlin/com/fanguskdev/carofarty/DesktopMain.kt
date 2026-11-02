@@ -6,7 +6,10 @@ import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import com.fanguskdev.carofarty.storage.DesktopKeyValueStore
 
-/** The desktop window, a development tool: the game at 1280 × 720, with the debugging tools; `--autopilot` lets the pilot play. */
+/**
+ * The desktop window, a development tool: the game at 1280 × 720, with the debugging tools; `--autopilot` lets the pilot
+ * play and `--silencio` turns the music and the sounds off.
+ */
 fun main(args: Array<String>) = application {
     val store = DesktopKeyValueStore()
     Window(
@@ -14,6 +17,6 @@ fun main(args: Array<String>) = application {
         title = "CaroFarty",
         state = rememberWindowState(width = 1280.dp, height = 720.dp),
     ) {
-        App(store, debug = true, autopilot = "--autopilot" in args)
+        App(store, debug = true, autopilot = "--autopilot" in args, sound = "--silencio" !in args)
     }
 }

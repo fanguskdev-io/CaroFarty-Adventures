@@ -4,13 +4,18 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import com.fanguskdev.carofarty.audio.GameAudio
+import com.fanguskdev.carofarty.audio.Sound
 import com.fanguskdev.carofarty.engine.FixedStep
 import com.fanguskdev.carofarty.engine.PixelViewport
 import com.fanguskdev.carofarty.engine.TouchInput
 import com.fanguskdev.carofarty.game.BufferedPieces
+import com.fanguskdev.carofarty.game.CaroState
 import com.fanguskdev.carofarty.game.CourseGenerator
+import com.fanguskdev.carofarty.game.EndCause
 import com.fanguskdev.carofarty.game.GameConfig
 import com.fanguskdev.carofarty.game.GameRun
+import com.fanguskdev.carofarty.game.ItemKind
 import com.fanguskdev.carofarty.game.JumpLab
 import com.fanguskdev.carofarty.game.Pilot
 import com.fanguskdev.carofarty.game.Reaction
@@ -30,6 +35,9 @@ import com.fanguskdev.carofarty.ui.render.chooserHit
 import com.fanguskdev.carofarty.ui.render.chooserTop
 import com.fanguskdev.carofarty.ui.render.pauseButtonHit
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 import kotlin.random.Random
 import kotlin.time.Duration
@@ -40,11 +48,13 @@ import kotlin.time.TimeSource
  * against the records, the choice of scenario, Caro's look and the debugging numbers. The screen calls [onFrame] once per
  * frame and [frame] makes it redraw; nothing here allocates per frame except the debugging line, which only debug builds
  * show (TEC-17). In debug builds started with the autopilot, the [Pilot] plays instead of the finger and starts again on
- * its own when a run ends. [art] is null when there is none: then everything is drawn as the grey prototype.
+ * its own when a run ends. [art] is null when there is none: then everything is drawn as the grey prototype; and [audio]
+ * when the game plays no sound, as in the tests.
  */
 internal class GameSession(
     private val config: GameConfig,
     val art: Art?,
+    private val audio: GameAudio?,
     private val scope: CoroutineScope,
     private val records: Records,
     private val choices: Choices,
@@ -123,6 +133,15 @@ internal class GameSession(
     private var startupMillis = -1L
     private var debugFrames = 0
 
+    /** The best distance in the scenario when the run began, to hear the moment she beats it. */
+    private var bestBefore = records.meters(scenario)
+    private var recordHeard = false
+    private var jingle: Job? = null
+
+    init {
+        audio?.music(scenario)
+    }
+
     fun onFrame(nanos: Long) {
         val elapsed = if (lastNanos < 0) 0.0 else (nanos - lastNanos) / NANOS
         lastNanos = nanos
@@ -170,6 +189,7 @@ internal class GameSession(
             return
         }
         if (run.phase == RunPhase.Running && pauseButtonHit(gameX, gameY, viewport.width, insets)) {
+            audio?.play(Sound.Tap)
             pause()
             return
         }
@@ -184,6 +204,18 @@ internal class GameSession(
         paused = true
         input.clear()
         panel = pausePanel()
+        audio?.pause()
+    }
+
+    /** The app went to the background: the run pauses and the music stops. */
+    fun background() {
+        pause()
+        audio?.pause()
+    }
+
+    /** The app came back: the music goes on, unless the run waits in its pause or has just ended. */
+    fun foreground() {
+        if (!paused && run.phase != RunPhase.Over) audio?.resume()
     }
 
     private fun resume() {
@@ -191,6 +223,8 @@ internal class GameSession(
         lastNanos = -1L
         clock.reset()
         panel = emptyList()
+        audio?.play(Sound.Back)
+        audio?.resume()
     }
 
     private fun step() {
@@ -205,29 +239,53 @@ internal class GameSession(
         val pressed = pilot?.pressed ?: touched
         val held = pilot?.held ?: input.isHeld
         val wasReady = run.phase == RunPhase.Ready
+        val caro = run.caro
+        val jumps = caro.jumps
+        val landing = caro.state == CaroState.Landing
         run.step(JumpLab.STEP, pressed, held)
         if (wasReady && run.phase == RunPhase.Running) {
             panel = emptyList()
             running = true
+            audio?.play(Sound.StartJingle)
+        }
+        if (caro.jumps > jumps) audio?.play(Sound.Jump)
+        if (!landing && caro.state == CaroState.Landing) audio?.play(Sound.Landing)
+        if (!recordHeard && bestBefore > 0 && run.meters > bestBefore) {
+            recordHeard = true
+            audio?.play(Sound.Record)
         }
         handleEvents()
+        val pose = look.pose
         look.step(JumpLab.STEP, run, result?.newRecord == true)
+        if (pose != CaroPose.AlBarranco && look.pose == CaroPose.AlBarranco) audio?.play(Sound.IntoTheGap)
     }
 
     private fun handleEvents() {
         if (run.events.isEmpty()) return
         for (event in run.events) {
-            if (event is RunEvent.Ended) finish()
+            when (event) {
+                is RunEvent.Picked -> audio?.play(soundOf(event.kind))
+                is RunEvent.Ended -> finish(event.cause)
+            }
         }
         run.events.clear()
     }
 
-    private fun finish() {
+    private fun finish(cause: EndCause) {
         val ended = records.submit(scenario, run.meters.toInt(), run.maxPoints)
         result = ended
         overAt = time
         running = false
         panel = overPanel(ended)
+        // The music stops: the sound of the end, and a moment later its jingle, of a record if there is one.
+        if (cause == EndCause.NoPoints) audio?.play(Sound.NoPoints)
+        audio?.pause()
+        jingle?.cancel()
+        jingle =
+            scope.launch {
+                delay(JINGLE_DELAY_MILLIS)
+                audio?.play(if (ended.newRecord) Sound.RecordJingle else Sound.EndJingle)
+            }
     }
 
     /** Another run at once, already running: from the end of a run to playing again takes one tap (UI-06). */
@@ -237,6 +295,8 @@ internal class GameSession(
         run.step(JumpLab.STEP, pressed = true, held = false)
         running = true
         panel = emptyList()
+        audio?.music(scenario, restart = true)
+        audio?.play(Sound.StartJingle)
     }
 
     /**
@@ -251,6 +311,15 @@ internal class GameSession(
         result = null
         running = false
         panel = readyPanel()
+        audio?.play(Sound.Tap)
+        audio?.music(chosen, restart = true)
+    }
+
+    private fun soundOf(kind: ItemKind): Sound = when (kind) {
+        ItemKind.Perrito -> Sound.Perrito
+        ItemKind.Gatito -> Sound.Gatito
+        ItemKind.Huevo -> Sound.Huevo
+        ItemKind.Pescado -> Sound.Pescado
     }
 
     private fun framesOf(pose: CaroPose): Int = art?.caro?.animation(pose, Reaction.None)?.size ?: DEFAULT_RUN_FRAMES
@@ -259,6 +328,9 @@ internal class GameSession(
         run.close()
         run = createRun()
         if (autopilot) pilot = Pilot(run)
+        jingle?.cancel()
+        bestBefore = records.meters(scenario)
+        recordHeard = false
     }
 
     private fun createRun(): GameRun {
@@ -322,6 +394,9 @@ internal class GameSession(
         const val DEBUG_CORNER = 24
         const val MILLIS = 1000
         const val DEFAULT_RUN_FRAMES = 6
+
+        /** From the sound of the end of a run to its jingle. */
+        const val JINGLE_DELAY_MILLIS = 600L
         const val DEBUG_TAKE_AWAY = 5
         const val SEED_DIGITS = 100_000
         const val DEBUG_REFRESH_FRAMES = 15

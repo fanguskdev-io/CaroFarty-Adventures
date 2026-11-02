@@ -3,26 +3,48 @@
 Aquí se deja cada APK de Android para instalar en el móvil. El APK no se versiona: se genera con
 `./gradlew :androidApp:assembleRelease` y se copia aquí con la fecha en el nombre.
 
-## La beta del 2026-11-02 (la sexta)
+## La beta del 2026-11-02 (la séptima)
 
-`CaroFarty-beta-2026-11-02-6.apk`, 9,8 MB, versión de lanzamiento firmada con la clave de depuración de este Mac
-(SHA-256 del fichero: `81eb83b4122d826a9c9dfe3e95173937f4e0fb89f52a7930aa3ceae380474928`), del commit `3093c6e`. Es la
-sexta de ese día, la que pidió Fangusk («Dale caña a la Beta 6»): sustituye a la quinta y añade las plataformas con premio
-semisólidas, como las demás. Probada en el emulador y, la parte común, en el simulador de iOS; falta probarla en su
-Nothing Phone (3).
+`CaroFarty-beta-2026-11-02-7.apk`, 9,8 MB, versión de lanzamiento firmada con la clave de depuración de este Mac
+(SHA-256 del fichero: `cdd8461a00864b11924d8f18eba92a844d3a9dbf9ff72e9395a96645498381aa`), del commit `1d28255`.
+Sustituye a la sexta y añade lo que pidió Fangusk tras jugarla: **la presentación** con el título animado, el subtítulo
+«SALVANDO EL MUNDO, PATITA A PATITA» y «TOCA PARA EMPEZAR»; **algo más de plataformeo**; y **huevos y pescados junto a los
+animales**. Probada en el emulador y, la parte común, en el simulador de iOS; falta probarla en su Nothing Phone (3).
+
+## La app de medida (AUD-29)
+
+`CaroFarty-medida-2026-11-02.apk`, 9,8 MB (SHA-256 `77281408f6b548b3fe8f61f3a5314c9407840ea174172558b9d9cdac5ed2b9e6`),
+del mismo commit. Es otra app, «CaroFarty medida», que se instala aparte del juego y no toca sus récords. Juega sola con el
+piloto automático, optimizada como la beta, para ver si el sonido y los fotogramas aguantan 30 minutos en su teléfono:
+
+1. Instálala como la beta (abajo) y ábrela: empieza a jugar sola, con música, y la pantalla no se apaga.
+2. Deja el móvil enchufado 30 minutos, con el volumen bajo pero sin silenciar, y escucha de vez en cuando por si hay
+   cortes o chasquidos.
+3. Al acabar, mira abajo a la izquierda la primera de las cuatro líneas rosas: `FPS … · PEOR … MS · LENTOS … %`. El
+   dato es **LENTOS**, el porcentaje de fotogramas lentos desde que se abrió; apúntalo junto con **PEOR**.
+4. Luego puedes desinstalarla: es solo para medir.
 
 ## Qué lleva
 
 - **El arte de la interfaz de GameMaster** en todas las pantallas, como las maquetas que eligió Fangusk: el cielo de día
   con nubes, el título con el gatito y el perrito asomados, botones con iconos que se ven pulsados al tocarlos
   ([docs/pantallas.md](../docs/pantallas.md)).
+- **La presentación** al abrir el juego: el título con el subtítulo «SALVANDO EL MUNDO, PATITA A PATITA», «TOCA PARA
+  EMPEZAR» en frambuesa parpadeando y, abajo, el último escenario jugado pasando bajo un banco de nubes, con Caro
+  corriendo y rescatando un gatito o un perrito cada 5 s. Un toque lleva a «Cómo se juega» la primera vez y al inicio
+  después.
 - **Pantalla inicial** con una tarjeta por fase (Bosque, Nieve y Desierto) con su escenario en marcha y Caro corriendo;
   la última que jugó, en un **marco dorado**. Al tocar una fase empieza la partida; al acabar, «Otra vez» o «Inicio».
   Arriba a la izquierda, **el botón de salir**: pregunta «¿SALIR DEL JUEGO?» y con «SÍ» cierra la app.
 - **Más plataformeo** (ADR 0009): suelos más cortos, más barrancos, **plataformas** que se atraviesan saltando desde
-  abajo y sobre las que se aterriza, barrancos que solo se cruzan saltando a ellas (uno de cada 2 o 3 retos) y, cuando la
-  partida ya va rápida, **plataformas que se mueven** y la llevan: la hoja dorada, el trineo y la alfombra voladora. Las
-  **plataformas con premio**, con un perrito o un gatito encima, también son semisólidas: se suben desde abajo.
+  abajo y sobre las que se aterriza, barrancos que solo se cruzan saltando a ellas y **plataformas que se mueven** y la
+  llevan: la hoja dorada, el trineo y la alfombra voladora. Las **plataformas con premio**, con un perrito o un gatito
+  encima, también son semisólidas: se suben desde abajo. Desde esta beta, **algo más**: plataformas en uno de cada 2
+  retos, más cadenas de 2 y 3 plataformas, a menudo **como escaleras** que suben o bajan, las móviles antes (desde
+  225 px/s) y más a menudo, y las calmas más cortas.
+- **Animales vigilados** (ADR 0010): a veces un huevo frito o un pescado junto a un animal, donde aterriza el salto. Unos
+  se rescatan limpios con un salto bien medido; otros son un dilema: o el animal o no restar. Siempre hay un camino que
+  no toca nada que reste. Pocos al principio y más con la distancia.
 - **Récords por fase**: las 5 mejores partidas con medallas, sus metros, sus puntos máximos y la fecha (2 NOV 2026).
 - **Cómo se juega**: dos páginas con dos viñetas que se juegan solas; sale la primera vez que se abre. Ya no se mezclan
   las dos viñetas de una página en el móvil y el salto no se sale del marco.
@@ -46,7 +68,7 @@ Nothing Phone (3).
 **Con el cable** (y las opciones de desarrollador con la depuración USB activada):
 
 ```bash
-~/Library/Android/sdk/platform-tools/adb install -r entregas/CaroFarty-beta-2026-11-02-6.apk
+~/Library/Android/sdk/platform-tools/adb install -r entregas/CaroFarty-beta-2026-11-02-7.apk
 ```
 
 La primera vez, el móvil pregunta si permite la depuración USB desde este Mac: hay que aceptar en su pantalla.

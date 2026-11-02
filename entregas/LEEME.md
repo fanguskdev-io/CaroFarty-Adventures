@@ -5,21 +5,27 @@ Aquí se deja cada APK de Android para instalar en el móvil. El APK no se versi
 
 ## La beta del 2026-11-02
 
-`CaroFarty-beta-2026-11-02.apk`, 8,7 MB, versión de lanzamiento firmada con la clave de depuración de este Mac
-(SHA-256 del fichero: `055d7a8de2374da69ed690dca7dfe43eff870a7cddb704330f586aedeadb30be`). Probada en el emulador de
-Android 16; en el simulador de iOS va a 60 FPS. Lo único que falta es probarla en un teléfono de verdad.
+`CaroFarty-beta-2026-11-02.apk`, 8,8 MB, versión de lanzamiento firmada con la clave de depuración de este Mac
+(SHA-256 del fichero: `884dd5dfa2c19505c8cf67e7fecbd60f3ce573d737be7b104c796b76b579d01b`). Es la segunda de ese día:
+lleva lo que pidió Fangusk al jugar la primera. Probada en el emulador y, la parte común, en el simulador de iOS; falta
+probarla en su Nothing Phone (3).
 
 ## Qué lleva
 
-- Caro con su arte, sus poses (espera, carrera, carrera rápida, salto, ápice, caída, aterrizaje, caída al barranco, sin
-  puntos y récord) y su cara de contenta al rescatar un animal o de asco con un huevo o un pescado.
-- Gatitos de ocho pelajes, perritos de nueve razas que pasean, y huevos y pescados con su olor.
-- Los tres escenarios, Bosque, Nieve y Desierto, con su suelo, sus bloques, su cielo, dos fondos que se mueven a distinta
-  velocidad y su decoración. Se eligen en el panel de inicio y en el de fin, y el juego recuerda el último.
-- Música en bucle para cada escenario, jingles de inicio, fin y récord, y efectos al saltar, aterrizar, recoger, caer y
-  pulsar botones. Son provisionales, de GameMaster, y nadie los había oído aún: cuándo suena cada cosa, en
-  [docs/sonido.md](../docs/sonido.md). La música con capas que nunca aburre es de M4.
-- Si bate un récord, Caro lo celebra a los dos lados del panel de fin.
+- **Pantalla inicial** con el título, una tarjeta por fase (Bosque, Nieve y Desierto) con la vista de su escenario, los
+  botones «Récords» y «Cómo se juega» y el de sonido. Al tocar una fase empieza la partida. Al acabar, «Otra vez» o
+  «Inicio».
+- **Récords por fase**: las 5 mejores partidas con sus metros, sus puntos máximos y la fecha.
+- **Cómo se juega**: cuatro páginas con una partida en miniatura que se juega sola; sale la primera vez que se abre.
+- **Botón de silencio** junto al de pausa y en el inicio, que el juego recuerda.
+- Caro con su arte, sus poses y sus caras; al coger un huevo o un pescado, **un retroceso y 1 s parpadeando** en el que no
+  pierde más puntos.
+- Gatitos de ocho pelajes, **perritos de nueve razas** (el yorkshire con su lazo, cada raza de su tamaño) que pasean, y
+  huevos y pescados con su olor.
+- Los tres escenarios con su suelo, sus bloques, su cielo, dos fondos que se mueven a distinta velocidad, su decoración y
+  el fondo de los barrancos nuevo; en la Nieve, **la cabaña que sale a veces cerca y a veces lejos**.
+- Música en bucle por escenario, jingles y efectos, provisionales ([docs/sonido.md](../docs/sonido.md)). La música nueva,
+  más distinta entre escenarios, aún no está.
 
 ## Instalarla en un Android
 

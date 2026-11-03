@@ -316,9 +316,10 @@ internal class GameSession(
         paused = true
         input.clear()
         panel = pausePanel()
-        panelButtonTexts = listOf(Texts.HOME)
-        panelButtonIcons = listOf(null)
-        panelButtons = layout.row(panelButtonTexts, panelBottom(panel, viewport.height) + MenuLayout.GAP)
+        // Its menu (UI-05): go on, the same scenario from the start, or the start screen.
+        panelButtonTexts = listOf(Texts.RESUME, Texts.RESTART, Texts.HOME)
+        panelButtonIcons = listOf(Icon.Resume, Icon.Again, null)
+        panelButtons = layout.row(panelButtonTexts, panelBottom(panel, viewport.height) + MenuLayout.GAP, panelButtonIcons)
         audio?.pause()
     }
 
@@ -383,8 +384,16 @@ internal class GameSession(
 
     private fun gameTap(x: Float, y: Float) {
         if (paused) {
-            val home = panelButtons.firstOrNull()
-            if (home != null && home.contains(x, y)) press(home) { goHome() } else press(null) { resume() }
+            // Its three buttons; a tap anywhere else goes on too, as it always did.
+            val again = panelButtons.getOrNull(1)
+            val home = panelButtons.getOrNull(2)
+            val going = panelButtons.getOrNull(0)
+            when {
+                again != null && again.contains(x, y) -> press(again) { restartFromPause() }
+                home != null && home.contains(x, y) -> press(home) { goHome() }
+                going != null && going.contains(x, y) -> press(going) { resume() }
+                else -> press(null) { resume() }
+            }
             return
         }
         if (run.phase == RunPhase.Over) {
@@ -668,6 +677,13 @@ internal class GameSession(
     }
 
     /** Another run at once, already running: from the end of a run to playing again takes one tap (UI-06). */
+    /** From the pause, the run is left and another starts in the same scenario (UI-05). */
+    private fun restartFromPause() {
+        paused = false
+        audio?.play(Sound.Tap)
+        restart()
+    }
+
     private fun restart() {
         replaceRun()
         result = null
@@ -748,7 +764,7 @@ internal class GameSession(
         }
     }
 
-    private fun pausePanel(): List<PanelLine> = listOf(PanelLine(Texts.PAUSE, size = 2), PanelLine(Texts.TAP_TO_RESUME))
+    private fun pausePanel(): List<PanelLine> = listOf(PanelLine(Texts.PAUSE, size = 2))
 
     private fun overPanel(result: RunResult): List<PanelLine> {
         val lines = mutableListOf(

@@ -8,12 +8,14 @@ las tablas de sus epicas/*.md y su tools/generar_backlog.py valida y regenera el
     python3 scripts/backlog.py texto GDD-13 "Nueva descripción con su **Hecho:** …"
     python3 scripts/backlog.py titulo GEN-08 "Nuevo título"
     python3 scripts/backlog.py deps ART-18 "ART-09, ART-21"
+    python3 scripts/backlog.py hito M6 GEN-06 TEC-12
     python3 scripts/backlog.py nueva UI-19 "| UI-20 | Título | Descripción | P1 | S | M3 | GEN-08 | Por hacer |"
     python3 scripts/backlog.py fuera ART-15 "Motivo, que encabeza la descripción."
     python3 scripts/backlog.py ver GDD-13
 
 `nueva` inserta la fila detrás de la tarea indicada; `fuera` la mueve a la tabla «Fuera de alcance» de su épica, con el
-hito en «—», como las demás de esa tabla.
+hito en «—», como las demás de esa tabla; `hito` cambia el hito de las tareas, por ejemplo a M6 lo que se deja para
+después de la versión definitiva.
 """
 import subprocess
 import sys
@@ -58,7 +60,7 @@ def cambiar(ids, columna, valor):
         celdas[columna] = valor
         lineas[n] = fila(celdas)
         guardar(fichero, lineas)
-        print(f"{id_tarea}: {celdas[TITULO]} → {valor if columna in (ESTADO, DEPENDE) else 'cambiado'}")
+        print(f"{id_tarea}: {celdas[TITULO]} → {valor if columna in (ESTADO, DEPENDE, HITO) else 'cambiado'}")
 
 
 def nueva(detras_de, linea):
@@ -106,6 +108,8 @@ def main(args):
         if "|" in args[2]:
             sys.exit("El texto no puede llevar «|»: rompería la tabla")
         cambiar([args[1]], {"texto": DESCRIPCION, "titulo": TITULO, "deps": DEPENDE}[orden], args[2])
+    elif orden == "hito" and len(args) >= 3:
+        cambiar(args[2:], HITO, args[1])
     elif orden == "nueva" and len(args) == 3:
         nueva(args[1], args[2])
     elif orden == "fuera" and len(args) == 3:

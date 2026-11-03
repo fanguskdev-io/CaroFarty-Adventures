@@ -22,7 +22,8 @@ internal data class Box(
     fun contains(x: Float, y: Float, slack: Int = SLACK): Boolean =
         x >= left - slack && x < right + slack && y >= top - slack && y < bottom + slack
 
-    private companion object {
+    companion object {
+        /** The room around a box that still counts as on it, for the finger (ACC-03). */
         const val SLACK = 4
     }
 }
@@ -37,6 +38,9 @@ internal enum class Icon(val key: String) {
     Back("volver"),
     Again("reintentar"),
     Exit("salir"),
+
+    /** To go on with a paused run (UI-05): GameMaster's ▶; until it comes, the button has only its word. */
+    Resume("continuar"),
 }
 
 /**

@@ -32,4 +32,5 @@ Antes de dar por buena una pieza de arte, de sonido o de diseño:
 - [ ] Puesta al lado de la referencia, se parece en el estilo, no en la forma: nadie diría que es una pieza de otro juego.
 - [ ] No contiene nombres, logos ni elementos distintivos de otra saga.
 - [ ] La música no reproduce ni una frase reconocible de otra canción.
-- [ ] Las fuentes, herramientas y recursos de terceros que use tienen licencia que lo permite y figuran en los créditos.
+- [ ] Las fuentes, herramientas y recursos de terceros que use tienen licencia que lo permite y figuran en los créditos
+  (el inventario de las librerías, en [licencias](licencias.md)).

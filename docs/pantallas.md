@@ -31,6 +31,9 @@ flowchart LR
   los mismos sitios de la pantalla; en la presentación, se mueven.
 - **Los botones pequeños** (volver, sonido, pausa): de 20 × 20, a 7 píxeles del borde de arriba y a 8 del de al lado, más
   la zona segura; así libran una esquina redondeada.
+- **Del tamaño de un dedo** (ACC-03): cada botón cuenta 4 píxeles de más alrededor para el dedo, así que hasta el más
+  pequeño mide al menos 48 dp en Android y 44 pt en iOS: 68 dp en el Nothing de Fangusk y 56 pt en un iPhone SE. Lo
+  comprueba `TouchTargetsTest` en seis pantallas.
 - **Pulsar**: un botón se ve pulsado mientras el dedo está encima y hace lo suyo al levantarlo, como piden las piezas
   pulsadas de GameMaster. Solo el salto va con el dedo al bajar.
 - **Lo que queda centrado** se centra en la parte útil de la pantalla (sin márgenes ni zona segura) y, si no cabe en ella,
@@ -80,7 +83,9 @@ pausa. En sus 3 primeras partidas, al llegar a cada uno de los 3 primeros barran
 pista: el dedo que mantiene, el medidor y «MANTÉN». Va con ella; si salta, sube con ella, y el medidor se llena con lo que
 mantiene el salto (hasta los 0,36 s que da el salto más largo). Al aterrizar al otro lado, se va.
 
-- **Pausa**: el panel de pausa y el botón «Inicio»; un toque en cualquier otro sitio, a seguir.
+- **Pausa** (UI-05): el panel de pausa y su menú, «Continuar», «Reiniciar» (otra partida en la misma fase, desde el
+  principio) e «Inicio»; un toque en cualquier otro sitio también sigue, como antes. Salir de la app o una llamada la
+  pausan sola, y el botón atrás del teléfono también.
 - **Fin de partida**: un título con gracia según cómo acabó, que eligió Fangusk tras la beta 8: «¡UPS! ¡AL AGUA!» al caer
   a un barranco del Bosque o la Nieve, «¡UPS! ¡AL CAÑÓN!» en el Desierto, «¡PUAJ! DEMASIADO MAL OLOR» sin puntos y, si
   los últimos se los quitó un pájaro, «¡AY! ¡QUÉ PICOTAZO!» (idea de GameMaster). Debajo, los animales salvados en la

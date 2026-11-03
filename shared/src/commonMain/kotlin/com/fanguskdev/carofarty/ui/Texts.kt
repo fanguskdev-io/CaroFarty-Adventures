@@ -9,7 +9,8 @@ internal object Texts {
     const val HOLD_HINT = "MANTÉN"
     const val POINTS = "PUNTOS"
     const val PAUSE = "PAUSA"
-    const val TAP_TO_RESUME = "TOCA PARA SEGUIR"
+    const val RESUME = "CONTINUAR"
+    const val RESTART = "REINICIAR"
     const val TAP_TO_START = "TOCA PARA EMPEZAR"
 
     /** The subtitle of the title screen, which Fangusk chose. */

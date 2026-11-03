@@ -101,7 +101,11 @@ minutos y el arranque sigue siendo amable (GDD-21, GDD-23). Y no le gustaron los
 has quedado sin puntos»): eligió un título con gracia según cómo se pierde y, debajo, los animalitos salvados
 ([pantallas](pantallas.md), UI-24). Tras jugar la beta 9, mirando sobre todo los pájaros y los peces que saltan: «La beta 9
 me parece estupenda»; da por buenos los peligros nuevos, la carrera sprint, los mensajes del final y la presentación con
-el título animado (UI-07). Del salto: «Estoy contento con el
+el título animado (UI-07). Para la versión definitiva, a las preguntas de GameMaster: firma propia, porque «Caro no tiene
+la app instalada, la versión definitiva será la primera que instale» (TEC-14); en los ajustes, música y efectos por
+separado y vibración suave solo con lo malo (un huevo, un pescado, un pájaro o una caída), con su interruptor: «Me parece
+bien» (UI-11, TEC-09, VFX-07); el pulido de la beta 11, «ok»; la celebración del récord con contador y confeti, «ok»
+(UI-15); y en los créditos, «A FANGUSK.DEV GAME», con las licencias debajo y sin dedicatoria (UI-16, UI-23). Del salto: «Estoy contento con el
 salto» (PLY-15); de caídas o recogidas injustas: «por el momento no» (CHR-08, ENM-11). El juego ocupa toda la pantalla
 sin que la cámara tape nada importante y se ve fluido a 120 Hz (UI-14, TEC-05, MOB-03); el botón de silencio funciona y
 se recuerda (UI-21); la mezcla de música y efectos está bien con el altavoz y con auriculares, sin cansar (AUD-21); y el

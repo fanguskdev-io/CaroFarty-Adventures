@@ -40,6 +40,14 @@ class JumpLab(
     private val landing = Landing()
 
     /**
+     * When she had stood on the platforms that fall (ENM-16) before a try, and before a branch of [tryHolds]: put back
+     * after each, so a try leaves the terrain as it found it.
+     */
+    @PublishedApi
+    internal val falls = DoubleArray(MAX_FALLS)
+    private val branchFalls = DoubleArray(MAX_FALLS)
+
+    /**
      * Runs her from ([x], [y]) on [terrain], presses after [pressAfter] steps, keeps the finger down [hold] steps and
      * follows her until she lands, falls or [maxSteps] go by; and, with [runAfter], that many steps more of running after
      * the landing, for what she runs into then. [path], if given, receives the centre of her body at every step from the
@@ -63,6 +71,7 @@ class JumpLab(
         giveUpBelow: Float = Float.NEGATIVE_INFINITY,
     ): Landing {
         val before = terrain.time
+        terrain.saveFalls(falls)
         terrain.time = time
         caro.place(x, y, runStart)
         caro.start()
@@ -98,6 +107,7 @@ class JumpLab(
             if (caro.state.over) break
         }
         terrain.time = before
+        terrain.restoreFalls(falls)
         return landing
     }
 
@@ -141,6 +151,7 @@ class JumpLab(
             return
         }
         val before = terrain.time
+        terrain.saveFalls(falls)
         terrain.time = time
         startHolds(x, y, runStart)
         for (step in 0 until pressAfter) {
@@ -153,6 +164,7 @@ class JumpLab(
             if (!each(hold, result)) break
         }
         terrain.time = before
+        terrain.restoreFalls(falls)
     }
 
     /** [tryHolds]: places her for a new try. */
@@ -215,11 +227,15 @@ class JumpLab(
         maxSteps: Int,
     ): Landing {
         val time = terrain.time
+        terrain.saveFalls(branchFalls)
         branch.copyFrom(caro)
         landing.landed = false
         landing.touchedNegative = mainNegative
         landing.touchedWatched = mainWatched
-        if (mainGaveUp) return landing
+        if (mainGaveUp) {
+            terrain.restoreFalls(branchFalls)
+            return landing
+        }
         var airborne = airborneMain && !mainLanded
         if (mainLanded) {
             landing.landed = true
@@ -254,6 +270,7 @@ class JumpLab(
             if (branch.state.over) break
         }
         terrain.time = time
+        terrain.restoreFalls(branchFalls)
         return landing
     }
 
@@ -287,20 +304,33 @@ class JumpLab(
 
         /** How many steps a try lasts at most, as [tryJump]'s default. */
         const val MAX_STEPS = 240
+
+        /** More platforms that fall than a course ever has at once. */
+        const val MAX_FALLS = 64
     }
 }
 
-/** Whether Caro's collision box overlaps [item]'s, a square [box] pixels wide around its centre (ItemConfig). */
+/**
+ * Whether Caro's collision box overlaps [item]'s, a square [box] pixels wide around its centre (ItemConfig); one that flies,
+ * where it is when she has got to [reach] (Flight): in the validator's tries, where she is.
+ */
 fun overlaps(
     caro: Caro,
     item: Item,
     box: Int,
     movement: MovementConfig,
+    reach: Double = caro.x,
 ): Boolean {
     val half = box / 2
-    val x = item.currentX
-    return caro.right > x - half &&
-        caro.left < x + half &&
-        caro.y + movement.hitboxHeight > item.y - half &&
-        caro.y < item.y + half
+    if (item.flight == null) {
+        val x = item.currentX
+        return caro.right > x - half &&
+            caro.left < x + half &&
+            caro.y + movement.hitboxHeight > item.y - half &&
+            caro.y < item.y + half
+    }
+    if (!item.outAt(reach)) return false
+    val x = item.xAt(reach)
+    val y = item.yAt(reach)
+    return caro.right > x - half && caro.left < x + half && caro.y + movement.hitboxHeight > y - half && caro.y < y + half
 }

@@ -3,17 +3,21 @@ package com.fanguskdev.carofarty.ui.render
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import com.fanguskdev.carofarty.engine.PixelViewport
 import com.fanguskdev.carofarty.game.GameRun
 import com.fanguskdev.carofarty.game.Item
 import com.fanguskdev.carofarty.game.ItemKind
+import com.fanguskdev.carofarty.game.Leap
 import com.fanguskdev.carofarty.game.Reaction
 import com.fanguskdev.carofarty.game.Scenario
+import com.fanguskdev.carofarty.game.Stroll
 import com.fanguskdev.carofarty.game.TILE
 import kotlin.math.floor
 import kotlin.math.max
+import kotlin.math.roundToInt
 import kotlin.math.roundToLong
 
 /**
@@ -46,10 +50,21 @@ internal fun DrawScope.paintGroundTiles(
             if (left >= width) break
             var row = 0
             var top = ground.top
+            // Ice or quicksand on the surface of its stretch (PLY-18).
+            val patch = ground.patch?.takeIf { x >= it.start && x < it.end }
+            val patchTiles = scenery.patch
             while (top > cameraBottom) {
                 val bottom = top - TILE
                 val frame =
                     when {
+                        row == 0 && patch != null && patchTiles != null -> {
+                            val animation = when {
+                                x == patch.start -> patchTiles.left
+                                x + TILE >= patch.end -> patchTiles.right
+                                else -> patchTiles.middles[variation(x / TILE, row) % patchTiles.middles.size]
+                            }
+                            animation.frameAt(millis, loops = true)
+                        }
                         column == 0 && bottom >= leftTop -> if (row == 0) scenery.edgeLeft else scenery.fillLeft
                         column == columns - 1 && bottom >= rightTop -> if (row == 0) scenery.edgeRight else scenery.fillRight
                         row == 0 -> scenery.surface[variation(x / TILE, row) % scenery.surface.size]
@@ -106,14 +121,19 @@ internal fun DrawScope.paintItemSprites(
     base: Int,
     millis: Long,
     alpha: Float,
+    waterRow: Int,
 ) {
     val items = run.course.items
+    // What flies, where it is between the last two steps, like Caro (Flight).
+    val reach = run.course.previousReach + (run.course.reach - run.course.previousReach) * alpha
     for (i in 0 until items.size) {
         val item = items[i]
         if (item.taken) continue
-        val x = (item.drawnX(alpha).roundToLong() - cameraLeft).toInt()
+        val flight = item.flight
+        if (flight != null && !flight.out(reach)) continue
+        val x = ((if (flight == null) item.drawnX(alpha) else item.xAt(reach)).roundToLong() - cameraLeft).toInt()
         if (x - art.anchorX >= width || x - art.anchorX + art.sheet.width <= 0) continue
-        val y = base - item.y
+        val y = base - (if (flight == null) item.y else item.yAt(reach).roundToInt())
         val time = millis + outOfStep(item)
         when (item.kind) {
             ItemKind.Gatito -> {
@@ -139,6 +159,23 @@ internal fun DrawScope.paintItemSprites(
             }
             ItemKind.Huevo, ItemKind.Pescado -> {
                 val animation = if (item.kind == ItemKind.Huevo) art.huevo else art.pescado
+                val leap = flight as? Leap
+                val leaping = art.leap
+                if (leap != null && leaping != null) {
+                    // Out of the water only (GameMaster): its pose by how fast it goes up or down, turned for leaps to the left.
+                    val climb = leap.climb(reach)
+                    val third = leap.rise / LEAP_POSES
+                    val pose = when {
+                        climb > third -> LEAP_UP
+                        climb >= 0.0 -> LEAP_TOP
+                        climb >= -third -> LEAP_TURN
+                        else -> LEAP_DOWN
+                    }
+                    clipRect(bottom = waterRow.toFloat()) {
+                        drawFrame(art.sheet, leaping.frame(pose), x - art.anchorX, y - art.anchorY, flip = leap.towardsLeft(reach))
+                    }
+                    continue
+                }
                 if (animation == null) {
                     paintGreyItem(item, x, y)
                 } else {
@@ -149,6 +186,18 @@ internal fun DrawScope.paintItemSprites(
                 if (smell != null) {
                     val frame = smell.frameAt(time, loops = true)
                     drawFrame(art.smellSheet, frame, x - art.smellAnchorX, y - SMELL_ABOVE - art.smellAnchorY)
+                }
+            }
+            ItemKind.Pajaro -> {
+                val bird = art.birds[run.scenario.ordinal]
+                if (bird == null) {
+                    paintGreyItem(item, x, y)
+                } else {
+                    // Those that fly at her beat their wings; those that stroll glide, and beat them to turn (GameMaster).
+                    val stroll = flight as? Stroll
+                    val animation = if (stroll == null || stroll.turning(reach)) bird.flap else bird.glide
+                    val left = flight?.towardsLeft(reach) != false
+                    drawFrame(art.sheet, animation.frameAt(time, loops = true), x - art.anchorX, y - art.anchorY, flip = !left)
                 }
             }
         }
@@ -344,6 +393,15 @@ private const val CELEBRATION_X = 34
 /** Beside a panel: from its edge to her middle, and the room she needs there. */
 private const val CELEBRATION_BESIDE = 20
 private const val CELEBRATION_ROOM = 36
+
+/** The poses of the fish that leaps, by their frames in its animation (GameMaster): up, arched at the top, down and turning. */
+private const val LEAP_UP = 0
+private const val LEAP_TOP = 1
+private const val LEAP_DOWN = 2
+private const val LEAP_TURN = 3
+
+/** Its pose changes at a third of how fast it leaves the water, going up and coming down. */
+private const val LEAP_POSES = 3
 
 /** How far above its centre the smell sits over the egg and the fish, in game pixels. */
 private const val SMELL_ABOVE = 6

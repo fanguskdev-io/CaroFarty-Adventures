@@ -116,6 +116,7 @@ escenario o en otro.
 | Gatito | +1 | Fangusk, tras jugar el prototipo |
 | Huevo frito | −3 (−2 hasta la beta 7) | Fangusk, tras la beta 7 |
 | Pescado | −5 (−3 hasta la beta 7) | Fangusk, tras la beta 7 |
+| Pájaro | −8, desde la beta 9 | Fangusk, tras la beta 7 (ADR 0011) |
 | La velocidad | Sube durante toda la partida: de 160 px/s hacia 360 en los primeros minutos y, desde la beta 8, hasta 553 hacia el minuto 30, sin pasar de 560 ([movimiento](movimiento.md)) | Fangusk, que suba y, tras la beta 7, que siga subiendo; los números, propuesta |
 | Obstáculos en el aire | Huevos y pescados en el camino del salto y bloques sólidos que lo frenan | Fangusk; cómo se colocan, propuesta |
 | Fin de la partida | Los puntos llegan a 0 (nunca bajan de 0) o Caro cae por un barranco | Fangusk |

@@ -16,6 +16,7 @@ data class GameConfig(
     val course: CourseConfig = CourseConfig(),
     val score: ScoreConfig = ScoreConfig(),
     val items: ItemConfig = ItemConfig(),
+    val hazards: HazardConfig = HazardConfig(),
 ) {
     companion object {
         private val json = Json { ignoreUnknownKeys = true }
@@ -62,6 +63,14 @@ data class MovementConfig(
      */
     val knockbackSeconds: Float = 0.3f,
     val knockbackSpeed: Float = 40f,
+    /**
+     * The footings of PLY-18 (ADR 0011): on the ice of the Nieve she runs [iceSpeed] times as fast and keeps it through
+     * the jump that takes off from it (Fangusk: «algo más rápida (+10–15 %) y saltos más largos»); on the quicksand of the
+     * Desierto she sinks [quicksandSink] pixels and jumps [quicksandJump] times as fast up, about 30 % lower.
+     */
+    val iceSpeed: Float = 1.12f,
+    val quicksandJump: Float = 0.79f,
+    val quicksandSink: Int = 3,
 ) {
     /** The running speed after [meters] of the run. */
     fun speedAt(meters: Double): Float {
@@ -166,7 +175,7 @@ data class CourseConfig(
 
 /**
  * The points (GDD-10, GDD-13). Fangusk accepted the values of the collectibles on 2026-11-01 and, after the beta 7, chose
- * to start with 5 points and harder takes (ADR 0011): the egg takes 3 and the fish 5.
+ * to start with 5 points and harder takes (ADR 0011): the egg takes 3 and the fish 5; and the birds, 8 (ENM-18).
  */
 @Serializable
 data class ScoreConfig(
@@ -175,8 +184,61 @@ data class ScoreConfig(
     val gatito: Int = 1,
     val huevo: Int = -3,
     val pescado: Int = -5,
+    val pajaro: Int = -8,
     /** With this many points or fewer the marker turns red, a warning before losing (guía 1, principio 8). */
     val warnAtPoints: Int = 3,
+)
+
+/**
+ * The new dangers Fangusk chose after the beta 7 (ADR 0011), laid out by the generator and tried by the validator like the
+ * rest. For each, from what difficulty it comes and how often where it fits: at that difficulty, at full difficulty and
+ * towards the minute 30; and how it moves.
+ */
+@Serializable
+data class HazardConfig(
+    /**
+     * The eggs and the fish in the air that float (ENM-17, «suben y bajan de 8 a 16 px cada 1,5 s más o menos»): of those
+     * on the way of a jump, this share; going up and down this many pixels in all, a round every [floatPeriod] seconds.
+     */
+    val floatFromDifficulty: Float = 0.2f,
+    val floatShare: Float = 0.25f,
+    val floatShareEnd: Float = 0.6f,
+    val floatShareLate: Float = 0.8f,
+    val floatTravelMin: Int = 8,
+    val floatTravelMax: Int = 16,
+    val floatPeriod: Float = 1.5f,
+    /**
+     * The birds (ENM-18; Fangusk: «desde dificultad media y cada vez más a menudo»), over this share of the gaps: of them,
+     * this share stroll through the air and the rest fly at her, this many pixels a second faster than the ground, and
+     * this share of those wave; they take [ScoreConfig.pajaro].
+     */
+    val birdFromDifficulty: Float = 0.5f,
+    val birdShare: Float = 0.08f,
+    val birdShareEnd: Float = 0.2f,
+    val birdShareLate: Float = 0.4f,
+    val birdStrollShare: Float = 0.6f,
+    val birdMinSpeed: Float = 80f,
+    val birdMaxSpeed: Float = 140f,
+    val birdWaveShare: Float = 0.5f,
+    /** The fish that leap out of the water (ENM-15), in this share of the gaps of the Bosque and the Nieve. */
+    val leapFromDifficulty: Float = 0.25f,
+    val leapShare: Float = 0.25f,
+    val leapShareEnd: Float = 0.45f,
+    val leapShareLate: Float = 0.65f,
+    /** The platforms that fall (ENM-16), this share of those that stand still; they tremble this long and fall. */
+    val fallFromDifficulty: Float = 0.2f,
+    val fallShare: Float = 0.2f,
+    val fallShareEnd: Float = 0.4f,
+    val fallShareLate: Float = 0.6f,
+    val trembleSeconds: Float = 0.3f,
+    /**
+     * The ice of the Nieve and the quicksand of the Desierto (PLY-18), at the end of this share of the grounds of the
+     * gaps, before the next one (Fangusk: «antes de barrancos o bloques»); how they move her is in [MovementConfig].
+     */
+    val patchFromDifficulty: Float = 0.15f,
+    val patchShare: Float = 0.15f,
+    val patchShareEnd: Float = 0.3f,
+    val patchShareLate: Float = 0.45f,
 )
 
 /** The collectibles' collision boxes, in pixels (CHR-08): generous for what adds points, strict for what takes them away. */

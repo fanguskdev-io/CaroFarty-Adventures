@@ -57,9 +57,9 @@ barrancos crecen en tiles porque Caro va más deprisa, pero medidos en tiempo de
 |---|---|---|---|---|---|
 | 0 a 500 m | Hasta 0,6 min | 160 a 247 px/s | 0 a 7 % | 3 a 5 tiles | 2,5 a 3,7 · 1,0 |
 | 500 a 1000 m | 0,6 a 1,1 min | 247 a 277 px/s | 7 a 26 % | 5 a 6 tiles | 3,7 a 7,0 · 2,8 |
-| 1000 a 2000 m | 1,1 a 2,1 min | 277 a 306 px/s | 26 a 74 % | 6 a 9 tiles | 7,0 a 15 · 3,8 |
-| 2000 a 3500 m | 2,1 a 3,3 min | 306 a 337 px/s | 74 a 100 % | 9 a 11 tiles | 15 a 20 · 3,7 |
-| Más de 3500 m | Desde 3,3 min | 337 px/s; 462 a los 10 min y 553 a los 30, sin pasar de 560 | 100 % | 11 tiles; 15 a los 10 000 m | 20 · 3,2 |
+| 1000 a 2000 m | 1,1 a 2,1 min | 277 a 306 px/s | 26 a 74 % | 6 a 9 tiles | 7,0 a 15 · 3,9 |
+| 2000 a 3500 m | 2,1 a 3,3 min | 306 a 337 px/s | 74 a 100 % | 9 a 11 tiles | 15 a 20 · 4,2 |
+| Más de 3500 m | Desde 3,3 min | 337 px/s; 462 a los 10 min y 553 a los 30, sin pasar de 560 | 100 % | 11 tiles; 15 a los 10 000 m | 20 · 3,7 |
 
 - **La velocidad** sube durante toda la partida, como pidió Fangusk: deprisa al principio (270 px/s al minuto) y cada
   vez más despacio (327 a los 3 minutos). Desde los 3000 m, tras la beta 7, sigue subiendo despacio hacia los 560, que
@@ -75,8 +75,9 @@ barrancos crecen en tiles porque Caro va más deprisa, pero medidos en tiempo de
   2,5 a 10 en la 7), como mucho tres por pieza, y aparte los de los saltos entre plataformas, los de donde se aterriza y
   los que vigilan a los animales ([ADR 0010](adr/0010-animales-vigilados.md),
   [ADR 0011](adr/0011-mas-dificultad-tras-la-beta-7.md)). Lo medido en 20 partidas de 5 km se queda en 1 al principio
-  y de 3,2 a 3,8 desde los 1000 m, porque las calmas no llevan y el validador quita los que no se pueden esquivar con
-  margen (0,9 a 2,3 con la beta 6). Lo que suma, de 3,9 al principio a 1,2 a toda dificultad (de 11,5 a 8,6 con la beta
+  y de 3,7 a 4,2 desde los 1000 m, con los pájaros, los peces que saltan y los que flotan de la beta 9 (de 3,2 a 3,8 con
+  la 8), porque las calmas no llevan y el validador quita los que no se pueden esquivar con margen (0,9 a 2,3 con la beta
+  6). Lo que suma, de 3,9 al principio a 1,2 a toda dificultad (de 11,5 a 8,6 con la beta
   7): ahora hay más que restar que que sumar desde los 1000 m ([recolectables](recolectables.md)).
 - **Los obstáculos en el aire** (ADR 0007) empiezan hacia los 300 m y suben con la dificultad: a toda velocidad, unos
   0,6 bloques cada 100 m, y los huevos y pescados en el camino del salto ya cuentan en «Restan».
@@ -151,4 +152,25 @@ cada quinientos y aprieta tarde uno de cada treinta.
   minuto y ninguna partida acababa así.
 - **Los jugadores simulados** se caen pronto, casi siempre en los primeros 500 m, antes de que llegue lo difícil, como con
   las betas 6 y 7: no llegan a donde se acaban los puntos. Rescatan 26 animales por minuto en vez de 70.
+
+Fangusk jugó la beta 8: quedarse sin puntos «es un peligro real», la velocidad le parece bien a los 5 y a los 10 minutos
+y el arranque sigue siendo amable. Los valores se quedan.
+
+Con la beta 9 (ADR 0011): los huevos y pescados que flotan, los pájaros que restan 8, los peces que saltan del agua, las
+plataformas que caen y el hielo y la arena:
+
+| Quién | Partidas | Metros (mediana) | Metros (1.er y 3.er cuartil) | Duración (mediana) | Por barranco | Sin puntos | Siguen a los 10 min | Rescates por minuto | Restas por minuto |
+|---|---|---|---|---|---|---|---|---|---|
+| Piloto cuidadoso | 10 | 13783 | 13781–13783 | 600,0 s | 0,0 % | 0,0 % | 100,0 % | 12,2 | 0,0 |
+| El piloto, a por todos los animales | 40 | 12205 | 7386–13588 | 552,3 s | 50,0 % | 10,0 % | 40,0 % | 17,8 | 3,6 |
+| Jugador que a veces falla | 80 | 286 | 124–505 | 24,2 s | 100,0 % | 0,0 % | 0,0 % | 25,6 | 1,5 |
+| El mismo, a por todos los animales | 80 | 286 | 131–511 | 24,2 s | 100,0 % | 0,0 % | 0,0 % | 26,9 | 1,9 |
+| Jugador hábil | 40 | 450 | 184–713 | 35,4 s | 100,0 % | 0,0 % | 0,0 % | 26,0 | 1,5 |
+| El hábil, a por todos los animales | 40 | 511 | 256–835 | 39,4 s | 100,0 % | 0,0 % | 0,0 % | 26,7 | 1,7 |
+
+- **El piloto cuidadoso** sigue limpio 10 minutos, y en las pruebas largas también en la Nieve y el Desierto, con el
+  hielo, la arena y los peces: el camino limpio sigue estando.
+- **El que va a por todos los animales** se cae en la mitad de las partidas, por un cuarto con la beta 8: ir a por un
+  animal sin mirar lo pone delante de un pájaro, una plataforma que cae o un salto que ya no da. Por eso se queda sin
+  puntos menos (una de cada 10): antes se cae.
 

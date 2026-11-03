@@ -118,10 +118,24 @@ Las plataformas que pidió Fangusk tras la beta 4 son semisólidas, como en Mari
 - **Las móviles** (ITM-20) van y vienen de lado o de arriba abajo, más despacio en los extremos. Si está encima, la que
   va de lado le suma su velocidad y la que baja la lleva pegada, hasta 2 px por paso, sin que vuelva a aterrizar a cada
   momento. Se mueven con el reloj de la partida, el mismo con el que el validador y el piloto prueban los saltos.
+- **Las que caen** (ENM-16, [ADR 0011](adr/0011-mas-dificultad-tras-la-beta-7.md)): cuando se pone encima tiemblan
+  `trembleSeconds` (0,3 s) y caen, cada vez más deprisa, sin volver. Mientras sigue encima, la plataforma la lleva hacia
+  abajo; cuando cae más deprisa que esos 2 px por paso, la deja en el aire con su coyote time para saltar.
+
+## El hielo y las arenas movedizas
+
+Fangusk los eligió tras la beta 7 (PLY-18, [ADR 0011](adr/0011-mas-dificultad-tras-la-beta-7.md)); son tramos al final
+de algunos suelos, y su física es la misma en el juego, en el validador y en el piloto. En `files/ajustes.json`:
+
+- **Hielo de la Nieve** (`iceSpeed`, 1,12): sobre él corre un 12 % más deprisa, y el salto que despega de él lo mantiene
+  hasta aterrizar, así que va más lejos y cuesta medir dónde caerá («algo más rápida (+10–15 %) y saltos más largos»).
+- **Arenas movedizas del Desierto** (`quicksandJump`, 0,79; `quicksandSink`, 3 px): se hunde 3 px y su salto sale con el
+  79 % del impulso hacia arriba, un 30 % más bajo con el dedo apoyado entero; sobre ellas conviene saltar justo antes de
+  pisarlas.
 
 ## El retroceso de un huevo o un pescado
 
-Lo pidió Fangusk tras jugar la beta: «que haga un pequeño retroceso parpadeando durante un corto periodo de tiempo (como
+También con un pájaro (ENM-18). Lo pidió Fangusk tras jugar la beta: «que haga un pequeño retroceso parpadeando durante un corto periodo de tiempo (como
 hacen otros videojuegos)», y que sea de verdad, aunque la lleve a un barranco. En `files/ajustes.json`:
 
 - **El empujón** (`knockbackSeconds`, 0,3 s; `knockbackSpeed`, 40 px/s): su velocidad de lado pasa de ir hacia atrás a 40

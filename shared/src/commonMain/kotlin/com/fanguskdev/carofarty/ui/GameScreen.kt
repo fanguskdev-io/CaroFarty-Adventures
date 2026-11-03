@@ -195,7 +195,9 @@ private fun DrawScope.drawGame(session: GameSession, world: PixelBuffer, viewpor
             translate(left, top)
             scale(scale, scale, Offset.Zero)
         }) {
-            val feet = viewport.height + cameraBottom - feetY
+            // Sunk a little in the quicksand (PLY-18).
+            val sunk = if (caro.sinking && caro.state.grounded) run.config.movement.quicksandSink else 0
+            val feet = viewport.height + cameraBottom - feetY + sunk
             val caroArt = art?.caro
             val screenX = screenAt - lag.roundToInt()
             // Blinking after an egg or a fish: shown and hidden by turns.

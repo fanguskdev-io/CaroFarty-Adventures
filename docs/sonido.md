@@ -20,6 +20,7 @@ beta. Cuándo suena cada cosa es propuesta mía, para que Fangusk la cambie al o
 | Aterrizar | `aterrizaje` |
 | Rescatar un perrito o un gatito | `rescate-perrito` o `rescate-gatito`, un grado más alto de la pentatónica con cada rescate seguido (la racha de GameMaster: perritos y gatitos juntos; se rompe con un huevo o un pescado, con más de 2 s sin rescatar o al acabar la partida; tope en el quinto, una octava arriba) |
 | Coger un huevo o un pescado | `huevo` o `pescado` |
+| Tocar un pájaro (ENM-18) | `pescado`, hasta que GameMaster le haga uno |
 | Superar el récord de distancia del escenario | `record`, una vez por partida |
 | Caer por un barranco | `caida-barranco`, cuando ya no hay suelo que la recoja |
 | Quedarse sin puntos | `fin-partida` |

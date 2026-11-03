@@ -60,7 +60,9 @@ class CourseGeneratorTest {
             val negatives = piece.items.filter { !it.kind.adds }.map { it.x < ground.start }.toSet()
             val blocks = piece.blocks.isNotEmpty()
             val difficult = gap >= DIFFICULT_GAP_TILES || negatives.isNotEmpty() || blocks
-            shapes.addLast(if (difficult) "$gap ${ground.top - previous.top} $negatives $blocks" else null)
+            // A gap that only platforms cross is a challenge of its own, which the rule does not count (ADR 0009).
+            val platforms = piece.platforms.any { it.start >= previous.end && it.end <= ground.start }
+            shapes.addLast(if (difficult && !platforms) "$gap ${ground.top - previous.top} $negatives $blocks" else null)
             if (shapes.size > 3) shapes.removeFirst()
             if (shapes.size == 3 && shapes.all { it != null }) {
                 assertTrue(shapes.toSet().size > 1, "three alike in a row at ${ground.start}: ${shapes.first()}")
@@ -345,6 +347,29 @@ class CourseGeneratorTest {
     }
 
     @Test
+    fun theNewDangersComeWhereFanguskChose() {
+        // ADR 0011: the fish leap in the Bosque and the Nieve, the ice is the Nieve's and the quicksand the Desierto's; the
+        // birds and the platforms that fall come in all three, the birds from half the difficulty on.
+        for (scenario in Scenario.entries) {
+            val generator = CourseGenerator(config, seed = 3, runStart = GameRun.START_X, scenario = scenario)
+            val pieces = List(PIECES_WITH_DANGERS) { generator.next() }
+            val firstBird = pieces.flatMap { it.items }.filter { it.kind == ItemKind.Pajaro }.minOfOrNull { it.x }
+            assertTrue(firstBird != null, "$scenario: birds")
+            val difficulty = generator.difficultyAt((firstBird - GameRun.START_X) / TILE)
+            assertTrue(difficulty >= config.hazards.birdFromDifficulty - BIRD_SLACK, "$scenario: a bird at difficulty $difficulty")
+            assertTrue(generator.crumbles > 0, "$scenario: platforms that fall")
+            assertEquals(scenario != Scenario.Desierto, generator.leaps > 0, "$scenario: fish that leap")
+            val footings = pieces.flatMap { it.grounds }.mapNotNull { it.patch?.footing }.toSet()
+            val expected = when (scenario) {
+                Scenario.Bosque -> emptySet()
+                Scenario.Nieve -> setOf(Footing.Ice)
+                Scenario.Desierto -> setOf(Footing.Quicksand)
+            }
+            assertEquals(expected, footings, "$scenario: its footing")
+        }
+    }
+
+    @Test
     fun theBackgroundGeneratorKeepsUpWithTheRunOnEveryPlatform() {
         val clock = TimeSource.Monotonic.markNow()
         val generator = CourseGenerator(config, seed = 100)
@@ -365,7 +390,7 @@ class CourseGeneratorTest {
     private companion object {
         const val FNV_OFFSET = -3750763034362895579L
         const val FNV_PRIME = 1099511628211L
-        const val SAME_RUN = 5893107298718677662L
+        const val SAME_RUN = 9175036903996146187L
 
         /** How high an animal's centre sits over what it stands on, and the highest jump of docs/movimiento.md. */
         const val SITTING_HEIGHT = 8
@@ -391,6 +416,10 @@ class CourseGeneratorTest {
          */
         const val EARLY_METERS = 600
         const val LATE_PIECES = 600
+
+        /** The dangers of ADR 0011: enough pieces to get past half the difficulty, and how far before it a bird may be. */
+        const val PIECES_WITH_DANGERS = 250
+        const val BIRD_SLACK = 0.02f
         const val EARLY_MOST = 0.2f
         const val LATE_LEAST = 0.45f
         const val LATE_MOST = 0.75f

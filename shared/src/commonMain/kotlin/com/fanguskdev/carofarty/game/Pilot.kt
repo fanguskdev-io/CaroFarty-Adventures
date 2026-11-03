@@ -86,10 +86,11 @@ internal class Pilot(private val run: GameRun, private val shortest: Boolean = f
         val runway = platformUnder(caro) ?: groundRunway(caro)
         if (runway < 0) return -1
         val items = run.course.items
+        // What there is to jump on the ground; what flies (ADR 0011) the tries of each jump see where it will be.
         var obstacle: Item? = null
         for (i in items.indices) {
             val item = items[i]
-            if (!item.taken && !item.kind.adds && item.x > caro.right && item.x < runway) {
+            if (!item.taken && !item.kind.adds && item.flight == null && item.x > caro.right && item.x < runway) {
                 obstacle = item
                 break
             }
@@ -237,7 +238,10 @@ internal class Pilot(private val run: GameRun, private val shortest: Boolean = f
         return runway
     }
 
-    /** Where the platform she stands on (or has just run off) ends, now; null if she is not on one (ADR 0009). */
+    /**
+     * Where the platform she stands on (or has just run off) ends, now; null if she is not on one (ADR 0009). One that
+     * falls (ENM-16) ends, for her, where she will be when it begins to fall.
+     */
     private fun platformUnder(caro: Caro): Int? {
         val platforms = run.course.platforms
         val time = run.course.time
@@ -245,6 +249,11 @@ internal class Pilot(private val run: GameRun, private val shortest: Boolean = f
             val platform = platforms[i]
             val onIt = abs(platform.topAt(time) - caro.y) <= Course.CORNER_TOLERANCE
             if (onIt && platform.rightAt(time) > caro.left - COYOTE_ROOM && platform.leftAt(time) < caro.right) {
+                val fall = platform.fall
+                if (fall != null && !platform.touchedAt.isNaN()) {
+                    val left = (platform.touchedAt + fall.tremble - time).coerceAtLeast(0.0)
+                    return minOf(platform.rightAt(time), caro.right + caro.speed * left).toInt()
+                }
                 return platform.rightAt(time).toInt()
             }
         }
@@ -331,7 +340,7 @@ internal class Pilot(private val run: GameRun, private val shortest: Boolean = f
         var first = Double.POSITIVE_INFINITY
         for (i in items.indices) {
             val item = items[i]
-            if (item.taken || item.kind.adds || item.currentX <= x || item.currentX >= end) continue
+            if (item.taken || item.kind.adds || item.flight != null || item.currentX <= x || item.currentX >= end) continue
             if (abs(item.y - Item.ABOVE_GROUND - top) > Course.CORNER_TOLERANCE) continue
             first = minOf(first, item.currentX - Item.SIZE / 2 - movement.hitboxWidth / 2)
         }

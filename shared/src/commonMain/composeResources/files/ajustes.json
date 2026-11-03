@@ -18,7 +18,10 @@
     "hitboxWidth": 10.0,
     "hitboxHeight": 20.0,
     "knockbackSeconds": 0.3,
-    "knockbackSpeed": 40.0
+    "knockbackSpeed": 40.0,
+    "iceSpeed": 1.12,
+    "quicksandJump": 0.79,
+    "quicksandSink": 3
   },
   "course": {
     "startFlatTiles": 30,
@@ -67,6 +70,7 @@
     "gatito": 1,
     "huevo": -3,
     "pescado": -5,
+    "pajaro": -8,
     "warnAtPoints": 3
   },
   "items": {
@@ -81,5 +85,35 @@
     "perritoStopMax": 1.5,
     "reactionSeconds": 0.4,
     "blinkSeconds": 1.0
+  },
+  "hazards": {
+    "floatFromDifficulty": 0.2,
+    "floatShare": 0.25,
+    "floatShareEnd": 0.6,
+    "floatShareLate": 0.8,
+    "floatTravelMin": 8,
+    "floatTravelMax": 16,
+    "floatPeriod": 1.5,
+    "birdFromDifficulty": 0.5,
+    "birdShare": 0.08,
+    "birdShareEnd": 0.2,
+    "birdShareLate": 0.4,
+    "birdStrollShare": 0.6,
+    "birdMinSpeed": 80.0,
+    "birdMaxSpeed": 140.0,
+    "birdWaveShare": 0.5,
+    "leapFromDifficulty": 0.25,
+    "leapShare": 0.25,
+    "leapShareEnd": 0.45,
+    "leapShareLate": 0.65,
+    "fallFromDifficulty": 0.2,
+    "fallShare": 0.2,
+    "fallShareEnd": 0.4,
+    "fallShareLate": 0.6,
+    "trembleSeconds": 0.3,
+    "patchFromDifficulty": 0.15,
+    "patchShare": 0.15,
+    "patchShareEnd": 0.3,
+    "patchShareLate": 0.45
   }
 }

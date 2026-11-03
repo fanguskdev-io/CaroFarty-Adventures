@@ -45,6 +45,7 @@ internal class GreyPalette(
             ItemKind.Gatito -> coats[item.coat]
             ItemKind.Huevo -> huevo
             ItemKind.Pescado -> pescado
+            ItemKind.Pajaro -> pajaro
         }
 
         /** The colour of the letter on a collectible: dark, or light on the darkest coats. */
@@ -53,6 +54,7 @@ internal class GreyPalette(
         private val perrito = Color(0xFFC9955B)
         private val huevo = Color(0xFFF5F0DC)
         private val pescado = Color(0xFF6FA8DC)
+        private val pajaro = Color(0xFF8C8C9C)
 
         /** The eight coats of the gatitos, in the order of Item.COATS: a hint of each until their drawings arrive. */
         private val coats = listOf(
@@ -74,6 +76,7 @@ internal class GreyPalette(
             ItemKind.Gatito -> "G"
             ItemKind.Huevo -> "H"
             ItemKind.Pescado -> "F"
+            ItemKind.Pajaro -> "A"
         }
     }
 }

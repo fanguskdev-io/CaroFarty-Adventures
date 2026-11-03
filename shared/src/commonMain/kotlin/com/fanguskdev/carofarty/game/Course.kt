@@ -8,12 +8,16 @@ import kotlin.math.min
 /** The size of a tile in game pixels: also a metre of the run. */
 const val TILE = 16
 
-/** The four collectibles (GDD-10): perritos and gatitos add points, fried eggs and fish take them away. */
+/**
+ * The collectibles (GDD-10): perritos and gatitos add points, fried eggs and fish take them away, and so do the birds of
+ * each scenario (ENM-18, ADR 0011: the crow, the puffin and the vulture), which fly.
+ */
 enum class ItemKind {
     Perrito,
     Gatito,
     Huevo,
     Pescado,
+    Pajaro,
     ;
 
     val adds: Boolean get() = this == Perrito || this == Gatito
@@ -23,11 +27,29 @@ enum class ItemKind {
         Gatito -> score.gatito
         Huevo -> score.huevo
         Pescado -> score.pescado
+        Pajaro -> score.pajaro
     }
 }
 
-/** A run of ground from [start] to [end] (world pixels, [end] excluded), its top [top] pixels above the bottom edge. */
-class Ground(val start: Int, val end: Int, val top: Int)
+/**
+ * A run of ground from [start] to [end] (world pixels, [end] excluded), its top [top] pixels above the bottom edge; with
+ * a [patch] of another footing on it, ice or quicksand (PLY-18).
+ */
+class Ground(
+    val start: Int,
+    val end: Int,
+    val top: Int,
+    val patch: Patch? = null,
+)
+
+/** What she runs on besides the ground of always (PLY-18, ADR 0011): ice in the Nieve, quicksand in the Desierto. */
+enum class Footing {
+    Ice,
+    Quicksand,
+}
+
+/** A stretch of a ground, from [start] to [end], of another [footing]. */
+class Patch(val start: Int, val end: Int, val footing: Footing)
 
 /**
  * A solid block in the air (ADR 0007), from [start] to [end] across and from [bottom] to [top] up, in world pixels. From
@@ -43,19 +65,35 @@ class Block(
 /**
  * A platform (ADR 0009, Fangusk after the beta 4): semisolid, as in Mario. She jumps through it from below and lands on
  * its top; its sides and its underside stop nothing, and on top she runs as on the ground. From [start] to [end] across
- * and its top at [top], in world pixels. One with a [motion] goes back and forth by itself and carries her along.
+ * and its top at [top], in world pixels. One with a [motion] goes back and forth by itself and carries her along; one with
+ * a [fall] trembles when she stands on it and falls (ENM-16).
  */
 class Platform(
     val start: Int,
     val end: Int,
     val top: Int,
     val motion: Motion? = null,
+    val fall: Fall? = null,
 ) {
+    /** For one that falls: the seconds of the run when she first stood on it, or NaN if she has not yet. */
+    var touchedAt = Double.NaN
+
     /** How far it has gone across from its place at [time] seconds of the run. */
     fun shiftAt(time: Double): Double = motion?.let { it.dx * it.share(time) } ?: 0.0
 
-    /** How far it has gone up from its place at [time]. */
-    fun riseAt(time: Double): Double = motion?.let { it.dy * it.share(time) } ?: 0.0
+    /** How far it has gone up from its place at [time]: a moving one, up or down; one that falls, down once it falls. */
+    fun riseAt(time: Double): Double {
+        val moved = motion?.let { it.dy * it.share(time) } ?: 0.0
+        val fall = fall ?: return moved
+        return moved - fall.dropAt(time - touchedAt)
+    }
+
+    /** Whether it is trembling at [time]: she has stood on it and it has not begun to fall. */
+    fun tremblingAt(time: Double): Boolean {
+        val fall = fall ?: return false
+        val since = time - touchedAt
+        return since >= 0.0 && since < fall.tremble
+    }
 
     fun leftAt(time: Double): Double = start + shiftAt(time)
 
@@ -65,6 +103,27 @@ class Platform(
 
     /** How fast it goes across at [time], in pixels a second: what it carries her by. */
     fun speedAt(time: Double): Double = motion?.let { it.dx * it.rate(time) } ?: 0.0
+}
+
+/**
+ * How a platform that falls falls (ENM-16, Fangusk: «al pisarlas tiemblan unos 0,3 s y caen»): it trembles [tremble]
+ * seconds after she stands on it, and then falls, faster and faster, and does not come back.
+ */
+class Fall(val tremble: Double, val gravity: Float = GRAVITY) {
+    /** How far it has fallen [since] seconds after she stood on it; 0 before, or if she has not. */
+    fun dropAt(since: Double): Double {
+        if (since.isNaN() || since <= tremble) return 0.0
+        val t = minOf(since - tremble, LONGEST)
+        return gravity * t * t / 2
+    }
+
+    private companion object {
+        /** How it falls, in pixels a second per second: slower than she does, so it can take her down with it a moment. */
+        const val GRAVITY = 900f
+
+        /** After this many seconds of falling it is well out of sight. */
+        const val LONGEST = 2.0
+    }
 }
 
 /**
@@ -106,6 +165,18 @@ class Motion(
 /** A collectible placed at ([x], [y]) in world pixels, [y] above the bottom edge. */
 class Item(val kind: ItemKind, val x: Int, val y: Int) {
     var taken = false
+
+    /** For one that moves by itself (ADR 0011): the egg or the fish that floats, the bird, the fish that leaps; null if still. */
+    var flight: Flight? = null
+
+    /** Where its centre is across when Caro has got to [reach] (see [Flight]): for one that flies, where it flies then. */
+    fun xAt(reach: Double): Double = flight?.let { x + it.dx(reach) } ?: currentX
+
+    /** Where its centre is up when Caro has got to [reach]. */
+    fun yAt(reach: Double): Double = flight?.let { y + it.dy(reach) } ?: y.toDouble()
+
+    /** Whether it can be touched and seen when Caro has got to [reach]: a fish under the water cannot. */
+    fun outAt(reach: Double): Boolean = flight?.out(reach) ?: true
 
     /** For a gatito, which of its [COATS] coats it wears, drawn with the seed (ADR 0008). */
     var coat = 0
@@ -217,6 +288,20 @@ interface Terrain {
     /** The seconds of the run the terrain is at: where its moving platforms are. */
     var time: Double
 
+    /** The footing under her feet at [x], at the height of her [feet]: ice or quicksand (PLY-18), or null for the usual. */
+    fun footingUnder(x: Double, feet: Float): Footing? = null
+
+    /** She stands on what is under the span from [left] to [right] at her [feet]: a platform that falls starts to tremble. */
+    fun standOn(left: Double, right: Double, feet: Float) = Unit
+
+    /**
+     * When she stood on each platform that falls, into [into], to put it back with [restoreFalls] after a try of the
+     * validator: what it tries does not happen. How many.
+     */
+    fun saveFalls(into: DoubleArray): Int = 0
+
+    fun restoreFalls(from: DoubleArray) = Unit
+
     /** How fast the moving platform she stands on, under the span from [left] to [right] at her [feet], goes across; 0 if none. */
     fun carryUnder(left: Double, right: Double, feet: Float): Double
 
@@ -277,6 +362,10 @@ class Course : Terrain {
 
     override var time = 0.0
 
+    /** The farthest her feet have been, which moves what flies (Flight), and where it was a step ago, for the drawing. */
+    var reach = 0.0
+    var previousReach = 0.0
+
     fun append(piece: Piece) {
         grounds.addAll(piece.grounds)
         items.addAll(piece.items)
@@ -300,6 +389,44 @@ class Course : Terrain {
         platforms.clear()
         end = 0
         time = 0.0
+        reach = 0.0
+        previousReach = 0.0
+    }
+
+    override fun footingUnder(x: Double, feet: Float): Footing? {
+        for (i in 0 until grounds.size) {
+            val ground = grounds[i]
+            val patch = ground.patch ?: continue
+            if (x >= patch.start && x < patch.end && abs(ground.top - feet) <= CORNER_TOLERANCE) return patch.footing
+        }
+        return null
+    }
+
+    override fun standOn(left: Double, right: Double, feet: Float) {
+        for (i in 0 until platforms.size) {
+            val platform = platforms[i]
+            if (platform.fall == null || !platform.touchedAt.isNaN()) continue
+            if (platform.rightAt(time) > left && platform.leftAt(time) < right && abs(platform.topAt(time) - feet) <= CORNER_TOLERANCE) {
+                platform.touchedAt = time
+            }
+        }
+    }
+
+    override fun saveFalls(into: DoubleArray): Int {
+        var count = 0
+        for (i in 0 until platforms.size) {
+            val platform = platforms[i]
+            if (platform.fall != null && count < into.size) into[count++] = platform.touchedAt
+        }
+        return count
+    }
+
+    override fun restoreFalls(from: DoubleArray) {
+        var count = 0
+        for (i in 0 until platforms.size) {
+            val platform = platforms[i]
+            if (platform.fall != null && count < from.size) platform.touchedAt = from[count++]
+        }
     }
 
     override fun groundTopUnder(left: Double, right: Double): Int? {

@@ -45,7 +45,7 @@ class GameRun(
     val config: GameConfig,
     val scenario: Scenario,
     val seed: Long,
-    private val pieces: PieceSource = DirectPieces(CourseGenerator(config, seed, runStart = START_X)),
+    private val pieces: PieceSource = DirectPieces(CourseGenerator(config, seed, runStart = START_X, scenario)),
 ) {
     val caro = Caro(config.movement)
     val course = Course()
@@ -75,6 +75,8 @@ class GameRun(
     init {
         course.append(pieces.nextOrNull() ?: error("the source of pieces gave no start"))
         caro.place(START_X, course.groundTopUnder(START_X - 1, START_X + 1)?.toFloat() ?: 0f)
+        course.reach = START_X
+        course.previousReach = START_X
         fillAhead(Int.MAX_VALUE)
     }
 
@@ -97,6 +99,9 @@ class GameRun(
         // The moving platforms go on with the run (ADR 0009), before she moves on them.
         course.time += dt
         caro.step(dt, pressed, held, course)
+        // How far she has got: what moves the collectibles that fly (Flight); a push back does not move them back.
+        course.previousReach = course.reach
+        course.reach = max(course.reach, caro.x)
         for (i in 0 until course.items.size) course.items[i].walk?.step(dt)
         reactionTime -= dt
         if (reactionTime <= 0f) reaction = Reaction.None
@@ -117,7 +122,7 @@ class GameRun(
     private fun pickUp() {
         for (i in 0 until course.items.size) {
             val item = course.items[i]
-            if (item.taken || !overlaps(caro, item, config.items.box(item.kind), config.movement)) continue
+            if (item.taken || !overlaps(caro, item, config.items.box(item.kind), config.movement, course.reach)) continue
             // Blinking, she goes through eggs and fish; the animals she still rescues.
             if (!item.kind.adds && blinking > 0f) continue
             item.taken = true

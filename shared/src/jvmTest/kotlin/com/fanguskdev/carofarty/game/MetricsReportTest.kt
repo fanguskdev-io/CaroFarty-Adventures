@@ -65,8 +65,8 @@ class MetricsReportTest {
         assertTrue(BANDS.indices.all { per100m(it, adding) > 0f }, "there should be perritos and gatitos everywhere")
 
         val text = buildString {
-            appendLine("| Tramo | Perritos | Gatitos | Huevos fritos | Pescados | Suman | Restan | Bloques | Plataformas |")
-            appendLine("|---|---|---|---|---|---|---|---|---|")
+            appendLine("| Tramo | Perritos | Gatitos | Huevos fritos | Pescados | Pájaros | Suman | Restan | Bloques | Plataformas |")
+            appendLine("|---|---|---|---|---|---|---|---|---|---|")
             for (band in BANDS.indices) {
                 val meters = (BANDS[band].last - BANDS[band].first) * SEEDS / 100f
                 val blocksPer100m = blocks[band] / meters

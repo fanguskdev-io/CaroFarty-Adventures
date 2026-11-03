@@ -255,6 +255,12 @@ internal class ItemArt(set: SpriteSet, effects: SpriteSet?) {
     val coats: Array<Sheet> = set.family("gatito").ifEmpty { listOf(set.sheet) }.toTypedArray()
     val huevo = set.animation("huevo")
     val pescado = set.animation("pescado")
+
+    /** The fish that leaps out of the water (ENM-15): going up, arched at the top, going down and turning, facing right. */
+    val leap = set.animation("pescado-salta")
+
+    /** The birds of each scenario, in the order of [Scenario] (ENM-18): the crow, the puffin and the vulture. */
+    val birds: Array<BirdArt?> = Array(Scenario.entries.size) { bird(set, BIRDS[it]) }
     val breeds: Array<Breed> = set.breeds.mapNotNull { breed(set, it) }.toTypedArray()
     val smell = effects?.animation(SMELL) ?: set.animation(SMELL)
     val smellSheet = if (effects?.animation(SMELL) != null) effects.sheet else set.sheet
@@ -263,6 +269,9 @@ internal class ItemArt(set: SpriteSet, effects: SpriteSet?) {
 
     private companion object {
         const val SMELL = "olor"
+        val BIRDS = listOf("pajaro-cuervo", "pajaro-frailecillo", "pajaro-buitre")
+
+        fun bird(set: SpriteSet, name: String): BirdArt? = set.animation(name)?.let { BirdArt(it, set.animation("$name-planea") ?: it) }
 
         fun breed(set: SpriteSet, name: String): Breed? {
             val walk = set.animation("perrito-$name-camina")
@@ -277,6 +286,9 @@ internal class ItemArt(set: SpriteSet, effects: SpriteSet?) {
         }
     }
 }
+
+/** A bird (ENM-18): beating its wings and gliding, drawn flying to the left. */
+internal class BirdArt(val flap: Animation, val glide: Animation)
 
 /** A breed of perrito: walking and standing, drawn facing right, in its own colours. */
 internal class Breed(val walk: Animation, val still: Animation, val sheet: Sheet)
@@ -325,11 +337,17 @@ internal class ScenarioArt private constructor(
     val block: Int,
     val platform: PlatformTiles?,
     val mover: PlatformTiles?,
+    /** The platforms that fall (ENM-16): their first frame still, and the two in turn while they tremble. */
+    val crumbling: PlatformTiles?,
     val sky: ImageBitmap?,
     val far: Layer?,
     val mid: Layer?,
     val plant: Animation?,
     val weather: Weather?,
+    /** Where a fish goes into the water or out of it (ENM-15), in the Bosque and the Nieve. */
+    val splash: Animation?,
+    /** The surface of the stretches of ice of the Nieve or of quicksand of the Desierto (PLY-18). */
+    val patch: PatchTiles?,
 ) {
     companion object {
         /** The scenario's art, or null without its surface and its fill. */
@@ -368,11 +386,15 @@ internal class ScenarioArt private constructor(
                 platform = platform,
                 // Until the moving ones arrive, the fixed ones: they will still move.
                 mover = platform(MOVER) ?: platform,
+                crumbling = platform(CRUMBLING) ?: platform,
                 sky = sky,
                 far = far,
                 mid = mid,
                 plant = if (planted) decoration else null,
                 weather = if (decoration != null && !planted) Weather.of(set.sheet, decoration) else null,
+                splash = set.animation("salpicadura"),
+                patch = PatchTiles.of(set, "hielo", "hielo-borde-izq", "hielo-borde-der")
+                    ?: PatchTiles.of(set, "arena-movediza", "arena-movediza-izq", "arena-movediza-der"),
             )
         }
 
@@ -381,6 +403,7 @@ internal class ScenarioArt private constructor(
         /** The names of the platforms' tiles (ADR 0009), with -izq and -der for their ends. */
         private const val PLATFORM = "plataforma"
         private const val MOVER = "plataforma-movil"
+        private const val CRUMBLING = "plataforma-fragil"
     }
 }
 
@@ -395,6 +418,26 @@ internal class PlatformTiles(
     val right: Animation,
     val single: Animation,
 )
+
+/**
+ * The surface of a stretch of ice or of quicksand (PLY-18): its left edge, its middles, which take turns by column like the
+ * ground's surface, and its right edge; the edges carry the usual ground on their outer side (GameMaster).
+ */
+internal class PatchTiles(val left: Animation, val middles: List<Animation>, val right: Animation) {
+    companion object {
+        /** The tiles named [name]-1 and [name]-2, [left] and [right] in [set], or null without them. */
+        fun of(
+            set: SpriteSet,
+            name: String,
+            left: String,
+            right: String,
+        ): PatchTiles? {
+            val middles = listOfNotNull(set.animation("$name-1"), set.animation("$name-2"))
+            if (middles.isEmpty()) return null
+            return PatchTiles(set.animation(left) ?: middles[0], middles, set.animation(right) ?: middles[0])
+        }
+    }
+}
 
 /**
  * A decoration in the air as a mosaic, as GameMaster draws the copos: staggered, every other tile in a row and the next

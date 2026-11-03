@@ -681,7 +681,8 @@ internal class GameSession(
         ItemKind.Perrito -> Sound.Perrito
         ItemKind.Gatito -> Sound.Gatito
         ItemKind.Huevo -> Sound.Huevo
-        ItemKind.Pescado -> Sound.Pescado
+        // The birds sound like the fish, the driest, until they have a sound of their own.
+        ItemKind.Pescado, ItemKind.Pajaro -> Sound.Pescado
     }
 
     /** Caro's look with the frames of her runs and, if the art says, how many tiles a cycle of each covers. */
@@ -715,7 +716,7 @@ internal class GameSession(
 
     private fun createRun(): GameRun {
         val seed = Random.nextLong()
-        return GameRun(config, scenario, seed, BufferedPieces(CourseGenerator(config, seed, GameRun.START_X), scope))
+        return GameRun(config, scenario, seed, BufferedPieces(CourseGenerator(config, seed, GameRun.START_X, scenario), scope))
     }
 
     private fun refreshTexts() {

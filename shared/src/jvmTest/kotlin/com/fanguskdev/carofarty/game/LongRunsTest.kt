@@ -29,13 +29,16 @@ class LongRunsTest {
 
     @Test
     fun aCarefulPilotNeverHasToTouchWhatTakesPointsAway() {
-        for (seed in 1L..5L) {
-            val run = GameRun(config, Scenario.Bosque, seed)
-            Pilot(run).play(seconds = 600f)
-            val touched = run.events.filterIsInstance<RunEvent.Picked>().filter { it.points < 0 }
-            println("GEN-07, semilla $seed: ${run.meters.toInt()} m, ${touched.size} tocados")
-            assertTrue(touched.isEmpty(), "seed $seed: touched ${touched.size} by ${run.meters.toInt()} m")
-            assertTrue(run.endCause != EndCause.Fall, "seed $seed: fell at ${run.meters.toInt()} m")
+        // In every scenario, with its own dangers (ADR 0011): the fish that leap, the ice and the quicksand.
+        for (scenario in Scenario.entries) {
+            for (seed in 1L..5L) {
+                val run = GameRun(config, scenario, seed)
+                Pilot(run).play(seconds = 600f)
+                val touched = run.events.filterIsInstance<RunEvent.Picked>().filter { it.points < 0 }
+                println("GEN-07, $scenario, semilla $seed: ${run.meters.toInt()} m, ${touched.size} tocados")
+                assertTrue(touched.isEmpty(), "$scenario, seed $seed: touched ${touched.size} by ${run.meters.toInt()} m")
+                assertTrue(run.endCause != EndCause.Fall, "$scenario, seed $seed: fell at ${run.meters.toInt()} m")
+            }
         }
     }
 

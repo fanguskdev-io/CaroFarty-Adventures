@@ -70,6 +70,15 @@ class Caro(private val config: MovementConfig) {
     private var landingTime = 0f
     private var knockback = 0f
 
+    /**
+     * How much faster than the run she goes: on the ice of the Nieve, and through a jump that took off from it (PLY-18);
+     * 1 elsewhere. And whether she stands on quicksand, sunk a little and with a lower jump.
+     */
+    var slide = 1f
+        private set
+    var sinking = false
+        private set
+
     /** Whether the push back of an egg or a fish is going on. */
     val knockedBack: Boolean get() = knockback > 0f
 
@@ -111,6 +120,8 @@ class Caro(private val config: MovementConfig) {
         buffer = 0f
         landingTime = 0f
         knockback = 0f
+        slide = 1f
+        sinking = false
         cameraLag = 0f
         previousLag = 0f
         state = CaroState.Waiting
@@ -137,6 +148,8 @@ class Caro(private val config: MovementConfig) {
         buffer = other.buffer
         landingTime = other.landingTime
         knockback = other.knockback
+        slide = other.slide
+        sinking = other.sinking
         cameraLag = other.cameraLag
         previousLag = other.previousLag
     }
@@ -170,6 +183,8 @@ class Caro(private val config: MovementConfig) {
         previousY = y
         if (state == CaroState.Waiting || state.over) return
         if (pressed) buffer = config.jumpBuffer
+        // On the ground, what she stands on now: also for a try of the validator that starts on the ice and jumps at once.
+        if (state.grounded) footing(terrain)
 
         run(dt, terrain)
         if (buffer > 0f && (state.grounded || coyote > 0f)) jump(pressedNow = pressed)
@@ -184,7 +199,7 @@ class Caro(private val config: MovementConfig) {
     }
 
     private fun run(dt: Float, terrain: Terrain) {
-        speed = config.speedAt(meters)
+        speed = config.speedAt(meters) * slide
         // On a moving platform she runs as on the ground, and the platform carries her along with it (ADR 0009).
         val carry = if (state.grounded) terrain.carryUnder(left, right, y).toFloat() else 0f
         var across = speed + carry
@@ -218,7 +233,8 @@ class Caro(private val config: MovementConfig) {
             !state.grounded -> coyoteJumps++
             !pressedNow -> bufferedJumps++
         }
-        vy = config.jumpSpeed
+        vy = config.jumpSpeed * if (sinking) config.quicksandJump else 1f
+        sinking = false
         holdTime = 0f
         coyote = 0f
         buffer = 0f
@@ -232,9 +248,12 @@ class Caro(private val config: MovementConfig) {
             state = CaroState.Falling
             coyote = config.coyoteTime
             vy = 0f
+            sinking = false
             return
         }
         y = ground
+        terrain.standOn(left, right, y)
+        footing(terrain)
         if (state == CaroState.Landing) {
             landingTime -= dt
             if (landingTime <= 0f) state = CaroState.Running
@@ -258,9 +277,20 @@ class Caro(private val config: MovementConfig) {
         if (vy <= 0f && state == CaroState.Jumping) state = CaroState.Falling
         if (vy <= 0f) {
             val ground = terrain.supportUnder(left, right, before)
-            if (ground != null && before >= ground - Course.CORNER_TOLERANCE && y <= ground) land(ground)
+            if (ground != null && before >= ground - Course.CORNER_TOLERANCE && y <= ground) {
+                land(ground)
+                terrain.standOn(left, right, y)
+                footing(terrain)
+            }
         }
         if (y < FALL_LIMIT) state = CaroState.Fallen
+    }
+
+    /** What she runs on now sets how fast she goes and how she jumps (PLY-18); in the air she keeps it. */
+    private fun footing(terrain: Terrain) {
+        val footing = terrain.footingUnder(x, y)
+        slide = if (footing == Footing.Ice) config.iceSpeed else 1f
+        sinking = footing == Footing.Quicksand
     }
 
     private fun land(ground: Float) {

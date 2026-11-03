@@ -17,11 +17,20 @@ import kotlin.random.Random
  * Two random sources with the seed (GEN-05): one lays out the terrain and the other the collectibles, so the same seed gives
  * the same course on any phone. Distances (and with them the speed and the difficulty) are counted from [runStart].
  */
-class CourseGenerator(private val config: GameConfig, seed: Long, private val runStart: Double = 0.0) {
+class CourseGenerator(
+    private val config: GameConfig,
+    seed: Long,
+    private val runStart: Double = 0.0,
+    private val scenario: Scenario = Scenario.Bosque,
+) {
     private val course = config.course
     private val movement = config.movement
+    private val hazards = config.hazards
     private val terrainRandom = Random(seed)
     private val itemRandom = Random(seed xor ITEM_SALT)
+
+    /** A third source for the dangers of ADR 0011, so they leave the terrain and the collectibles as they were drawn. */
+    private val hazardRandom = Random(seed xor HAZARD_SALT)
     private val lab = JumpLab(movement, config.items.negativeBox, config.items.positiveBox)
     private val sandbox = Course()
 
@@ -32,6 +41,9 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
     /** How many challenges are left before the next one with platforms (ADR 0009: one of every 2 or 3). */
     private var untilPlatforms = 0
     private val half = movement.hitboxWidth / 2
+
+    /** The water of the gaps, where the fish leap from (ENM-15), in world pixels. */
+    private val waterLevel = course.minGroundTop * TILE - WATER_BELOW
     private val maxHold = ceil(movement.holdWindow / JumpLab.STEP).toInt()
     private var last: Ground? = null
     private var nextCalm = 0.0
@@ -51,6 +63,18 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
     internal var dilemmas = 0
         private set
 
+    /** The birds it has made (ENM-18) and the fish that leap (ENM-15): for the tests. */
+    internal var birds = 0
+        private set
+    internal var leaps = 0
+        private set
+
+    /** And the platforms that fall (ENM-16), and the stretches of ice and of quicksand (PLY-18). */
+    internal var crumbles = 0
+        private set
+    internal var patches = 0
+        private set
+
     /** Whether the next animal watched over on the ground has to be a dilemma, owed by one that did not fit. */
     private var dilemmaDue = false
 
@@ -67,6 +91,7 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
         }
         val piece = if (calmLeft > 0) calm(previous) else challenge(previous)
         last = piece.grounds.last()
+        patches += piece.grounds.count { it.patch != null }
         return piece
     }
 
@@ -184,7 +209,7 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
         val gapTiles = if (guarding && !withPlatform) min(chosenGap, max(course.minGapTiles, widest - GUARD_GAP_SLACK)) else chosenGap
         val runTiles = terrainRandom.nextInt(shortest, max(shortest, course.maxGroundTiles) + 1)
         val start = previous.end + gapTiles * TILE
-        val ground = Ground(start, start + runTiles * TILE, topTiles * TILE)
+        val ground = Ground(start, start + runTiles * TILE, topTiles * TILE, if (easy) null else patchFor(start, start + runTiles * TILE))
 
         val items = mutableListOf<Item>()
         pieceBlocks.clear()
@@ -195,7 +220,18 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
         if (!easy) {
             negatives(previous, ground, items, draw(pieceMeters * per100m / 100f), onTheGround = !guarding || withPlatform, difficulty)
         }
+        // The fish that leap out of the river of the Bosque and the icy water of the Nieve (ENM-15), before the rest of the
+        // air takes its place; the Desierto has none.
+        if (!easy && scenario != Scenario.Desierto && hazardRandom.nextFloat() < leapShare(difficulty, meters)) {
+            leap(previous, ground, items)
+        }
         if (!easy) airObstacles(previous, ground, items, difficulty)
+        // The birds (ENM-18), from half the difficulty on, over the gap.
+        if (!easy && hazardRandom.nextFloat() < birdShare(difficulty, meters)) {
+            val from = Surface(previous.start, previous.end, previous.top)
+            val to = Surface(ground.start, ground.end, ground.top)
+            bird(from, to, listOf(previous, ground), items) { fairGap(previous, ground, items, path = null) }
+        }
         // Where the jump over the gap lands, now and then, unless the animals are watched over there (GEN-25).
         val landing = !easy && !guarding && difficulty >= course.airFromDifficulty
         if (landing && itemRandom.nextFloat() < LANDING_NEGATIVE_SHARE * difficulty) {
@@ -320,7 +356,7 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
         }
         val start = x + hops[count] * TILE
         val runTiles = terrainRandom.nextInt(width, max(width, course.maxGroundTiles) + 1)
-        val next = Ground(start, start + runTiles * TILE, tops[count])
+        val next = Ground(start, start + runTiles * TILE, tops[count], patchFor(start, start + runTiles * TILE))
         surfaces += Surface(next.start, next.end, next.top)
         val grounds = listOf(previous, next)
         if (reachesDirectly(previous, next)) return null
@@ -334,6 +370,7 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
         ) {
             move(terrainRandom.nextInt(count), surfaces, grounds)
         }
+        crumble(surfaces, grounds, difficulty, meters)
         val items = mutableListOf<Item>()
         negativesOnTheWay(surfaces, grounds, items, difficulty)
         val share = guardShare(difficulty) * SINGLE_ANIMAL_SHARE
@@ -377,6 +414,16 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
             if (itemRandom.nextFloat() < air) airOnTheWay(surfaces[k], surfaces[k + 1], grounds, items, difficulty, blocks = false)
             if (itemRandom.nextFloat() < landing) whereSheLands(surfaces[k], surfaces[k + 1], surfaces.getOrNull(k + 2), grounds, items)
         }
+        // A bird over one of the hops, as over a gap (ENM-18); every hop stays fair, as it may fly by where another lands.
+        if (hazardRandom.nextFloat() < birdShare(difficulty, meters(surfaces[0].end))) {
+            val k = hazardRandom.nextInt(surfaces.size - 1)
+            val moving = piecePlatforms.getOrNull(k - 1)?.motion != null || piecePlatforms.getOrNull(k)?.motion != null
+            if (!moving) {
+                bird(surfaces[k], surfaces[k + 1], grounds, items) {
+                    (0 until surfaces.size - 1).all { fairHop(surfaces[it], surfaces[it + 1], grounds, items, path = null) }
+                }
+            }
+        }
     }
 
     /**
@@ -391,7 +438,7 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
         items: MutableList<Item>,
     ): Boolean {
         val speed = movement.speedAt(meters(on.start))
-        if (small(on, speed)) return false
+        if (quick(on, speed)) return false
         val negative = Item(negativeKind(), on.start + WHERE_SHE_LANDS, on.top + Item.ABOVE_GROUND)
         if (items.any { abs(it.x - negative.x) < ROW_CLEARANCE }) return false
         items += negative
@@ -445,6 +492,56 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
         val mover = Platform(still.start, still.end, still.top, motion)
         piecePlatforms[k] = mover
         if (!fairAround(mover, surfaces[k], surfaces[k + 2], grounds)) piecePlatforms[k] = still
+    }
+
+    /**
+     * Now and then, at the end of the ground from [start] to [end], before the gap that comes next, a stretch of ice in the
+     * Nieve or of quicksand in the Desierto (PLY-18, Fangusk: «antes de barrancos o bloques, para que obliguen a decidir»):
+     * a few tiles, with a tile of the usual ground at each side, where GameMaster draws their edges. The next piece is
+     * made fair taking off from it.
+     */
+    private fun patchFor(start: Int, end: Int): Patch? {
+        val footing = when (scenario) {
+            Scenario.Nieve -> Footing.Ice
+            Scenario.Desierto -> Footing.Quicksand
+            Scenario.Bosque -> return null
+        }
+        val meters = meters(start)
+        val share =
+            with(hazards) { hazardShare(patchFromDifficulty, patchShare, patchShareEnd, patchShareLate, difficultyAt(meters), meters) }
+        if (hazardRandom.nextFloat() >= share) return null
+        val patchEnd = end - TILE
+        val patchStart = patchEnd - TILE * hazardRandom.nextInt(PATCH_MIN_TILES, PATCH_MAX_TILES + 1)
+        return if (patchStart < start + TILE) null else Patch(patchStart, patchEnd, footing)
+    }
+
+    /**
+     * Now and then a platform of the gap that stands still falls when she stands on it (ENM-16, Fangusk: «al pisarlas
+     * tiemblan unos 0,3 s y caen»), if the hops onto it and off it stay fair: she has to jump off it before it falls.
+     * [surfaces] are the ground before, the platforms and the ground after; the one that falls takes its place there.
+     */
+    private fun crumble(
+        surfaces: MutableList<Surface>,
+        grounds: List<Ground>,
+        difficulty: Float,
+        meters: Double,
+    ) {
+        val share = with(hazards) { hazardShare(fallFromDifficulty, fallShare, fallShareEnd, fallShareLate, difficulty, meters) }
+        for (k in piecePlatforms.indices) {
+            val still = piecePlatforms[k]
+            if (still.motion != null || hazardRandom.nextFloat() >= share) continue
+            val falling = Platform(still.start, still.end, still.top, fall = Fall(hazards.trembleSeconds.toDouble()))
+            val surface = surfaces[k + 1]
+            piecePlatforms[k] = falling
+            surfaces[k + 1] = Surface(still.start, still.end, still.top, falling, ledge = true)
+            val onto = fairHop(surfaces[k], surfaces[k + 1], grounds, emptyList(), path = null)
+            if (onto && fairHop(surfaces[k + 1], surfaces[k + 2], grounds, emptyList(), path = null)) {
+                crumbles++
+                continue
+            }
+            piecePlatforms[k] = still
+            surfaces[k + 1] = surface
+        }
     }
 
     /**
@@ -559,7 +656,10 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
         // A little above or below her body on that jump: it still catches the obvious jump and leaves room around it.
         val item = Item(negativeKind(), x.toInt(), centre.toInt() + itemRandom.nextInt(-AIR_SPREAD, AIR_SPREAD + 1))
         items += item
-        if (fairHop(from, to, grounds, items, path = null)) return true
+        if (fairHop(from, to, grounds, items, path = null)) {
+            float(listOf(item), from, to, grounds, items)
+            return true
+        }
         items -= item
         return false
     }
@@ -581,7 +681,10 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
         val below = Item(negativeKind(), x.toInt() + PAIR_STAGGER, centre.toInt() - apart)
         items += above
         items += below
-        if (fairHop(from, to, grounds, items, path = null)) return true
+        if (fairHop(from, to, grounds, items, path = null)) {
+            float(listOf(above, below), from, to, grounds, items)
+            return true
+        }
         items -= above
         items -= below
         return false
@@ -617,7 +720,8 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
 
     /** Whether every huevo frito and pescado on [ground] can still be jumped with the piece's blocks in place. */
     private fun obstaclesStillFair(ground: Ground, items: List<Item>): Boolean = items.all { item ->
-        val onTheGround = !item.kind.adds && item.x >= ground.start && item.x < ground.end && item.y - ground.top < Item.SIZE
+        val onTheGround =
+            !item.kind.adds && item.flight == null && item.x >= ground.start && item.x < ground.end && item.y - ground.top < Item.SIZE
         !onTheGround || fairObstacle(ground, item)
     }
 
@@ -692,7 +796,207 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
     private fun ceiling(previous: Ground, ground: Ground, items: MutableList<Item>) {
         val ceiling = Item(negativeKind(), (previous.end + ground.start) / 2, previous.top + CEILING_HEIGHT)
         items += ceiling
-        if (!fairGap(previous, ground, items, path = null)) items -= ceiling
+        if (!fairGap(previous, ground, items, path = null)) {
+            items -= ceiling
+            return
+        }
+        float(
+            listOf(ceiling),
+            Surface(previous.start, previous.end, previous.top),
+            Surface(ground.start, ground.end, ground.top),
+            listOf(previous, ground),
+            items,
+        )
+    }
+
+    /**
+     * How often a danger of ADR 0011 comes at [difficulty], [meters] into the run: never before [from]; [start] there,
+     * [end] at full difficulty and towards [late] by the minute 30.
+     */
+    private fun hazardShare(
+        from: Float,
+        start: Float,
+        end: Float,
+        late: Float,
+        difficulty: Float,
+        meters: Double,
+    ): Float {
+        if (difficulty < from) return 0f
+        val t = if (from >= 1f) 1f else (difficulty - from) / (1f - from)
+        return start + (end - start) * t + (late - end) * lateDifficultyAt(meters)
+    }
+
+    private fun birdShare(difficulty: Float, meters: Double): Float = with(hazards) {
+        hazardShare(birdFromDifficulty, birdShare, birdShareEnd, birdShareLate, difficulty, meters)
+    }
+
+    private fun leapShare(difficulty: Float, meters: Double): Float = with(hazards) {
+        hazardShare(leapFromDifficulty, leapShare, leapShareEnd, leapShareLate, difficulty, meters)
+    }
+
+    /**
+     * A fish that leaps out of the water of the gap from [previous] to [ground] (ENM-15, «como los peces de Mario»): up from
+     * the water when she comes, at the top of its leap just as she passes a point of the obvious jump, a little above or
+     * below where her body would be, so that the jump has to go over it, under it or at another moment; out of the water
+     * and back into it within the gap, where the water is. If none leaves the gap fair, none.
+     */
+    private fun leap(previous: Ground, ground: Ground, items: MutableList<Item>) {
+        val from = Surface(previous.start, previous.end, previous.top)
+        val to = Surface(ground.start, ground.end, ground.top)
+        val path = mutableListOf<Pair<Double, Float>>()
+        goodPath(from, to, listOf(previous, ground), items, path)
+        if (path.size < MIN_AIR_PATH) return
+        val half = Item.SIZE / 2
+        val first = path.size * AIR_FROM_TENTHS / 10
+        val last = path.size * AIR_TO_TENTHS / 10
+        val over = (first until last).filter { path[it].first - half > previous.end && path[it].first + half < ground.start }
+        if (over.isEmpty()) return
+        val pace = movement.speedAt(meters(previous.end))
+        repeat(LEAP_TRIES) {
+            val (x, centre) = path[over[hazardRandom.nextInt(over.size)]]
+            val top = centre.toInt() + hazardRandom.nextInt(-AIR_SPREAD, AIR_SPREAD + 1)
+            val height = top - waterLevel
+            if (height < LEAP_MIN_HEIGHT) return@repeat
+            val gravity = LEAP_GRAVITY
+            val rise = sqrt(2f * gravity * height)
+            val toTop = rise / gravity
+            val across = LEAP_DRIFT * (2 * hazardRandom.nextFloat() - 1)
+            val out = x - across * toTop
+            val back = out + across * 2 * toTop
+            // Out of the water and back into it over the gap, where there is water.
+            if (minOf(out, back) - half < previous.end || maxOf(out, back) + half > ground.start) return@repeat
+            if (items.any { !it.kind.adds && abs(it.x - x) < BIRD_ROOM && abs(it.y - top) < BIRD_ROOM }) return@repeat
+            val fish = Item(ItemKind.Pescado, out.toInt(), waterLevel).also {
+                it.flight = Leap(x - pace * toTop, pace, across, rise, gravity)
+            }
+            items += fish
+            if (fairGap(previous, ground, items, path = null)) {
+                leaps++
+                return
+            }
+            items -= fish
+        }
+    }
+
+    /**
+     * Now and then the eggs and the fish just put on the way of the jump from [from] to [to] float up and down where they
+     * are (ENM-17, Fangusk: «hay que esperar el hueco»): a pair, together or against each other, so that the gap between
+     * them opens and closes. If the hop is not fair so, they stay still.
+     */
+    private fun float(
+        floating: List<Item>,
+        from: Surface,
+        to: Surface,
+        grounds: List<Ground>,
+        items: List<Item>,
+    ) {
+        val meters = meters(from.end)
+        val share =
+            with(hazards) { hazardShare(floatFromDifficulty, floatShare, floatShareEnd, floatShareLate, difficultyAt(meters), meters) }
+        if (hazardRandom.nextFloat() >= share) return
+        val pace = movement.speedAt(meters)
+        val period = hazards.floatPeriod * (1f + FLOAT_PERIOD_SPREAD * (2 * hazardRandom.nextFloat() - 1))
+        val phase = hazardRandom.nextDouble()
+        val against = hazardRandom.nextBoolean()
+        // Never into a block.
+        val room = hazards.floatTravelMax / 2 + Item.SIZE / 2
+        val nearBlock = floating.any { item ->
+            pieceBlocks.any { it.start < item.x + room && it.end > item.x - room && it.bottom < item.y + room && it.top > item.y - room }
+        }
+        if (nearBlock) return
+        for ((k, item) in floating.withIndex()) {
+            val travel = hazardRandom.nextInt(hazards.floatTravelMin, hazards.floatTravelMax + 1)
+            val own = if (against && k % 2 == 1) phase + HALF_ROUND else phase
+            item.flight = Bob(item.x.toDouble(), pace, travel / 2, period.toDouble(), own)
+        }
+        if (!fairHop(from, to, grounds, items, path = null)) floating.forEach { it.flight = null }
+    }
+
+    /**
+     * A bird (ENM-18, Fangusk: «Los pájaros no pueden estar estancos en el aire») on the way from [from] to [to]: one that
+     * flies at her and meets her where she takes off or over the gap, low (she has to jump it), at the height of a jump
+     * (she has to time it, or run under it before jumping) or high (only a high jump touches it); or one that strolls back
+     * and forth over the gap around the obvious jump. If none leaves the piece [fair], none.
+     */
+    private inline fun bird(
+        from: Surface,
+        to: Surface,
+        grounds: List<Ground>,
+        items: MutableList<Item>,
+        fair: () -> Boolean,
+    ) {
+        val pace = movement.speedAt(meters(from.end))
+        val path = if (hazardRandom.nextFloat() < hazards.birdStrollShare) mutableListOf<Pair<Double, Float>>() else null
+        if (path != null) {
+            goodPath(from, to, grounds, items, path)
+            if (path.size < MIN_AIR_PATH) return
+        }
+        repeat(BIRD_TRIES) {
+            val bird = if (path != null) strolling(from, to, pace, path) else charging(from, to, pace)
+            if (bird == null || items.any { !it.kind.adds && abs(it.x - bird.x) < BIRD_ROOM && abs(it.y - bird.y) < BIRD_ROOM }) {
+                return@repeat
+            }
+            // Never through a block: the ones that fly at her keep their height all the way.
+            val reach = (bird.flight as? Stroll)?.let { it.span / 2 + it.bob } ?: BIRD_MAX_WAVE
+            if (pieceBlocks.any { it.bottom < bird.y + reach + BIRD_ROOM / 2 && it.top > bird.y - reach - BIRD_ROOM / 2 }) return@repeat
+            items += bird
+            if (fair()) {
+                birds++
+                return
+            }
+            items -= bird
+        }
+    }
+
+    /**
+     * A bird that flies at her, [pace] being how fast she runs there: where it meets her and how high, at random. Off a small
+     * platform, which she leaves at once, only past its end: before it, it would meet her as she lands.
+     */
+    private fun charging(from: Surface, to: Surface, pace: Float): Item? {
+        val gap = to.start - from.end
+        val quick = quick(from, pace)
+
+        fun before(seconds: Float): Int = if (quick) from.end else from.end - (pace * seconds).toInt()
+        val (low, high, rise) = when (hazardRandom.nextInt(BIRD_HEIGHTS)) {
+            0 -> Triple(before(LOW_BIRD_BEFORE), from.end + TILE / 2, LOW_BIRD)
+            1 -> Triple(before(MIDDLE_BIRD_BEFORE), from.end + gap / 3, MIDDLE_BIRD)
+            else -> Triple(from.end + gap / 4, to.start - gap / 4, HIGH_BIRD)
+        }
+        if (high < low) return null
+        val x = hazardRandom.nextInt(low, high + 1)
+        val y = from.top + rise + hazardRandom.nextInt(0, BIRD_HEIGHT_SPREAD + 1)
+        val speed = hazards.birdMinSpeed + hazardRandom.nextFloat() * (hazards.birdMaxSpeed - hazards.birdMinSpeed)
+        val waves = hazardRandom.nextFloat() < hazards.birdWaveShare
+        val wave = if (waves) hazardRandom.nextInt(BIRD_MIN_WAVE, BIRD_MAX_WAVE + 1) else 0
+        val period = BIRD_MIN_WAVE_PERIOD + hazardRandom.nextDouble() * (BIRD_MAX_WAVE_PERIOD - BIRD_MIN_WAVE_PERIOD)
+        return Item(ItemKind.Pajaro, x, y).also {
+            it.flight = Charge(x.toDouble(), pace, speed, wave, period, hazardRandom.nextDouble())
+        }
+    }
+
+    /**
+     * A bird that strolls over the gap from [from] to [to], around a point of the obvious jump's [path]; its whole way over
+     * the gap, so it can only meet her in the air, where the validator follows her.
+     */
+    private fun strolling(
+        from: Surface,
+        to: Surface,
+        pace: Float,
+        path: List<Pair<Double, Float>>,
+    ): Item? {
+        val half = Item.SIZE / 2
+        val over = path.filter { it.first - half > from.end && it.first + half < to.start }
+        if (over.isEmpty()) return null
+        val (x, centre) = over[hazardRandom.nextInt(over.size)]
+        val y = centre.toInt() + hazardRandom.nextInt(-AIR_SPREAD, AIR_SPREAD + 1)
+        val span = TILE * hazardRandom.nextInt(STROLL_MIN_TILES, STROLL_MAX_TILES + 1)
+        val room = span / 2 + Item.SIZE
+        if (x - room < from.end || x + room > to.start) return null
+        val speed = STROLL_MIN_SPEED + hazardRandom.nextFloat() * (STROLL_MAX_SPEED - STROLL_MIN_SPEED)
+        val bob = hazardRandom.nextInt(1, STROLL_MAX_BOB + 1)
+        return Item(ItemKind.Pajaro, x.toInt(), y).also {
+            it.flight = Stroll(x, pace, span, speed, hazardRandom.nextDouble(), bob)
+        }
     }
 
     private fun negativeKind(): ItemKind = if (itemRandom.nextFloat() < FISH_SHARE) ItemKind.Pescado else ItemKind.Huevo
@@ -1061,7 +1365,7 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
         var high = ground.end - WALK_EDGE
         for (item in items) {
             val onThisGround = item.x >= ground.start && item.x < ground.end && item.y - ground.top < Item.SIZE
-            if (item.kind.adds || !onThisGround) continue
+            if (item.kind.adds || item.flight != null || !onThisGround) continue
             if (item.x < perrito.x) low = max(low, item.x + ROW_CLEARANCE) else high = min(high, item.x - ROW_CLEARANCE)
         }
         return walkOn(perrito, low, high)
@@ -1113,9 +1417,10 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
         val lastPress = windowSteps + coyoteSteps
         // Falling past where [to] can be at any time, a jump has no landing on it left to look for.
         val lowest = to.lowest() - GIVE_UP_BELOW
-        if (small(from, speed)) {
+        if (quick(from, speed)) {
             // From a small platform she jumps again wherever she landed on it: from its start and from its very end, with
-            // what is left of it and the coyote time, it has to be fair (GEN-26).
+            // what is left of it and the coyote time, it has to be fair (GEN-26); and so from one that falls (ENM-16),
+            // which only lets her stay on it a moment.
             val step = speed.toDouble() * JumpLab.STEP
             val near = from.startAt(time) + half
             val far = from.endAt(time) - half - 1
@@ -1145,7 +1450,7 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
         val windowSteps = ceil(PRESS_WINDOW_SECONDS / JumpLab.STEP).toInt()
         val coyoteSteps = floor(movement.coyoteTime / JumpLab.STEP).toInt()
         val rule = LandingRule(to, items, speed)
-        val startX = if (small(from, speed)) {
+        val startX = if (quick(from, speed)) {
             from.start + half.toDouble()
         } else {
             max(from.start + half.toDouble(), from.end - half - speed.toDouble() * (windowSteps + 1) * JumpLab.STEP)
@@ -1158,6 +1463,9 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
     /** Whether [surface] is a small platform (GEN-26): narrower than the shortest ground at [speed], where nothing else fits. */
     private fun small(surface: Surface, speed: Float): Boolean = surface.ledge && surface.end - surface.start < shortestGround(speed) * TILE
 
+    /** Whether she leaves [surface] again at once: a small platform, or one that falls (ENM-16). */
+    private fun quick(surface: Surface, speed: Float): Boolean = small(surface, speed) || surface.platform?.fall != null
+
     /**
      * Where a landing on [to] is good (GEN-10): with margin after its start, and before what there is to jump on it with
      * the whole run-up to jump it still ahead, or past all of it (GEN-23, where the jump over the gap leaves an egg or a
@@ -1166,8 +1474,8 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
     private inner class LandingRule(private val to: Surface, items: List<Item>, speed: Float) {
         private val margin = course.landingMarginTiles * TILE
 
-        /** On a small platform (GEN-26) anywhere she stands on it is good: she jumps again at once. */
-        private val small = small(to, speed)
+        /** On a small platform (GEN-26), or one that falls (ENM-16), anywhere she stands on it is good: she jumps again at once. */
+        private val small = quick(to, speed)
         private val endShift = -speed.toDouble() * RUNWAY_SECONDS
         var beforeShift = endShift
             private set
@@ -1176,7 +1484,7 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
         init {
             var last = Double.NEGATIVE_INFINITY
             for (item in items) {
-                if (!item.kind.adds && item.x > to.start && item.x < to.end && item.y - to.top < Item.SIZE) {
+                if (!item.kind.adds && item.flight == null && item.x > to.start && item.x < to.end && item.y - to.top < Item.SIZE) {
                     val before = item.x - Item.SIZE / 2 - half - speed.toDouble() * OBSTACLE_WINDOW_SECONDS - to.end
                     beforeShift = min(beforeShift, before)
                     last = max(last, item.x + Item.SIZE / 2 + half.toDouble())
@@ -1311,6 +1619,7 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
 
     internal companion object {
         const val ITEM_SALT = 0x5EEDCAFE0FL
+        const val HAZARD_SALT = 0x0B1BD5F15L
         const val START_BEHIND = -32 * TILE
 
         /** The run-up a player uses to time a jump, and how much of it is left after a landing. */
@@ -1477,6 +1786,52 @@ class CourseGenerator(private val config: GameConfig, seed: Long, private val ru
          * watches over them, in tiles, besides the landing spread and the run-up to the next jump.
          */
         const val GUARD_ROOM_TILES = 5
+
+        /**
+         * The eggs and the fish that float (ENM-17): their round, up to this share longer or shorter than the settings',
+         * and the pair against each other half a round apart.
+         */
+        const val FLOAT_PERIOD_SPREAD = 0.15f
+        const val HALF_ROUND = 0.5
+
+        /**
+         * The birds (ENM-18): how many places are tried for one; how close to another that takes points away it may not
+         * be; the three heights of those that fly at her, over the ground she takes off from, and how much higher at
+         * random, and where they meet her, in seconds of running before the edge: the low one right before it, so the
+         * jump over the gap has to clear it; how much they wave and how long a wave takes; and those that stroll, how
+         * many tiles across, how fast and how much they bob.
+         */
+        const val BIRD_TRIES = 3
+        const val BIRD_ROOM = 2 * TILE
+        const val BIRD_HEIGHTS = 3
+        const val LOW_BIRD = 10
+        const val MIDDLE_BIRD = 30
+        const val HIGH_BIRD = 52
+        const val BIRD_HEIGHT_SPREAD = 8
+        const val LOW_BIRD_BEFORE = 0.12f
+        const val MIDDLE_BIRD_BEFORE = 0.15f
+        const val BIRD_MIN_WAVE = 6
+        const val BIRD_MAX_WAVE = 10
+        const val BIRD_MIN_WAVE_PERIOD = 0.8
+        const val BIRD_MAX_WAVE_PERIOD = 1.2
+        const val STROLL_MIN_TILES = 2
+        const val STROLL_MAX_TILES = 4
+        const val STROLL_MIN_SPEED = 30f
+        const val STROLL_MAX_SPEED = 50f
+        const val STROLL_MAX_BOB = 3
+
+        /**
+         * The fish that leap (ENM-15): how many tries, how high a leap is at least, how it falls, in pixels a second per
+         * second, and how fast it drifts across at most.
+         */
+        const val LEAP_TRIES = 5
+        const val LEAP_MIN_HEIGHT = 24
+        const val LEAP_GRAVITY = 700f
+        const val LEAP_DRIFT = 40f
+
+        /** The stretches of ice and of quicksand (PLY-18), in tiles. */
+        const val PATCH_MIN_TILES = 2
+        const val PATCH_MAX_TILES = 4
 
         /** What [rescue] says. */
         const val SKILL = 0

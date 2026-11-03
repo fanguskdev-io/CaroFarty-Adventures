@@ -32,6 +32,8 @@ contra las que chocar. Chocar contra el borde de un suelo más alto tras un salt
 | Cambio de altura al otro lado de un barranco | Subida de hasta 2 tiles; bajada de hasta 3 |
 | Tensión y calma | Tras 150 a 250 m de tensión, de 2 a 3 piezas tranquilas (GEN-24; antes, de 2 a 4): suelo llano de 6 a 10 tiles, nunca más corto que el suelo más corto de ese momento, o el barranco más estrecho a la misma altura, sin nada que reste. Llevan perritos y gatitos el 60 % al empezar y el 15 % a toda dificultad (todas hasta la beta 7, [ADR 0011](adr/0011-mas-dificultad-tras-la-beta-7.md)). Hacia el minuto 30, tensiones más largas y calmas más cortas |
 | Barrancos con plataformas | Uno de cada 2 retos de la tensión (GEN-24; antes, uno de cada 2 o 3): un barranco más ancho que el salto más largo de ese momento, que solo se cruza saltando a 1 o 2 plataformas al empezar y a 2 o 3 a toda dificultad. Desde la mitad de la dificultad, todas de 1 o 2 tiles, quietas o móviles, para aterrizar y volver a saltar enseguida (GEN-26, [ADR 0011](adr/0011-mas-dificultad-tras-la-beta-7.md)). En el 60 % de los de 2 o 3, una escalera: cada una un tile más alta, o más baja, que lo anterior, hasta el suelo de después; en el resto, cada una de 1 tile más baja a 2 más alta. Cada salto entre ellas, de la mitad al todo del barranco más ancho de ese momento (del 45 al 75 % del salto más largo), y más si hace falta para que el conjunto pase del salto más largo; cada plataforma, de lo que mide el suelo más corto a un tile más. A veces espera encima un perrito o un gatito |
+| Plataformas que caen | De las quietas de los barrancos con plataformas, desde el 20 % de la dificultad, una de cada 5, y 4 de cada 10 a toda dificultad: tiemblan 0,3 s cuando ella se pone encima y caen sin volver, con ella si sigue encima (ENM-16, [ADR 0011](adr/0011-mas-dificultad-tras-la-beta-7.md)) |
+| Hielo y arenas movedizas | En la Nieve, hielo; en el Desierto, arenas movedizas: al final de un suelo, antes del barranco siguiente, de 2 a 4 tiles con uno de suelo normal a cada lado; en el 15 % de los suelos de los retos al empezar y el 30 % a toda dificultad (PLY-18). Sobre el hielo corre un 12 % más deprisa y lo mantiene en el salto; sobre la arena se hunde 3 px y salta un 30 % más bajo ([movimiento](movimiento.md)) |
 | Repetición | Nunca tres piezas difíciles iguales seguidas: mismo barranco, mismo escalón y lo que resta en el mismo sitio |
 | Inicio de la partida | 30 tiles llanos, con una fila de perritos y gatitos, antes del primer barranco |
 
@@ -48,6 +50,10 @@ contra las que chocar. Chocar contra el borde de un suelo más alto tras un salt
 | Techo | Un huevo frito o un pescado alto sobre un barranco: pide un salto que no suba demasiado |
 | En el camino del salto | Un huevo frito o un pescado sobre el barranco, donde pasaría el salto que cualquiera haría primero (cerca de su punto más alto, un poco por encima o por debajo): hay que adelantar, retrasar o medir el salto de otra manera. Lo pidió Fangusk ([ADR 0007](adr/0007-la-dificultad-velocidad-y-obstaculos-en-el-aire.md)) |
 | Bloque | Un bloque sólido de 1 o 2 tiles sobre el barranco, cuyo borde de abajo alcanza la cabeza de Caro en ese mismo salto: lo corta. Desde abajo frena la subida, de costado la para en el aire y encima se puede correr. Sobre un suelo deja siempre al menos 28 px por debajo, para que se pueda pasar corriendo. También lo pidió Fangusk |
+| Huevo o pescado que flota | De los del camino del salto, el techo y las parejas, algunos suben y bajan de 8 a 16 px cada 1,5 s más o menos; en una pareja, a la vez o al contrario, y el hueco entre los dos se abre y se cierra (ENM-17, [ADR 0011](adr/0011-mas-dificultad-tras-la-beta-7.md)). Desde el 20 % de la dificultad, uno de cada 4, y 6 de cada 10 a toda dificultad |
+| Pájaro de frente | Viene desde la derecha, de 80 a 140 px/s más rápido que el suelo, y se cruza con ella donde despega o sobre el barranco: bajo, hay que saltarlo; a la altura de un salto, hay que medirlo o pasar por debajo antes de saltar; alto, solo da un salto alto. La mitad ondulan. Resta 8 (ENM-18, Fangusk). Desde la mitad de la dificultad, sobre el 8 % de los barrancos, el 20 % a toda dificultad y el 40 % hacia el minuto 30, y sobre uno de los saltos entre plataformas; nunca de un salto que deje de ser justo, ni el de antes ni el de después |
+| Pájaro que pasea | Va y viene sobre el barranco de 30 a 50 px/s, alrededor del salto evidente, y se da la vuelta en los extremos; siempre encima del barranco, así que solo se cruza con ella en el aire. Seis de cada 10 pájaros lo intentan |
+| Pez que salta | En el Bosque y la Nieve: sale del agua del barranco cuando ella se acerca y está en lo alto de su salto cuando ella pasa por ese punto del salto evidente, un poco por encima o por debajo; entra y sale del agua dentro del barranco. Resta como un pescado (ENM-15). Desde un cuarto de la dificultad, en uno de cada 4 barrancos, casi la mitad a toda dificultad |
 
 Los dos últimos, los obstáculos en el aire, empiezan cuando la dificultad pasa del 5 %. Al principio lleva uno el 35 % de
 los barrancos y, a toda dificultad, el 90 %; un cuarto son bloques (la mitad hasta la beta 7). Desde la beta 8 también
@@ -90,12 +96,20 @@ con 0,4 s de carrera para tomarlo. Una plataforma con premio solo entra si al me
 encima y el barranco anterior sigue siendo justo con ella. Los bloques entran en la misma simulación: el validador prueba
 los saltos contra ellos con la física del juego, y un salto que se da con uno no cuenta como bueno.
 
+Lo que se mueve solo, los huevos y pescados que flotan, los pájaros y los peces que saltan (ADR 0011), está donde dice lo
+lejos que ha llegado Caro y no el reloj: en cada intento el validador lo ve donde estaría con ella ahí, así que el camino
+limpio lo es llegue cuando llegue. Un pájaro tiene que dejar justos todos los saltos de su pieza, no solo el suyo, porque
+puede cruzarse con ella donde aterriza otro. Las plataformas que caen se prueban como las pequeñas, desde donde cae
+primero y desde el borde, cayéndose a su tiempo; y el hielo y la arena con la misma física del juego: el barranco que
+sigue a uno tiene que ser justo despegando de él.
+
 Si un tramo no es justo se genera otro; tras 8 intentos sale uno fácil, un barranco de 2 tiles a la misma altura y sin
 nada que reste; un barranco con plataformas que no sale justo en 8 intentos deja su sitio a un barranco de siempre. En las
 pruebas, un piloto automático que salta como una persona cuidadosa (y espera, si puede, a un salto que le deje sitio para
 el siguiente) recorre 39 km en 30 minutos sin caer, juega 5 partidas de 10 minutos sin caer ni tocar nada que reste, y se
-generan 10.000 tramos seguidos sin un error, a 1,3 ms cada uno (GEN-10, GEN-11). Con los animales vigilados, el piloto
-cuidadoso sigue sin tocar nada que reste: es la prueba de que siempre hay un camino limpio (GEN-23).
+generan 10.000 tramos seguidos sin un error, a 2,3 ms cada uno desde la beta 9 (GEN-10, GEN-11). Con los animales
+vigilados, y con los peligros de la beta 9 en los tres escenarios, el piloto cuidadoso sigue sin tocar nada que reste: es
+la prueba de que siempre hay un camino limpio (GEN-23, ADR 0011).
 
 ## La dificultad
 

@@ -5,7 +5,7 @@
 | **Estado** | aceptada: el qué lo pidió Fangusk el 2026-11-03 tras jugar la beta 7, con sus palabras, y eligió las reglas y los peligros entre las propuestas de GameMaster · propuesta: los números y cómo se colocan, que se afinan con el piloto, el jugador simulado y jugando |
 | **Fecha** | 2026-11-03 · **Fase:** P0 · Borrador anticipado, sin ninguna puerta confirmada · **Hito:** M5 · **Tarea:** GDD-21, GDD-23, GEN-25, GEN-26, ENM-15, ENM-16, ENM-17, ENM-18, PLY-18, ART-27 |
 | **Propone · decide** | Fangusk · Fangusk |
-| **Reversibilidad** | alta · las reglas y las cuotas viven en datos (`score` y `course` en `files/ajustes.json`); los peligros nuevos, en el generador, el validador y la física |
+| **Reversibilidad** | alta · las reglas y las cuotas viven en datos (`score`, `course` y `hazards` en `files/ajustes.json`; el hielo y la arena, en `movement`); los peligros nuevos, en el generador, el validador y la física |
 
 ## Contexto
 
@@ -93,7 +93,36 @@ peligros nuevos, según llega su arte. La beta 8 ([generación](../generacion.md
   alto/bajo. Cada salto se sigue comprobando a la velocidad de ese momento, con algo más de sitio para aterrizar cuanto
   más deprisa va.
 
-Los cuatro peligros y los pájaros, en la beta 9.
+Y la beta 9, con el arte de GameMaster, los cuatro peligros y los pájaros:
+
+- **Lo que se mueve solo va con ella**: los huevos y pescados que flotan, los pájaros y los peces que saltan están donde
+  dice lo lejos que ha llegado Caro, no el reloj. Como ella nunca se para, para quien juega es lo mismo, y el validador,
+  que la hace correr en cada intento, los ve justo donde el juego los pinta: lo que dice justo lo es, llegue cuando
+  llegue. Solo sumas y productos, como las plataformas móviles, así que se mueven igual en todos los teléfonos.
+- **Huevos y pescados que flotan** (ENM-17): de los del camino del salto, el techo y las parejas, desde el 20 % de la
+  dificultad, uno de cada 4 al empezar y 6 de cada 10 a toda dificultad, 8 hacia el minuto 30. Suben y bajan de 8 a 16 px
+  en total cada 1,5 s más o menos; en una pareja, a la vez o al contrario, para que el hueco entre los dos se abra y se
+  cierre.
+- **Pájaros** (ENM-18), que restan 8: desde la mitad de la dificultad, sobre el 8 % de los barrancos al llegar a ella,
+  el 20 % a toda dificultad y el 40 % hacia el minuto 30, y sobre uno de los saltos de los barrancos con plataformas. Los
+  de frente vienen de 80 a 140 px/s más rápido que el suelo y se cruzan con ella donde despega o sobre el barranco: bajos
+  (hay que saltarlos), a la altura de un salto (medirlo o pasar por debajo antes de saltar) o altos (solo da un salto
+  alto); la mitad ondulan. Los que pasean van y vienen sobre el barranco de 30 a 50 px/s, siempre encima de él, y se
+  dan la vuelta en los extremos. Con el aleteo y el planeo de GameMaster, y el sonido del pescado mientras no tengan uno.
+- **Peces que saltan** (ENM-15), en el Bosque y la Nieve: salen del agua de los barrancos, 18 px bajo la línea del suelo
+  más bajo, donde GameMaster la pintó, cuando ella se acerca, y están en lo alto del salto justo cuando ella pasa por
+  encima de ese punto del salto evidente, un poco por encima o por debajo. Desde un cuarto de la dificultad, en uno de
+  cada 4 barrancos al empezar, casi la mitad a toda dificultad. Se pintan solo fuera del agua, con su postura según suban
+  o bajen y su salpicadura al salir y al entrar.
+- **Plataformas que caen** (ENM-16): de las quietas de los barrancos con plataformas, desde el 20 % de la dificultad, una
+  de cada 5 al empezar y 4 de cada 10 a toda dificultad. Tiemblan 0,3 s cuando ella se pone encima, con el temblor de un
+  píxel de GameMaster, y caen sin volver; si sigue encima, cae con ella. El validador las prueba como las pequeñas: desde
+  donde cae primero y desde el borde, con lo que tarda en caer.
+- **Hielo y arenas movedizas** (PLY-18): al final de algunos suelos, antes del barranco siguiente, de 2 a 4 tiles con uno
+  normal a cada lado, como GameMaster dibujó sus bordes; en el 15 % al empezar y el 30 % a toda dificultad. En el hielo de
+  la Nieve corre un 12 % más deprisa y lo mantiene en el salto que despega de él; en la arena del Desierto se hunde 3 px y
+  salta un 30 % más bajo. La misma física en el juego y en el validador, que hace justo el barranco siguiente despegando
+  de ahí.
 
 ## Alternativas
 
@@ -115,3 +144,7 @@ Los cuatro peligros y los pájaros, en la beta 9.
 - Hacer cada pieza cuesta unos 2 ms en la JVM. El validador prueba todas las pulsaciones de un salto a la vez, con la
   carrera y el dedo apoyado simulados una sola vez, y deja de seguir un salto que ya ha caído por debajo de donde podría
   aterrizar.
+- Con la beta 9, lo que resta llega a 3,7–4,2 cada 100 m desde los 2 km, con unos 0,2 pájaros. El piloto cuidadoso sigue
+  limpio 10 minutos en los tres escenarios, con sus peligros. El que va a por todos los animales se cae más (la mitad de
+  las partidas: los peligros nuevos castigan ir a por un animal sin mirar) y se queda sin puntos en una de cada 10.
+  Los pájaros, los peces y los que flotan se ajustan con `hazards` en `files/ajustes.json`.

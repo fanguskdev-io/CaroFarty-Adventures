@@ -10,9 +10,12 @@ import com.fanguskdev.carofarty.engine.PixelViewport
 import com.fanguskdev.carofarty.game.GameRun
 import com.fanguskdev.carofarty.game.Item
 import com.fanguskdev.carofarty.game.JumpLab
+import com.fanguskdev.carofarty.game.Leap
 import com.fanguskdev.carofarty.game.TILE
+import com.fanguskdev.carofarty.game.WATER_BELOW
 import com.fanguskdev.carofarty.ui.render.PixelFont.drawText
 import kotlin.math.floor
+import kotlin.math.roundToInt
 import kotlin.math.roundToLong
 
 /**
@@ -50,14 +53,16 @@ internal fun DrawScope.paintWorld(
     }
     // The moving platforms where they are between the last two steps, like Caro, so she stays on them on the screen.
     paintPlatforms(run, scenery, cameraLeft, width, base, palette, run.course.time - (1f - alpha) * JumpLab.STEP, millis)
+    // The surface of the water of the gaps, as the middle layer draws it, which goes up with the camera at its speed.
+    val groundLine = run.config.course.minGroundTop * TILE
+    val waterRow = height + floor(cameraBottom * LAYER_SPEEDS[1]).toInt() - (groundLine - WATER_BELOW)
     val items = art?.items
-    if (items !=
-        null
-    ) {
-        paintItemSprites(run, items, cameraLeft, width, base, millis, alpha)
+    if (items != null) {
+        paintItemSprites(run, items, cameraLeft, width, base, millis, alpha, waterRow)
     } else {
         paintItems(run, cameraLeft, width, base, alpha)
     }
+    scenery?.splash?.let { paintSplashes(run, scenery.tiles, it, cameraLeft, width, waterRow, alpha) }
     if (debugBoxes) paintBoxes(run, cameraLeft, base, caroX, caroY)
 }
 
@@ -137,7 +142,38 @@ private fun DrawScope.paintGrounds(
     }
 }
 
-/** The solid blocks in the air (ADR 0007), outlined and split in tiles so a row of them reads as blocks. */
+/**
+ * The splashes of the fish that leap (ENM-15): where one goes out of the water and where it goes back in, for the time of
+ * the [splash], with the bottom row of its tile on the surface of the water, at [waterRow] of the buffer.
+ */
+private fun DrawScope.paintSplashes(
+    run: GameRun,
+    tiles: Sheet,
+    splash: Animation,
+    cameraLeft: Long,
+    width: Int,
+    waterRow: Int,
+    alpha: Float,
+) {
+    val items = run.course.items
+    val reach = run.course.previousReach + (run.course.reach - run.course.previousReach) * alpha
+    val lasts = splash.duration / MILLIS
+    for (i in 0 until items.size) {
+        val item = items[i]
+        val leap = item.flight as? Leap ?: continue
+        val clock = leap.clock(reach)
+        val since = when {
+            clock >= 0.0 && clock < lasts -> clock
+            clock >= leap.airtime && clock < leap.airtime + lasts -> clock - leap.airtime
+            else -> continue
+        }
+        val x = (if (clock < leap.airtime) item.x.toDouble() else item.x + leap.across * leap.airtime).roundToLong() - cameraLeft
+        if (x + TILE / 2 <= 0 || x - TILE / 2 >= width) continue
+        val frame = splash.frameAt((since * MILLIS).toLong(), loops = false)
+        drawFrame(tiles, frame, x.toInt() - TILE / 2, waterRow - (TILE - 1))
+    }
+}
+
 /**
  * The platforms (ADR 0009), at [time]: the scenario's tiles, its left end, its middle again and again and its right end,
  * with their top on the platform's; the moving ones with theirs, which flutter and sparkle at [millis]. Without them, a
@@ -160,13 +196,21 @@ private fun DrawScope.paintPlatforms(
         val across = platform.end - platform.start
         if (left >= width || left + across <= 0) continue
         val top = base - platform.topAt(time).roundToLong().toInt()
-        val tiles = if (platform.motion != null) scenery?.mover else scenery?.platform
+        val tiles = when {
+            platform.motion != null -> scenery?.mover
+            platform.fall != null -> scenery?.crumbling
+            else -> scenery?.platform
+        }
         if (scenery == null || tiles == null) {
             drawRect(GreyPalette.ink, Offset(left.toFloat(), top.toFloat()), Size(across.toFloat(), PLATFORM_SLAB.toFloat()))
             val fill = if (platform.motion != null) palette.groundLine else palette.groundTop
             drawRect(fill, Offset(left + 1f, top + 1f), Size(across - 2f, PLATFORM_SLAB - 2f))
             continue
         }
+        // One that falls (ENM-16) stands still on its first frame, and trembles a pixel across in its two while she is on
+        // it (GameMaster).
+        val trembling = platform.tremblingAt(time)
+        val since = ((time - platform.touchedAt) * MILLIS).toLong()
         var x = 0
         while (x < across) {
             val animation = when {
@@ -175,7 +219,13 @@ private fun DrawScope.paintPlatforms(
                 x + TILE >= across -> tiles.right
                 else -> tiles.middle
             }
-            drawFrame(scenery.tiles, animation.frameAt(millis, loops = true), left + x, top)
+            val frame = when {
+                platform.fall == null -> animation.frameAt(millis, loops = true)
+                trembling -> animation.frameAt(since, loops = true)
+                else -> animation.frame(0)
+            }
+            val shake = if (trembling && frame != animation.frame(0)) 1 else 0
+            drawFrame(scenery.tiles, frame, left + x + shake, top)
             x += TILE
         }
     }
@@ -215,13 +265,14 @@ private fun DrawScope.paintItems(
 ) {
     val items = run.course.items
     val half = Item.SIZE / 2
+    val reach = run.course.previousReach + (run.course.reach - run.course.previousReach) * alpha
     for (i in 0 until items.size) {
         val item = items[i]
-        if (item.taken) continue
-        // Where it is now: the perritos walk (ADR 0008).
-        val x = item.drawnX(alpha).roundToLong() - cameraLeft
+        if (item.taken || !item.outAt(reach)) continue
+        // Where it is now: the perritos walk (ADR 0008), and what flies flies (ADR 0011).
+        val x = (if (item.flight == null) item.drawnX(alpha) else item.xAt(reach)).roundToLong() - cameraLeft
         if (x - half > width || x + half < 0) continue
-        paintGreyItem(item, x.toInt(), base - item.y)
+        paintGreyItem(item, x.toInt(), base - item.yAt(reach).roundToInt())
     }
 }
 
@@ -248,12 +299,14 @@ private fun DrawScope.paintBoxes(
     drawRect(GreyPalette.debug, Offset(left, top), Size(movement.hitboxWidth, movement.hitboxHeight), style = BOX)
     // The collision boxes, not the drawings: generous for what adds points, strict for what takes them away (CHR-08).
     val items = run.course.items
+    val reach = run.course.reach
     for (i in 0 until items.size) {
         val item = items[i]
-        if (item.taken) continue
+        if (item.taken || !item.outAt(reach)) continue
         val box = run.config.items.box(item.kind)
-        val x = (item.currentX.roundToLong() - box / 2 - cameraLeft).toFloat()
-        drawRect(GreyPalette.debug, Offset(x, (base - item.y - box / 2).toFloat()), Size(box.toFloat(), box.toFloat()), style = BOX)
+        val x = (item.xAt(reach).roundToLong() - box / 2 - cameraLeft).toFloat()
+        val top = (base - item.yAt(reach).roundToInt() - box / 2).toFloat()
+        drawRect(GreyPalette.debug, Offset(x, top), Size(box.toFloat(), box.toFloat()), style = BOX)
     }
 }
 
@@ -266,6 +319,7 @@ private fun hash(n: Long): Long {
 }
 
 private val BOX = Stroke(width = 1f)
+private const val MILLIS = 1000.0
 private const val TOP_STRIPE = 3f
 private const val FAR_SPEED = 0.3
 private const val FAR_COLUMN = 24L

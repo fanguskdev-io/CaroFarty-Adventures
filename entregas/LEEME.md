@@ -3,12 +3,29 @@
 Aquí se deja cada APK de Android para instalar en el móvil. El APK no se versiona: se genera con
 `./gradlew :androidApp:assembleRelease` y se copia aquí con la fecha en el nombre.
 
-## La beta del 2026-11-03 (la décima)
+## La beta del 2026-11-03 (la undécima)
 
-`CaroFarty-beta-2026-11-03-10.apk`, 10 MB, versión de lanzamiento firmada con la clave de depuración de este Mac
-(SHA-256 del fichero: `f70df261be45c8899f4cc162c551e118aa0039ac121ce1b73cf46188f88452de`), del commit `ceea066`.
-Sustituye a la novena, que Fangusk dio por buena («me parece estupenda»), y trae lo de los menús para la versión
-definitiva, como las maquetas de GameMaster ([pantallas](../docs/pantallas.md)):
+`CaroFarty-beta-2026-11-03-11.apk`, 12 MB, versión de lanzamiento firmada con la clave de depuración de este Mac
+(SHA-256 del fichero: `152625e2efd779b90c26ee0671d109203f8032c40a6fc34aae8539aba9cfda81`), del commit `13776ce`.
+Sustituye a la décima y trae el pulido, con el arte y los ambientes de GameMaster que Fangusk vio y escuchó («me parece
+ok»):
+
+- **Efectos**: polvo al saltar y al aterrizar, una estela al correr muy deprisa, chispas al rescatar, el olor que
+  revienta al tocar un huevo o un pescado y plumas al tocar un pájaro; y los «+1» y «-3» que suben sobre Caro, como en
+  «Cómo se juega».
+- **Ambiente**: hojas que caen en el Bosque y la calima del Desierto; bajo la música, pájaros en el Bosque, viento en la
+  Nieve y viento seco en el Desierto (se apagan con la música).
+- **Fundidos** cortos entre pantallas.
+- **Los sonidos en Android ya no paran el juego**: en un Xiaomi Mi 10 cada salto y cada aterrizaje se comían fotogramas.
+- Si un teléfono no llega, quita primero las hojas y luego otros adornos, nunca el juego.
+
+Probada en el emulador y, la parte común, en el simulador de iOS. El ambiente sonoro no se puede oír en el emulador.
+
+## La beta décima
+
+`CaroFarty-beta-2026-11-03-10.apk` (SHA-256 `f70df261be45c8899f4cc162c551e118aa0039ac121ce1b73cf46188f88452de`, commit
+`ceea066`): la de los menús para la versión definitiva, como las maquetas de GameMaster
+([pantallas](../docs/pantallas.md)):
 
 - **La pausa** con su menú en columna: «Continuar», «Reiniciar», «Ajustes» e «Inicio». Tocar fuera ya no sigue la
   partida; al continuar, una cuenta 3, 2, 1 para tener el dedo listo.
@@ -20,7 +37,7 @@ definitiva, como las maquetas de GameMaster ([pantallas](../docs/pantallas.md)):
 - **La luz del Bosque**: a ratos, rayos de luz que se filtran entre las copas del fondo; es arte de la beta 11 de
   GameMaster, que ya está dentro.
 
-Probada en el emulador y, la parte común, en el simulador de iOS. La vibración solo se puede probar en el teléfono.
+La undécima la sustituye.
 
 ## La beta novena
 

@@ -3,15 +3,30 @@
 Aquí se deja cada APK de Android para instalar en el móvil. El APK no se versiona: se genera con
 `./gradlew :androidApp:assembleRelease` y se copia aquí con la fecha en el nombre.
 
-## La beta del 2026-11-03 (la novena)
+## La beta del 2026-11-03 (la décima)
 
-`CaroFarty-beta-2026-11-03-9.apk`, 9,8 MB, versión de lanzamiento firmada con la clave de depuración de este Mac
-(SHA-256 del fichero: `0bdb7ba6aed1289b0e0fa72bdbbc89fa4665373ef64a44ba51ae9ec3026f2908`), del commit `41aa4cb`.
-Sustituye a la octava, que Fangusk aprobó («es un peligro real»), y trae **los peligros nuevos** que eligió
-([ADR 0011](../docs/adr/0011-mas-dificultad-tras-la-beta-7.md)): huevos y pescados que flotan, **pájaros** que restan 8
-(cuervo, frailecillo y buitre), peces que saltan del agua en el Bosque y la Nieve, plataformas que tiemblan y caen, hielo
-en la Nieve y arenas movedizas en el Desierto. Además, **una tercera carrera** más rápida desde 450 px/s y **el final con
-gracia**: «¡UPS! ¡AL AGUA!» y los animalitos salvados. Probada en el emulador y, la parte común, en el simulador de iOS.
+`CaroFarty-beta-2026-11-03-10.apk`, 10 MB, versión de lanzamiento firmada con la clave de depuración de este Mac
+(SHA-256 del fichero: `f70df261be45c8899f4cc162c551e118aa0039ac121ce1b73cf46188f88452de`), del commit `ceea066`.
+Sustituye a la novena, que Fangusk dio por buena («me parece estupenda»), y trae lo de los menús para la versión
+definitiva, como las maquetas de GameMaster ([pantallas](../docs/pantallas.md)):
+
+- **La pausa** con su menú en columna: «Continuar», «Reiniciar», «Ajustes» e «Inicio». Tocar fuera ya no sigue la
+  partida; al continuar, una cuenta 3, 2, 1 para tener el dedo listo.
+- **Los ajustes**, desde el engranaje del inicio o desde la pausa: la música y los efectos, cada uno por su lado, y la
+  vibración, que vibra solo con lo malo (al coger un huevo, un pescado o un pájaro, y al caer). El botón de sonido
+  sigue apagándolo todo.
+- **Los créditos**: «A FANGUSK.DEV GAME» y las librerías con sus licencias; en «Textos», los textos enteros.
+- **El récord nuevo**: sus metros suben en grande y cae confeti.
+- **La luz del Bosque**: a ratos, rayos de luz que se filtran entre las copas del fondo; es arte de la beta 11 de
+  GameMaster, que ya está dentro.
+
+Probada en el emulador y, la parte común, en el simulador de iOS. La vibración solo se puede probar en el teléfono.
+
+## La beta novena
+
+`CaroFarty-beta-2026-11-03-9.apk` (SHA-256 `0bdb7ba6aed1289b0e0fa72bdbbc89fa4665373ef64a44ba51ae9ec3026f2908`, commit
+`41aa4cb`): la de los peligros nuevos que eligió Fangusk ([ADR 0011](../docs/adr/0011-mas-dificultad-tras-la-beta-7.md)),
+la tercera carrera desde 450 px/s y el final con gracia. La décima la sustituye.
 
 ## La beta octava
 

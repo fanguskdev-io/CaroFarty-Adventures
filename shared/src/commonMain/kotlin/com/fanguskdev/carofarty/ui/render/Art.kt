@@ -348,7 +348,12 @@ internal class ScenarioArt private constructor(
             val planted = decoration != null && decoration.emptyBelow == 0
             fun platform(name: String): PlatformTiles? {
                 val middle = set.animation(name) ?: return null
-                return PlatformTiles(set.animation("$name-izq") ?: middle, middle, set.animation("$name-der") ?: middle)
+                return PlatformTiles(
+                    set.animation("$name-izq") ?: middle,
+                    middle,
+                    set.animation("$name-der") ?: middle,
+                    set.animation("$name-sola") ?: middle,
+                )
             }
             val platform = platform(PLATFORM)
             return ScenarioArt(
@@ -380,10 +385,16 @@ internal class ScenarioArt private constructor(
 }
 
 /**
- * The three tiles of a platform: its left end, its middle, which repeats, and its right end; each an animation, still for
- * the fixed ones and of two frames for the moving ones (GameMaster's leaf, sleigh and carpet).
+ * The tiles of a platform: its left end, its middle, which repeats, its right end and, for one a tile wide (ADR 0011), the
+ * one that stands alone; each an animation, still for the fixed ones and of two frames for the moving ones (GameMaster's
+ * leaf, sleigh and carpet).
  */
-internal class PlatformTiles(val left: Animation, val middle: Animation, val right: Animation)
+internal class PlatformTiles(
+    val left: Animation,
+    val middle: Animation,
+    val right: Animation,
+    val single: Animation,
+)
 
 /**
  * A decoration in the air as a mosaic, as GameMaster draws the copos: staggered, every other tile in a row and the next

@@ -37,7 +37,7 @@ internal object Texts {
     fun howTo(scene: Int): List<String> = when (scene) {
         0 -> listOf("TOCA PARA SALTAR", "MANTÉN PARA SALTAR MÁS")
         1 -> listOf("RESCATA PERRITOS", "Y GATITOS: +1")
-        2 -> listOf("EVITA EL HUEVO: -2", "Y EL PESCADO: -3")
+        2 -> listOf("EVITA EL HUEVO: -3", "Y EL PESCADO: -5")
         else -> listOf("SE ACABA SI CAES", "O SI LLEGAS A 0 PUNTOS")
     }
 

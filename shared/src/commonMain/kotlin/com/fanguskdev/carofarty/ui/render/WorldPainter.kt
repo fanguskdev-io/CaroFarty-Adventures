@@ -170,6 +170,7 @@ private fun DrawScope.paintPlatforms(
         var x = 0
         while (x < across) {
             val animation = when {
+                across <= TILE -> tiles.single
                 x == 0 -> tiles.left
                 x + TILE >= across -> tiles.right
                 else -> tiles.middle

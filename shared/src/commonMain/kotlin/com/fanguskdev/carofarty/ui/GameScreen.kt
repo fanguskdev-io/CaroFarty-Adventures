@@ -34,6 +34,7 @@ import com.fanguskdev.carofarty.audio.soundPlayer
 import com.fanguskdev.carofarty.engine.PixelViewport
 import com.fanguskdev.carofarty.game.GameConfig
 import com.fanguskdev.carofarty.game.GameRun
+import com.fanguskdev.carofarty.game.MovementConfig
 import com.fanguskdev.carofarty.game.RunPhase
 import com.fanguskdev.carofarty.game.TILE
 import com.fanguskdev.carofarty.storage.Choices
@@ -156,7 +157,8 @@ private fun DrawScope.drawGame(session: GameSession, world: PixelBuffer, viewpor
     val y = caro.previousY + (caro.y - caro.previousY) * session.alpha
     // The push back of an egg or a fish shows as her going back on the screen, until the camera catches her up.
     val lag = caro.previousLag + (caro.cameraLag - caro.previousLag) * session.alpha
-    val camera = x - CARO_SCREEN_X + lag
+    val screenAt = caroScreenX(caro.speed, run.config.movement)
+    val camera = x - screenAt + lag
     val cameraLeft = floor(camera).toLong()
     val fraction = camera - cameraLeft
     // Both rounded the same way, so while the camera goes up with her she stays still on the screen and nothing shakes.
@@ -195,7 +197,7 @@ private fun DrawScope.drawGame(session: GameSession, world: PixelBuffer, viewpor
         }) {
             val feet = viewport.height + cameraBottom - feetY
             val caroArt = art?.caro
-            val screenX = CARO_SCREEN_X - lag.roundToInt()
+            val screenX = screenAt - lag.roundToInt()
             // Blinking after an egg or a fish: shown and hidden by turns.
             val shown = run.blinking <= 0f || (run.blinking * BLINKS_PER_SECOND).toInt() % 2 == 0
             if (shown && caroArt != null) {
@@ -313,6 +315,19 @@ internal fun cameraBottom(feetY: Int, height: Int): Int = max(0, feetY + CARO_HE
 
 /** Where Caro runs, in game pixels from the left edge (ADR 0003). */
 internal const val CARO_SCREEN_X = 96
+
+/** Where she runs at the ceiling of the speed, nearer the left edge to see further ahead (ADR 0011, GameMaster). */
+private const val CARO_SCREEN_X_FAST = 64
+
+/**
+ * Where Caro runs on the screen at [speed]: [CARO_SCREEN_X] up to the speed of the first minutes, and nearer the left edge
+ * past it, down to [CARO_SCREEN_X_FAST] at the ceiling of the speed, so she sees further ahead (ADR 0011). In whole
+ * pixels: it moves one every so many seconds, too slowly to notice.
+ */
+internal fun caroScreenX(speed: Float, movement: MovementConfig): Int {
+    val share = ((speed - movement.maxSpeed) / (movement.lateSpeed - movement.maxSpeed)).coerceIn(0f, 1f)
+    return (CARO_SCREEN_X - (CARO_SCREEN_X - CARO_SCREEN_X_FAST) * share).roundToInt()
+}
 
 /** The camera before the first tap, with Caro at the start: where the far band sits on the game's pixel grid. */
 internal const val REST_CAMERA = GameRun.START_X - CARO_SCREEN_X

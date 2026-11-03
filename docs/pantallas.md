@@ -101,8 +101,8 @@ con sus dos líneas debajo:
 1. «TOCA PARA SALTAR · MANTÉN PARA SALTAR MÁS»: dos barrancos, uno corto y otro más ancho, con el dedo en la esquina:
    arriba mientras corre, tocando al saltar y manteniendo mientras dura el salto.
 2. «RESCATA PERRITOS · Y GATITOS: +1»: cuatro animales y su «+1».
-3. «EVITA EL HUEVO: -2 · Y EL PESCADO: -3»: los coge, para ver lo que quitan: el retroceso, el parpadeo y su «-2» y
-   «-3».
+3. «EVITA EL HUEVO: -3 · Y EL PESCADO: -5»: los coge, para ver lo que quitan: el retroceso, el parpadeo y su «-3» y
+   «-5». Las viñetas empiezan con puntos de sobra, así que nunca se acaban por eso.
 4. «SE ACABA SI CAES · O SI LLEGAS A 0 PUNTOS»: cae por un barranco y vuelve a empezar; arriba, un 0 en rojo.
 
 Arriba, volver (en la segunda página, a la primera), el título en la cinta y el botón para seguir: «Siguiente» y, en la

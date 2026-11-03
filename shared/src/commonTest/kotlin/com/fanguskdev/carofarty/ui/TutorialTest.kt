@@ -62,23 +62,23 @@ class TutorialTest {
         val scene = scene(TutorialScene.RESCUING)
         var seen = 0
         play(scene, seconds = 3.2f) { seen = maxOf(seen, it.run.points) }
-        assertEquals(config.score.startPoints + 4, seen)
+        assertEquals(TutorialScene.START_POINTS + 4, seen)
         assertTrue(scene.floating.isNotEmpty() || seen > 0)
     }
 
     @Test
     fun theAvoidingSceneShowsWhatTheEggAndTheFishTakeAway() {
         val scene = scene(TutorialScene.AVOIDING)
-        var fewest = config.score.startPoints
+        var fewest = TutorialScene.START_POINTS
         val texts = mutableSetOf<String>()
         var again = false
         play(scene, seconds = 12f) {
             fewest = minOf(fewest, it.run.points)
             it.floating.forEach { floating -> texts += floating.text }
-            if (fewest < config.score.startPoints && it.run.points == config.score.startPoints) again = true
+            if (fewest < TutorialScene.START_POINTS && it.run.points == TutorialScene.START_POINTS) again = true
         }
-        assertEquals(config.score.startPoints - 5, fewest, "the egg takes 2 and the fish 3")
-        assertEquals(setOf("-2", "-3"), texts)
+        assertEquals(TutorialScene.START_POINTS - 8, fewest, "the egg takes 3 and the fish 5")
+        assertEquals(setOf("-3", "-5"), texts)
         assertTrue(again, "it started again")
     }
 

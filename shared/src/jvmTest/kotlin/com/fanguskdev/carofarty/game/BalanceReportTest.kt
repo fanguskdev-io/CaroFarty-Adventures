@@ -7,21 +7,34 @@ import kotlin.test.Test
 import kotlin.test.assertTrue
 
 /**
- * The balance of the runs (GEN-23, GEN-24; ADR 0009 and 0010): how long they last and how they end, in the Bosque, for
- * three players: the careful pilot of the tests; a person who copies it badly, a little late now and then, holding a
- * little more or a little less and missing a jump from time to time; and the same person going for every animal, who
- * rescues the one in front of a huevo frito or a pescado before jumping it and jumps onto the platforms with an animal.
- * Writes `build/metricas/equilibrio.md`, which docs/metricas.md copies.
+ * The balance of the runs (GEN-23, GEN-24, GEN-25; ADR 0009 to 0011): how long they last and how they end, in the
+ * Bosque, for the careful pilot of the tests and for people who copy it badly, a little late now and then, holding a
+ * little more or a little less and missing a jump from time to time: a clumsy one and a skilled one, each also going for
+ * every animal, rescuing the one in front of a huevo frito or a pescado before jumping it and jumping onto the platforms
+ * with an animal. Writes `build/metricas/equilibrio.md`, which docs/metricas.md copies.
  */
 class BalanceReportTest {
     private val config = GameConfig()
     private val out = File("build/metricas").apply { mkdirs() }
 
-    /** A player who takes the pilot's advice with a person's mistakes, with its own seed so it errs the same every time. */
+    /**
+     * How a person errs: in how many jumps she does not press at all, in how many she presses 4 to 8 steps late (67 to
+     * 133 ms) and the rest how late at most, and how many steps more or less she holds the finger.
+     */
+    private class Mistakes(
+        val miss: Float,
+        val late: Float,
+        val lateMin: Int,
+        val lateMax: Int,
+        val reaction: Int,
+        val holdError: Int,
+    )
+
+    /** A player who takes the pilot's advice with a person's [mistakes], with its own seed so it errs the same every time. */
     private class Player(
         private val run: GameRun,
         seed: Long,
-        private val careless: Boolean,
+        private val mistakes: Mistakes?,
         greedy: Boolean,
     ) {
         private val pilot = Pilot(run, greedy = greedy)
@@ -51,7 +64,7 @@ class BalanceReportTest {
                     if (pilot.pressed) {
                         pilot.forget()
                         pendingHold = pilot.plannedHold
-                        if (careless) mistake()
+                        if (mistakes != null) mistake(mistakes)
                         if (waiting == 0 && blindFor == 0) {
                             pressed = true
                             held = pendingHold > 0
@@ -64,28 +77,19 @@ class BalanceReportTest {
         }
 
         /** What a person does instead of the pilot's jump: misses it now and then, or presses it late and holds it unevenly. */
-        private fun mistake() {
-            if (random.nextFloat() < MISS) {
+        private fun mistake(mistakes: Mistakes) {
+            if (random.nextFloat() < mistakes.miss) {
                 blindFor = BLIND_STEPS
                 return
             }
-            waiting = if (random.nextFloat() < LATE) random.nextInt(LATE_MIN, LATE_MAX + 1) else random.nextInt(0, REACTION + 1)
-            pendingHold = (pendingHold + random.nextInt(-HOLD_ERROR, HOLD_ERROR + 1)).coerceAtLeast(0)
+            val late = random.nextFloat() < mistakes.late
+            waiting = if (late) random.nextInt(mistakes.lateMin, mistakes.lateMax + 1) else random.nextInt(0, mistakes.reaction + 1)
+            pendingHold = (pendingHold + random.nextInt(-mistakes.holdError, mistakes.holdError + 1)).coerceAtLeast(0)
         }
 
         private companion object {
-            /** A jump in a hundred not made at all, and the moment she looks away. */
-            const val MISS = 0.01f
+            /** The moment she looks away when she misses a jump. */
             const val BLIND_STEPS = 24
-
-            /** One jump in ten pressed between 4 and 8 steps late (67 to 133 ms), the rest up to 2 steps late. */
-            const val LATE = 0.1f
-            const val LATE_MIN = 4
-            const val LATE_MAX = 8
-            const val REACTION = 2
-
-            /** The finger held up to 3 steps (50 ms) more or less than the pilot meant. */
-            const val HOLD_ERROR = 3
         }
     }
 
@@ -97,9 +101,9 @@ class BalanceReportTest {
         val touched: Int,
     )
 
-    private fun play(seed: Long, careless: Boolean, greedy: Boolean): Outcome {
+    private fun play(seed: Long, mistakes: Mistakes?, greedy: Boolean): Outcome {
         val run = GameRun(config, Scenario.Bosque, seed)
-        val player = Player(run, seed * 31 + 7, careless, greedy)
+        val player = Player(run, seed * 31 + 7, mistakes, greedy)
         var steps = 0
         var rescued = 0
         var touched = 0
@@ -114,10 +118,14 @@ class BalanceReportTest {
 
     @Test
     fun howLongTheRunsLastAndHowTheyEnd() {
-        val careful = (1L..CAREFUL_RUNS).map { play(it, careless = false, greedy = false) }
-        val players = (1L..PLAYER_RUNS).map { play(it, careless = true, greedy = false) }
-        val greedy = (1L..PLAYER_RUNS).map { play(it, careless = true, greedy = true) }
-        assertTrue(careful.none { it.cause == EndCause.Fall }, "the careful pilot never falls")
+        val careful = (1L..CAREFUL_RUNS).map { play(it, mistakes = null, greedy = false) }
+        val carefulGreedy = (1L..GREEDY_PILOT_RUNS).map { play(it, mistakes = null, greedy = true) }
+        val clumsy = (1L..PLAYER_RUNS).map { play(it, CLUMSY, greedy = false) }
+        val clumsyGreedy = (1L..PLAYER_RUNS).map { play(it, CLUMSY, greedy = true) }
+        val skilled = (1L..SKILLED_RUNS).map { play(it, SKILLED, greedy = false) }
+        val skilledGreedy = (1L..SKILLED_RUNS).map { play(it, SKILLED, greedy = true) }
+        assertTrue(careful.none { it.cause != null }, "the careful pilot never falls nor runs out of points")
+        assertTrue(careful.all { it.touched == 0 }, "nor touches what takes points away")
         val text = buildString {
             appendLine(
                 "| Quién | Partidas | Metros (mediana) | Metros (1.er y 3.er cuartil) | Duración (mediana) | Por barranco | " +
@@ -125,8 +133,11 @@ class BalanceReportTest {
             )
             appendLine("|---|---|---|---|---|---|---|---|---|---|")
             appendLine(row("Piloto cuidadoso", careful))
-            appendLine(row("Jugador que a veces falla", players))
-            appendLine(row("El mismo, a por todos los animales", greedy))
+            appendLine(row("El piloto, a por todos los animales", carefulGreedy))
+            appendLine(row("Jugador que a veces falla", clumsy))
+            appendLine(row("El mismo, a por todos los animales", clumsyGreedy))
+            appendLine(row("Jugador hábil", skilled))
+            appendLine(row("El hábil, a por todos los animales", skilledGreedy))
         }
         out.resolve("equilibrio.md").writeText(text)
         println(text)
@@ -149,8 +160,19 @@ class BalanceReportTest {
     private fun format(value: Double): String = String.format(Locale.forLanguageTag("es"), "%.1f", value)
 
     private companion object {
-        const val CAREFUL_RUNS = 6L
+        const val CAREFUL_RUNS = 10L
+
+        /** More for the pilot going for every animal: how many of its runs end without points is the figure to watch (ADR 0011). */
+        const val GREEDY_PILOT_RUNS = 40L
         const val PLAYER_RUNS = 80L
+        const val SKILLED_RUNS = 40L
+
+        /**
+         * The clumsy player misses one jump in a hundred and presses one in ten late; the skilled one, one in five hundred
+         * and one in thirty, and holds more evenly.
+         */
+        val CLUMSY = Mistakes(miss = 0.01f, late = 0.1f, lateMin = 4, lateMax = 8, reaction = 2, holdError = 3)
+        val SKILLED = Mistakes(miss = 0.002f, late = 0.03f, lateMin = 3, lateMax = 6, reaction = 1, holdError = 2)
         const val MAX_STEPS = 10 * 60 * 60
         const val SECONDS_PER_MINUTE = 60.0
         const val PERCENT = 100.0

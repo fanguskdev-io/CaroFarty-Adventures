@@ -1,18 +1,20 @@
 # Recolectables
 
 La ficha de cada recolectable (GDD-10). Lo que dictó Fangusk: suman los perritos y los gatitos; restan los huevos fritos
-y el pescado; se empieza con 10 puntos y con 0 se acaba la partida. **Los valores los aceptó Fangusk** después de jugar
-el prototipo: «con respecto a los recolectables acepto tu propuesta» (2026-11-01). Viven en `files/ajustes.json`
-(`score`). Su aspecto lo diseñaron Fangusk y GameMaster en M2, en `arte/recolectables/` ([arte](arte.md)); sin ese
-arte, el juego los dibuja como en el prototipo en gris, cuadrados de 12 × 12 px con una letra.
+y el pescado; se empieza con 5 puntos y con 0 se acaba la partida. **Los valores los aceptó Fangusk** después de jugar
+el prototipo: «con respecto a los recolectables acepto tu propuesta» (2026-11-01), y tras la beta 7 los endureció: 5
+puntos al empezar en vez de 10, el huevo a −3 y el pescado a −5
+([ADR 0011](adr/0011-mas-dificultad-tras-la-beta-7.md)). Viven en `files/ajustes.json` (`score`). Su aspecto lo
+diseñaron Fangusk y GameMaster en M2, en `arte/recolectables/` ([arte](arte.md)); sin ese arte, el juego los dibuja como
+en el prototipo en gris, cuadrados de 12 × 12 px con una letra.
 
 ## Las fichas
 
 | | Perrito | Gatito | Huevo frito | Pescado |
 |---|---|---|---|---|
-| **Puntos** | +1 | +1 | −2 | −3 |
+| **Puntos** | +1 | +1 | −3 | −5 |
 | **Dónde sale** | En filas por el suelo y encima de las plataformas con premio, nunca en el aire | Igual que el perrito | Obstáculo en el suelo, techo sobre un barranco o en el aire, en el camino de un salto | Igual que el huevo frito |
-| **Cuántos** (cada 100 m) | 7,1 a 8,8 | 7,5 a 8,9 | 1,1 al principio, 2,1 a toda velocidad | 0,7 al principio, 1,3 a toda velocidad |
+| **Cuántos** (cada 100 m) | 2,1 al principio, 0,6 a toda dificultad (7,1 a 8,8 con la beta 7) | 1,8 al principio, 0,5 a toda dificultad (7,5 a 8,9 con la beta 7) | 0,6 al principio, 1,9 a toda dificultad | 0,3 al principio, 1,3 a toda dificultad |
 | **Caja de choque** | 16 × 16 px, generosa | 16 × 16 px, generosa | 10 × 10 px, estricta | 10 × 10 px, estricta |
 | **Se mueve** (ADR 0008) | En el suelo, pasea por su tramo o se queda quieto; nunca se cae por un barranco | Quieto, sentado | Quieto | Quieto |
 | **Variantes** (ADR 0008) | Nueve razas al azar: shiba, pastor alemán, carlino, dálmata, golden, beagle, yorkshire, bulldog francés y corgi | Ocho pelajes al azar: naranja, gris azulado, calicó, crema, negro, blanco, chocolate y siamés | — | — |
@@ -46,6 +48,6 @@ pruebas, un piloto automático juega 50 minutos sin tocar ninguno.
 
 ## Un ejemplo de partida
 
-Empieza con 10. En el primer minuto recoge 12 perritos y gatitos (22) y choca con un huevo frito (20). A los 2 minutos
-lleva 31 y le dan dos pescados seguidos (25). A los 1250 m cae por un barranco: su partida queda en 1250 m y 31 puntos
+Empieza con 5. En el primer minuto recoge 12 perritos y gatitos (17) y choca con un huevo frito (14). A los 2 minutos
+lleva 23 y le dan dos pescados seguidos (13). A los 1250 m cae por un barranco: su partida queda en 1250 m y 23 puntos
 máximos.

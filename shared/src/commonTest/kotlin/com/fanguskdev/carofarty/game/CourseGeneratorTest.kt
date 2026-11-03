@@ -132,7 +132,8 @@ class CourseGeneratorTest {
                         !it.kind.adds && it.x in ground.start until ground.end && it.y == ground.top + SITTING_HEIGHT
                     }
                     val speed = config.movement.speedAt((ground.start - GameRun.START_X) / TILE)
-                    val after = CourseGenerator.RUNWAY_SECONDS + CourseGenerator.LANDING_SPREAD_SECONDS
+                    val spread = CourseGenerator.LANDING_SPREAD_SECONDS * maxOf(1f, speed / config.movement.maxSpeed)
+                    val after = CourseGenerator.RUNWAY_SECONDS + spread
                     val guardRun = ceil((CourseGenerator.GUARD_ROOM_TILES * TILE + speed * after) / TILE).toInt()
                     val longest = if (guarded) maxOf(course.maxGroundTiles, guardRun) else course.maxGroundTiles
                     if (previous != null && !reward) {
@@ -324,7 +325,8 @@ class CourseGeneratorTest {
 
     @Test
     fun someAnimalsAreWatchedOverMoreAsTheRunGoesOn() {
-        // GEN-23, ADR 0010: few at the start and about one of every 5 animals at full difficulty, a third or so dilemmas.
+        // GEN-23, ADR 0010 and 0011: few at the start and about one of every 2 animals at full difficulty, most of them
+        // dilemmas.
         val generator = CourseGenerator(config, seed = 31, runStart = GameRun.START_X)
         var end = 0
         while ((end - GameRun.START_X) / TILE < EARLY_METERS) end = generator.next().end
@@ -363,7 +365,7 @@ class CourseGeneratorTest {
     private companion object {
         const val FNV_OFFSET = -3750763034362895579L
         const val FNV_PRIME = 1099511628211L
-        const val SAME_RUN = 3207752924683724233L
+        const val SAME_RUN = 5893107298718677662L
 
         /** How high an animal's centre sits over what it stands on, and the highest jump of docs/movimiento.md. */
         const val SITTING_HEIGHT = 8
@@ -383,13 +385,16 @@ class CourseGeneratorTest {
          */
         const val MAX_MILLIS_PER_PIECE = 80.0
 
-        /** The animals watched over (GEN-23): how many in the first metres, and how many at full difficulty. */
+        /**
+         * The animals watched over (GEN-23): how many in the first metres, a few more of the animals there since the beta
+         * 8, which has fewer animals, and how many at full difficulty (ADR 0011).
+         */
         const val EARLY_METERS = 600
         const val LATE_PIECES = 600
-        const val EARLY_MOST = 0.1f
-        const val LATE_LEAST = 0.15f
-        const val LATE_MOST = 0.35f
-        const val DILEMMA_LEAST = 0.2f
-        const val DILEMMA_MOST = 0.45f
+        const val EARLY_MOST = 0.2f
+        const val LATE_LEAST = 0.45f
+        const val LATE_MOST = 0.75f
+        const val DILEMMA_LEAST = 0.65f
+        const val DILEMMA_MOST = 0.95f
     }
 }

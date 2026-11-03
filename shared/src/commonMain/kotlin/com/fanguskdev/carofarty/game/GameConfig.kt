@@ -3,6 +3,7 @@ package com.fanguskdev.carofarty.game
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlin.math.exp
+import kotlin.math.max
 
 /**
  * Every number that tunes the game (TEC-07), read from `files/ajustes.json` of the resources so it can change without
@@ -31,13 +32,19 @@ data class MovementConfig(
      * The speed rises the whole run, which is where the difficulty comes from (Fangusk, 2026-11-01: «se hace lento, parece
      * un paseo, estaría mejor que la velocidad fuese subiendo conforme avanza»): quickly from [startSpeed] towards
      * [quickSpeed] in the first [quickRampMeters], and from there on slower and slower towards [maxSpeed], over
-     * [slowRampMeters]. Each ramp covers about two thirds of its way in its metres.
+     * [slowRampMeters]. Each ramp covers about two thirds of its way in its metres. And, since the beta 7, on past the first
+     * minutes (Fangusk: «la velocidad creo debería de ajustarse a mayor; una partida continua de 30 minutos debería de ser
+     * muy difícil»): from [lateFromMeters] on, slowly towards [lateSpeed] over [lateRampMeters], about 550 px/s by the
+     * minute 30 and never more than [lateSpeed], its ceiling (ADR 0011, GDD-23).
      */
     val startSpeed: Float = 160f,
     val quickSpeed: Float = 240f,
     val maxSpeed: Float = 360f,
     val quickRampMeters: Float = 300f,
     val slowRampMeters: Float = 2500f,
+    val lateSpeed: Float = 560f,
+    val lateFromMeters: Float = 3000f,
+    val lateRampMeters: Float = 15000f,
     val jumpSpeed: Float = 230f,
     /** The gravity while the finger stays down, the jump is rising and [holdWindow] has not run out. */
     val holdGravity: Float = 300f,
@@ -60,7 +67,8 @@ data class MovementConfig(
     fun speedAt(meters: Double): Float {
         val quick = (quickSpeed - startSpeed) * (1 - exp(-meters / quickRampMeters))
         val slow = (maxSpeed - quickSpeed) * (1 - exp(-meters / slowRampMeters))
-        return (startSpeed + quick + slow).toFloat()
+        val late = (lateSpeed - maxSpeed) * (1 - exp(-max(0.0, meters - lateFromMeters) / lateRampMeters))
+        return (startSpeed + quick + slow + late).toFloat()
     }
 }
 
@@ -82,6 +90,8 @@ data class CourseConfig(
     val gapFractionEnd: Float = 0.75f,
     /** How many metres it takes the difficulty to reach its end values: in the first minute it barely moves. */
     val difficultyRampMeters: Float = 3000f,
+    /** And how many more until what keeps growing after it is full (ADR 0011, GDD-23): about the minute 30. */
+    val lateDifficultyMeters: Float = 50000f,
     /**
      * The rhythm (GDD-08): a stretch of tension this many metres long, then a calm one of this many easy pieces, 2 or 3
      * since the beta 6 (GEN-24).
@@ -110,17 +120,34 @@ data class CourseConfig(
     val airFromDifficulty: Float = 0.05f,
     val airChanceStart: Float = 0.35f,
     val airChanceEnd: Float = 0.9f,
-    val airBlockShare: Float = 0.5f,
+    val airBlockShare: Float = 0.25f,
     /**
      * How many collectibles that take points away a stretch of tension asks for every 100 m, from the start to full
      * difficulty, besides the ones that watch over the animals: more since the beta 6 (GEN-23, Fangusk: «más huevos fritos
      * y pescado»).
      */
     val negativesPer100mStart: Float = 2.5f,
-    val negativesPer100mEnd: Float = 10f,
-    val positivesPer100m: Float = 8f,
-    /** Of the groups of perritos and gatitos, the share that goes on a platform with a reward instead of a row (ADR 0008). */
+    val negativesPer100mEnd: Float = 20f,
+    /**
+     * How many groups of perritos and gatitos the gaps of a stretch of tension ask for every 100 m, at the start and at full
+     * difficulty (ADR 0011, Fangusk: «hay muy pocos huevos y pescados en comparación a animalitos»; «quiero que sea un
+     * riesgo real quedarse sin puntos»): fewer at the start since the beta 8, and by full difficulty shorter rows, watched
+     * over.
+     */
+    val positivesPer100m: Float = 2f,
+    val positivesPer100mEnd: Float = 3.15f,
+    /**
+     * The share of the calm pieces with perritos and gatitos, at the start and at full difficulty, and with it of the
+     * platforms of the gaps that only platforms cross and of the ground after them (ADR 0011).
+     */
+    val calmPositivesShare: Float = 0.6f,
+    val calmPositivesShareEnd: Float = 0.15f,
+    /**
+     * Of the groups of perritos and gatitos, the share that goes on a platform with a reward instead of a row (ADR 0008),
+     * at the start and at full difficulty: fewer by then since the beta 8 (ADR 0011).
+     */
     val rewardPlatformShare: Float = 0.35f,
+    val rewardPlatformShareEnd: Float = 0.1f,
     /**
      * The animals watched over (GEN-23, ADR 0010): the share of the groups of perritos and gatitos of the stretches of
      * tension, a row or a platform with a reward, where one gets a huevo frito or a pescado by it, from the start to full
@@ -129,7 +156,7 @@ data class CourseConfig(
      */
     val guardedShareStart: Float = 0.05f,
     val guardedShareEnd: Float = 1f,
-    val guardedDilemmaShare: Float = 0.33f,
+    val guardedDilemmaShare: Float = 0.8f,
     /** How far inside the next ground a valid jump has to land. */
     val landingMarginTiles: Int = 1,
     /** How many hold lengths, in steps of the simulation, have to work for a gap to count as fair. */
@@ -137,14 +164,17 @@ data class CourseConfig(
     val validatorAttempts: Int = 8,
 )
 
-/** The points (GDD-10, GDD-13). Fangusk accepted the values of the collectibles on 2026-11-01. */
+/**
+ * The points (GDD-10, GDD-13). Fangusk accepted the values of the collectibles on 2026-11-01 and, after the beta 7, chose
+ * to start with 5 points and harder takes (ADR 0011): the egg takes 3 and the fish 5.
+ */
 @Serializable
 data class ScoreConfig(
-    val startPoints: Int = 10,
+    val startPoints: Int = 5,
     val perrito: Int = 1,
     val gatito: Int = 1,
-    val huevo: Int = -2,
-    val pescado: Int = -3,
+    val huevo: Int = -3,
+    val pescado: Int = -5,
     /** With this many points or fewer the marker turns red, a warning before losing (guía 1, principio 8). */
     val warnAtPoints: Int = 3,
 )

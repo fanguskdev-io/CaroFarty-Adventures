@@ -84,7 +84,18 @@ se desplaza sin saltos ni parpadeos, con la cabaña cerca o lejos y los copos qu
 Caro, los animales, el huevo, el pescado, los bordes de los barrancos y las plataformas, también con poco brillo o al aire
 libre (ART-18); los efectos suenan a tiempo, la música se para al salir de la app o con una llamada y vuelve al regresar,
 no hay cortes ni chasquidos en una partida larga y convive con la música de otras apps (AUD-20, AUD-25); y la fase se
-elige en un toque, la partida empieza en ella y la última sale en dorado (UI-20). Del salto: «Estoy contento con el
+elige en un toque, la partida empieza en ella y la última sale en dorado (UI-20).
+
+Tras jugar la beta 7: «está muy bien, pero sigue siendo muy fácil, hay muy pocos huevos y pescados en comparación a
+animalitos y además los huevos y pescados que hay son muy fáciles de esquivar. Necesitamos aumentarle la dificultad con
+más huevos y pescados, además de plataformas más pequeñas para que exija coordinación en el salto». Y, entre las
+propuestas de GameMaster, eligió empezar con 5 puntos, el huevo a −3 y el pescado a −5, y cuatro peligros nuevos:
+pescados que saltan del agua, plataformas que se caen, huevos y pescados que flotan, y hielo en la Nieve y arenas
+movedizas en el Desierto ([ADR 0011](adr/0011-mas-dificultad-tras-la-beta-7.md)). Tras dejar 30 minutos la app de
+medida en su Nothing (60 FPS, el peor fotograma de 17 ms y 0,0 % de fotogramas lentos; con sonido unos 7 minutos, «ha ido
+bien»; AUD-29): «la velocidad creo debería de ajustarse a mayor; una partida continua de 30 minutos debería de ser muy
+difícil entre obstáculos y velocidad, pero sin embargo actualmente se ve asequible». Y pidió pájaros que restan 8 puntos,
+que nunca están quietos en el aire: unos de frente y otros «que simplemente estén paseando por el aire». Del salto: «Estoy contento con el
 salto» (PLY-15); de caídas o recogidas injustas: «por el momento no» (CHR-08, ENM-11). El juego ocupa toda la pantalla
 sin que la cámara tape nada importante y se ve fluido a 120 Hz (UI-14, TEC-05, MOB-03); el botón de silencio funciona y
 se recuerda (UI-21); la mezcla de música y efectos está bien con el altavoz y con auriculares, sin cansar (AUD-21); y el
@@ -100,19 +111,19 @@ escenario o en otro.
 
 | Regla | Valor | Estado |
 |---|---|---|
-| Puntos al empezar | 10 | Fangusk |
+| Puntos al empezar | 5 (10 hasta la beta 7) | Fangusk, tras la beta 7 ([ADR 0011](adr/0011-mas-dificultad-tras-la-beta-7.md)) |
 | Perrito | +1 | Fangusk, tras jugar el prototipo |
 | Gatito | +1 | Fangusk, tras jugar el prototipo |
-| Huevo frito | −2 | Fangusk, tras jugar el prototipo |
-| Pescado | −3 | Fangusk, tras jugar el prototipo |
-| La velocidad | Sube durante toda la partida, de 160 px/s hacia 360 ([movimiento](movimiento.md)) | Fangusk, que suba; los números, propuesta |
+| Huevo frito | −3 (−2 hasta la beta 7) | Fangusk, tras la beta 7 |
+| Pescado | −5 (−3 hasta la beta 7) | Fangusk, tras la beta 7 |
+| La velocidad | Sube durante toda la partida: de 160 px/s hacia 360 en los primeros minutos y, desde la beta 8, hasta 553 hacia el minuto 30, sin pasar de 560 ([movimiento](movimiento.md)) | Fangusk, que suba y, tras la beta 7, que siga subiendo; los números, propuesta |
 | Obstáculos en el aire | Huevos y pescados en el camino del salto y bloques sólidos que lo frenan | Fangusk; cómo se colocan, propuesta |
 | Fin de la partida | Los puntos llegan a 0 (nunca bajan de 0) o Caro cae por un barranco | Fangusk |
 | Récords | La distancia recorrida (1 tile = 1 m) y los puntos máximos alcanzados en la partida | Fangusk |
 | Récords por escenario o generales | Uno de distancia y uno de puntos por escenario | Propuesta, pendiente de Fangusk |
 
-Un ejemplo: empieza con 10; coge seis perritos y gatitos (16) y choca con un pescado (13); a los 742 m cae por un barranco.
-Su partida queda en 742 m y 16 puntos máximos, y cada récord se compara por separado.
+Un ejemplo: empieza con 5; coge seis perritos y gatitos (11) y choca con un pescado (6); a los 742 m cae por un barranco.
+Su partida queda en 742 m y 11 puntos máximos, y cada récord se compara por separado.
 
 Lo que no está en las especificaciones no entra: ni vidas, ni enemigos, ni power-ups, ni monedas (siguen aparcados en
 el backlog por si Fangusk los quiere).

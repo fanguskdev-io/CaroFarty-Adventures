@@ -14,6 +14,9 @@ class JumpLab(
 ) {
     private val caro = Caro(movement)
 
+    /** The try that goes on from [caro] with the finger up, in [tryHolds]. */
+    private val branch = Caro(movement)
+
     /** How a try ended: where she landed (or that she fell) and whether she touched something that takes points away. */
     class Landing {
         var landed = false
@@ -40,7 +43,8 @@ class JumpLab(
      * Runs her from ([x], [y]) on [terrain], presses after [pressAfter] steps, keeps the finger down [hold] steps and
      * follows her until she lands, falls or [maxSteps] go by; and, with [runAfter], that many steps more of running after
      * the landing, for what she runs into then. [path], if given, receives the centre of her body at every step from the
-     * press on; [watch], an animal to know whether she touches it. The terrain goes on from [time], as in a run, and is
+     * press on; [watch], an animal to know whether she touches it. With [giveUpBelow], a try that is falling below that
+     * height has no landing to look for any more, and ends there. The terrain goes on from [time], as in a run, and is
      * left at the time it had. The result is reused by the next try.
      */
     fun tryJump(
@@ -56,6 +60,7 @@ class JumpLab(
         time: Double = terrain.time,
         watch: Item? = null,
         runAfter: Int = 0,
+        giveUpBelow: Float = Float.NEGATIVE_INFINITY,
     ): Landing {
         val before = terrain.time
         terrain.time = time
@@ -79,6 +84,8 @@ class JumpLab(
             }
             if (step >= pressAfter) path?.add(caro.x to caro.y + movement.hitboxHeight / 2)
             if (caro.state == CaroState.Jumping || caro.state == CaroState.Falling) airborne = true
+            // Only after the press: running off an edge, she dips a little before a jump in the coyote time.
+            if (step >= pressAfter && airborne && caro.vy < 0f && caro.y < giveUpBelow) break
             if (airborne && caro.state.grounded) {
                 landing.landed = true
                 landing.top = caro.y.roundToInt()
@@ -91,6 +98,162 @@ class JumpLab(
             if (caro.state.over) break
         }
         terrain.time = before
+        return landing
+    }
+
+    /**
+     * Every hold length from 0 to [maxHold] of a jump pressed after [pressAfter] steps, as [tryJump] tries them one by one,
+     * but at a fraction of the cost: the run-up and the steps with the finger down are simulated once, and each hold goes
+     * on from there with the finger up. [each] gets each hold and its landing, in order, and says whether to go on. With
+     * [runAfter] the press may come after a landing, so each hold is tried on its own, as [tryJump] does.
+     */
+    inline fun tryHolds(
+        terrain: Terrain,
+        items: List<Item>,
+        x: Double,
+        y: Float,
+        runStart: Double,
+        pressAfter: Int,
+        maxHold: Int,
+        time: Double = terrain.time,
+        watch: Item? = null,
+        runAfter: Int = 0,
+        giveUpBelow: Float = Float.NEGATIVE_INFINITY,
+        each: (hold: Int, landing: Landing) -> Boolean,
+    ) {
+        if (runAfter > 0) {
+            for (hold in 0..maxHold) {
+                val landing = tryJump(
+                    terrain,
+                    items,
+                    x,
+                    y,
+                    runStart,
+                    pressAfter,
+                    hold,
+                    time = time,
+                    watch = watch,
+                    runAfter = runAfter,
+                    giveUpBelow = giveUpBelow,
+                )
+                if (!each(hold, landing)) break
+            }
+            return
+        }
+        val before = terrain.time
+        terrain.time = time
+        startHolds(x, y, runStart)
+        for (step in 0 until pressAfter) {
+            if (!holdStep(terrain, items, watch, pressed = false, held = false, giveUpBelow = Float.NEGATIVE_INFINITY)) break
+        }
+        for (hold in 0..maxHold) {
+            // The finger has been down [hold] steps: from here on, up.
+            if (hold > 0) holdStep(terrain, items, watch, pressed = hold == 1, held = true, giveUpBelow = giveUpBelow)
+            val result = goOn(terrain, items, watch, pressed = hold == 0, runAfter, giveUpBelow, MAX_STEPS - pressAfter - hold)
+            if (!each(hold, result)) break
+        }
+        terrain.time = before
+    }
+
+    /** [tryHolds]: places her for a new try. */
+    @PublishedApi
+    internal fun startHolds(x: Double, y: Float, runStart: Double) {
+        caro.place(x, y, runStart)
+        caro.start()
+        mainNegative = false
+        mainWatched = false
+        mainLanded = false
+        mainGaveUp = false
+        airborneMain = false
+    }
+
+    /** What the try with the finger down has touched so far, and whether it has already landed or fallen. */
+    private var mainNegative = false
+    private var mainWatched = false
+    private var mainLanded = false
+    private var mainGaveUp = false
+    private var airborneMain = false
+
+    /** [tryHolds]: one more step of the try with the finger down. Whether it can go on. */
+    @PublishedApi
+    internal fun holdStep(
+        terrain: Terrain,
+        items: List<Item>,
+        watch: Item?,
+        pressed: Boolean,
+        held: Boolean,
+        giveUpBelow: Float,
+    ): Boolean {
+        if (mainLanded || mainGaveUp || caro.state.over) return false
+        terrain.time += STEP
+        caro.step(STEP, pressed, held, terrain)
+        if (touchesNegative(caro, items)) mainNegative = true
+        if (watch != null && overlaps(caro, watch, positiveBox, movement)) mainWatched = true
+        if (caro.state == CaroState.Jumping || caro.state == CaroState.Falling) airborneMain = true
+        // Falling past where it could land, after the press: every longer hold gives up too, as [tryJump] does.
+        if (airborneMain && caro.vy < 0f && caro.y < giveUpBelow) {
+            mainGaveUp = true
+            return false
+        }
+        // Landed with the finger still down: every longer hold lands the same, as it does not jump again.
+        if (airborneMain && caro.state.grounded) mainLanded = true
+        return true
+    }
+
+    /**
+     * [tryHolds]: from the try with the finger down, on with it up until she lands, falls, goes below [giveUpBelow] or
+     * [maxSteps] go by, and [runAfter] steps more after landing; [pressed] for the press itself, the hold of 0.
+     */
+    @PublishedApi
+    internal fun goOn(
+        terrain: Terrain,
+        items: List<Item>,
+        watch: Item?,
+        pressed: Boolean,
+        runAfter: Int,
+        giveUpBelow: Float,
+        maxSteps: Int,
+    ): Landing {
+        val time = terrain.time
+        branch.copyFrom(caro)
+        landing.landed = false
+        landing.touchedNegative = mainNegative
+        landing.touchedWatched = mainWatched
+        if (mainGaveUp) return landing
+        var airborne = airborneMain && !mainLanded
+        if (mainLanded) {
+            landing.landed = true
+            landing.top = branch.y.roundToInt()
+            landing.x = branch.x
+            landing.time = terrain.time
+        }
+        var after = if (mainLanded) 0 else -1
+        var press = pressed
+        for (step in 0 until maxSteps.coerceAtLeast(1)) {
+            if (after >= runAfter && after >= 0) break
+            terrain.time += STEP
+            branch.step(STEP, press, held = false, terrain)
+            press = false
+            if (touchesNegative(branch, items)) landing.touchedNegative = true
+            if (watch != null && overlaps(branch, watch, positiveBox, movement)) landing.touchedWatched = true
+            if (after >= 0) {
+                if (++after >= runAfter || branch.state.over) break
+                continue
+            }
+            if (branch.state == CaroState.Jumping || branch.state == CaroState.Falling) airborne = true
+            if (airborne && branch.vy < 0f && branch.y < giveUpBelow) break
+            if (airborne && branch.state.grounded) {
+                landing.landed = true
+                landing.top = branch.y.roundToInt()
+                landing.x = branch.x
+                landing.time = terrain.time
+                if (runAfter <= 0) break
+                after = 0
+                continue
+            }
+            if (branch.state.over) break
+        }
+        terrain.time = time
         return landing
     }
 
@@ -108,10 +271,12 @@ class JumpLab(
         (steps + 1) * STEP
     }
 
-    private fun touchesNegative(items: List<Item>): Boolean {
+    private fun touchesNegative(items: List<Item>): Boolean = touchesNegative(caro, items)
+
+    private fun touchesNegative(who: Caro, items: List<Item>): Boolean {
         for (i in items.indices) {
             val item = items[i]
-            if (!item.taken && !item.kind.adds && overlaps(caro, item, negativeBox, movement)) return true
+            if (!item.taken && !item.kind.adds && overlaps(who, item, negativeBox, movement)) return true
         }
         return false
     }
@@ -119,6 +284,9 @@ class JumpLab(
     companion object {
         /** The step of the simulation, the same as the game's (TEC-05). */
         const val STEP = 1f / 60f
+
+        /** How many steps a try lasts at most, as [tryJump]'s default. */
+        const val MAX_STEPS = 240
     }
 }
 

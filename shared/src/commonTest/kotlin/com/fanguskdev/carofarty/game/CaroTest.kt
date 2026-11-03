@@ -97,8 +97,14 @@ class CaroTest {
         assertEquals(254.8f, config.speedAt(600.0), 0.1f)
         val speeds = (0..20_000 step 500).map { config.speedAt(it.toDouble()) }
         assertTrue(speeds.zipWithNext().all { (a, b) -> b > a }, "it keeps rising the whole run")
-        assertTrue(config.speedAt(100_000.0) <= config.maxSpeed)
-        assertTrue(config.speedAt(100_000.0) > 359.9f)
+        // Past the first minutes it goes on rising towards its ceiling, never past it (ADR 0011): up to lateFromMeters, as
+        // before; from there on, faster than before.
+        val before = config.copy(lateSpeed = config.maxSpeed)
+        assertEquals(before.speedAt(config.lateFromMeters.toDouble()), config.speedAt(config.lateFromMeters.toDouble()))
+        val later = 20_000.0
+        assertTrue(config.speedAt(later) > before.speedAt(later) + 100f)
+        assertTrue(config.speedAt(1_000_000.0) <= config.lateSpeed)
+        assertTrue(config.speedAt(1_000_000.0) > config.lateSpeed - 0.1f)
     }
 
     @Test

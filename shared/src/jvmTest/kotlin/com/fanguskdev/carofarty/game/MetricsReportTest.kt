@@ -149,7 +149,7 @@ class MetricsReportTest {
         fun x(meters: Int) = LEFT + plotWidth * meters / CURVE_METERS
         fun y(share: Float) = format(TOP + plotHeight * (1 - share))
         fun speedShare(meters: Int) =
-            (movement.speedAt(meters.toDouble()) - movement.startSpeed) / (movement.maxSpeed - movement.startSpeed)
+            (movement.speedAt(meters.toDouble()) - movement.startSpeed) / (movement.lateSpeed - movement.startSpeed)
         val samples = 0..CURVE_METERS step CURVE_STEP
         val difficulty = samples.joinToString(" ") { "${x(it)},${y(generator.difficultyAt(it.toDouble()))}" }
         val speed = samples.joinToString(" ") { "${x(it)},${y(speedShare(it))}" }
@@ -162,7 +162,7 @@ class MetricsReportTest {
         }
         for (k in 0..4) {
             val share = k / 4f
-            val pixels = movement.startSpeed + (movement.maxSpeed - movement.startSpeed) * share
+            val pixels = movement.startSpeed + (movement.lateSpeed - movement.startSpeed) * share
             appendLine("""<line x1="$LEFT" y1="${y(share)}" x2="${LEFT + plotWidth}" y2="${y(share)}" stroke="#eeeeee"/>""")
             appendLine("""<text x="${LEFT - 6}" y="${y(share)}" dy="4" text-anchor="end">${k * 25} %</text>""")
             appendLine("""<text x="${LEFT + plotWidth + 6}" y="${y(share)}" dy="4">${pixels.toInt()} px/s</text>""")

@@ -29,10 +29,13 @@ internal class Floating(val text: String, val good: Boolean, val y: Float) {
  */
 internal class TutorialScene(
     val index: Int,
-    private val config: GameConfig,
+    config: GameConfig,
     val scenario: Scenario,
     private val newLook: () -> CaroLook,
 ) {
+    /** The game's settings with points to spare, so the egg and the fish of its scene never end it (ADR 0011: 5 to start). */
+    private val config = config.copy(score = config.score.copy(startPoints = START_POINTS))
+
     var run = newRun()
         private set
     var look = lookFor(run)
@@ -140,6 +143,9 @@ internal class TutorialScene(
         const val AVOIDING = 2
         const val ENDING = 3
         const val SCENES = 4
+
+        /** What the runs of the scenes start with: they show what is picked up, not the points, and never end for them. */
+        const val START_POINTS = 20
 
         /** How to play shows them two to a page. */
         const val PAGES = 2

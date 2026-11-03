@@ -9,8 +9,9 @@ La tabla de parámetros del salto y la carrera (GDD-05), lista para programar. L
 |---|---|---|
 | Paso de la física | 1/60 s | Con interpolación para pantallas de 90 y 120 Hz (TEC-05) |
 | Velocidad al empezar | 160 px/s (10 m/s) | A 120, Fangusk la encontró lenta: «se hace lento, parece un paseo» |
-| Velocidad máxima | 360 px/s (22,5 m/s) | Se acerca sin llegar; a tope deja 0,6 s para reaccionar en la pantalla más estrecha, como el dinosaurio de Chrome |
-| Subida de la velocidad | `v(d) = 160 + 80 · (1 − e^(−d / 300 m)) + 120 · (1 − e^(−d / 2500 m))` | Sube durante toda la partida, como pidió Fangusk ([ADR 0007](adr/0007-la-dificultad-velocidad-y-obstaculos-en-el-aire.md)): deprisa al principio y cada vez más despacio. 247 px/s a los 500 m (35 s), 277 al kilómetro (1 min), 306 a los 2 km (2 min) y 344 a los 5 km (4,5 min); con la dificultad, en [métricas](metricas.md) |
+| Velocidad de los primeros minutos | 360 px/s (22,5 m/s) | Hacia la que sube al principio, sin llegar; a esa velocidad quedan 0,6 s para reaccionar en la pantalla más estrecha, como el dinosaurio de Chrome |
+| Velocidad máxima | 560 px/s (35 m/s) | Desde la beta 8: sigue subiendo despacio hacia ella, sin pasarla nunca (GDD-23, [ADR 0011](adr/0011-mas-dificultad-tras-la-beta-7.md)) |
+| Subida de la velocidad | `v(d) = 160 + 80 · (1 − e^(−d / 300 m)) + 120 · (1 − e^(−d / 2500 m)) + 200 · (1 − e^(−máx(0, d − 3000 m) / 15000 m))` | Sube durante toda la partida, como pidió Fangusk ([ADR 0007](adr/0007-la-dificultad-velocidad-y-obstaculos-en-el-aire.md)): deprisa al principio y cada vez más despacio. 247 px/s a los 500 m (35 s), 277 al kilómetro (1 min), 306 a los 2 km (2 min) y 324 a los 3 km (3 min). Desde ahí, el último término, tras la beta 7 («una partida continua de 30 minutos debería de ser muy difícil entre obstáculos y velocidad»): 382 a los 5 minutos, 462 a los 10, 507 a los 15 y 553 a los 30; con la dificultad, en [métricas](metricas.md) |
 | Impulso del salto | 230 px/s hacia arriba | Al apoyar el dedo, sin esperar a levantarlo |
 | Gravedad con el dedo apoyado | 300 px/s² | Mientras sube y como mucho durante la ventana de pulsación |
 | Ventana de pulsación | 0,36 s | Mantener más no salta más |
@@ -53,9 +54,10 @@ Lo que sale de aquí para diseñar el recorrido (medido a cada velocidad en [mé
 
 La sigue a ella (PLY-13), sin adelantarse ni suavizarse, porque su movimiento ya es suave:
 
-- **En horizontal**, Caro va siempre a 96 px del borde izquierdo, entre el 21 % y el 30 % de la pantalla según su ancho.
-  A 360 px/s se ven por delante entre 0,6 y 1 s de recorrido, según el ancho: lo mismo que deja el dinosaurio de Chrome a
-  toda velocidad.
+- **En horizontal**, Caro va a 96 px del borde izquierdo, entre el 21 % y el 30 % de la pantalla según su ancho. A 360
+  px/s se ven por delante entre 0,6 y 1 s de recorrido, según el ancho: lo mismo que deja el dinosaurio de Chrome a toda
+  velocidad. Desde la beta 8, pasados los 360 px/s se va acercando poco a poco al borde, hasta 64 px a 560, para que a
+  esas velocidades se vea más por delante (ADR 0011): a 462 px/s, a los 10 minutos, va a unos 80 px.
 - **En vertical**, una zona muerta del alto de la pantalla: mientras corre por el suelo la cámara no se mueve (el suelo
   más alto, a 6 tiles, cabe con margen) y solo sube cuando su cabeza llegaría a 8 px del borde de arriba. Pasa en el salto
   más alto desde los suelos más altos, en las pantallas de 180 px de alto.
@@ -147,6 +149,6 @@ Lo que la sesión GameMaster encontró de otros juegos de correr y saltar (sus i
 
 Con 200 px/s como tope, Caro iba despacio comparada con ellos: 0,62 pantallas por segundo, lo que el dinosaurio al
 empezar. Fangusk lo notó al jugar («parece un paseo») y pidió que la velocidad fuese subiendo: ahora empieza a 160 px/s y
-sube durante toda la partida hacia 360, que a tope deja 0,6 s para reaccionar en la pantalla más estrecha, como ellos. Se
-cambia en `files/ajustes.json` (`startSpeed`, `quickSpeed`, `maxSpeed` y sus rampas); los barrancos se ajustan solos a la
-velocidad.
+sube en los primeros minutos hacia 360, que deja 0,6 s para reaccionar en la pantalla más estrecha, como ellos, y desde
+la beta 8 sigue hasta 560 hacia el minuto 30, como el dinosaurio cuando pasa de 700. Se cambia en `files/ajustes.json`
+(`startSpeed`, `quickSpeed`, `maxSpeed`, `lateSpeed` y sus rampas); los barrancos se ajustan solos a la velocidad.

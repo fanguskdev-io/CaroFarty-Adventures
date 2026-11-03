@@ -110,6 +110,11 @@ internal class Pilot(private val run: GameRun, private val shortest: Boolean = f
         val edge = if (obstacle != null) obstacle.x - Item.SIZE / 2.0 else runway.toDouble()
         val lastMoment = !caro.state.grounded || caro.right + caro.speed * JumpLab.STEP >= edge
         if (!shortest) {
+            // Going for every animal: onto the one where the jump over the gap lands, whatever there is behind it.
+            if (greedy && obstacle == null) {
+                val onto = landOnAnimal(caro, runway, lastMoment)
+                if (onto != WAIT) return onto
+            }
             if (count >= 2 || (count == 1 && lastMoment)) return good[count / 2]
             // Landing with no room to run up to the next jump only when there is no later moment to do better.
             if (lastMoment && shortCount > 0) return shortOf[shortCount / 2]
@@ -123,6 +128,42 @@ internal class Pilot(private val run: GameRun, private val shortest: Boolean = f
         // A step later, if she would still be on this side of the edge and could still clear it, it waits.
         val room = obstacle == null && caro.state.grounded && caro.right + caro.speed * JumpLab.STEP < runway
         return if (room && fairHolds(caro, items, past, pressAfter = 1) > 0) -1 else first
+    }
+
+    /**
+     * For the greedy pilot, the hold of a jump over the gap at [runway] that lands just before the first animal she has not
+     * rescued on the far side, near where jumps land, so that she runs into it (GEN-23: she pays for the dilemmas); [WAIT]
+     * if there is none there, and -1 to keep running towards a moment that lands there.
+     */
+    private fun landOnAnimal(caro: Caro, runway: Int, lastMoment: Boolean): Int {
+        val items = run.course.items
+        var animal: Item? = null
+        for (i in items.indices) {
+            val item = items[i]
+            if (item.taken || !item.kind.adds || item.currentX <= runway || item.currentX > runway + caro.speed * REACH_SECONDS) continue
+            animal = item
+            break
+        }
+        if (animal == null) return WAIT
+        val top = animal.y - Item.ABOVE_GROUND
+        var best = -1
+        var bestX = Double.NEGATIVE_INFINITY
+        for (hold in 0..maxHold) {
+            val landing = lab.tryJump(run.course, items, caro.x, caro.y, GameRun.START_X, pressAfter = 0, hold = hold)
+            if (!landing.landed || landing.top != top || landing.touchedNegative) continue
+            // On it or a little before it: she picks it up as she lands or runs on.
+            if (landing.x <= animal.currentX + Item.SIZE && landing.x > bestX) {
+                best = hold
+                bestX = landing.x
+            }
+        }
+        return if (best >= 0 && (lastMoment || animal.currentX - bestX < ONTO_SLACK)) {
+            best
+        } else if (lastMoment) {
+            WAIT
+        } else {
+            -1
+        }
     }
 
     /** Whether an animal she has not rescued yet is on what she runs on, between her and what takes points away at [x]. */
@@ -256,9 +297,10 @@ internal class Pilot(private val run: GameRun, private val shortest: Boolean = f
             val end = surfaceEnd(landing.x, landing.top, landing.time)
             if (end.isNaN()) continue
             // Room to run up to the next jump: to the end of what she lands on and, before an egg or a fish on it, the
-            // whole run-up to jump it, as the generator lays them out (GEN-23).
-            val room = end - landing.x >= caro.speed * RUN_UP_SECONDS
-            val clear = nextNegative(landing.x, landing.top) - landing.x >= caro.speed * OBSTACLE_RUN_UP_SECONDS
+            // whole run-up to jump it, as the generator lays them out (GEN-23). On a small platform there is never room:
+            // she jumps again at once, as the generator means (GEN-26).
+            val room = end - landing.x >= caro.speed * RUN_UP_SECONDS || smallPlatformAt(landing.x, landing.top, landing.time)
+            val clear = nextNegative(landing.x, landing.top, end) - landing.x >= caro.speed * OBSTACLE_RUN_UP_SECONDS
             when {
                 room && clear -> good[count++] = hold
                 clear -> shortOf[shortCount++] = hold
@@ -268,13 +310,28 @@ internal class Pilot(private val run: GameRun, private val shortest: Boolean = f
         return count
     }
 
-    /** Where her body would touch the first egg or fish on what she lands on at [top], after [x]; infinity if none. */
-    private fun nextNegative(x: Double, top: Int): Double {
+    /** Whether a landing at [top] around [x] at [time] stands on a small platform, one she has to jump off again at once. */
+    private fun smallPlatformAt(x: Double, top: Int, time: Double): Boolean {
+        val half = movement.hitboxWidth / 2
+        val platforms = run.course.platforms
+        for (i in platforms.indices) {
+            val platform = platforms[i]
+            if (abs(platform.topAt(time) - top) >= 1.0 || platform.rightAt(time) <= x - half || platform.leftAt(time) >= x + half) continue
+            return platform.end - platform.start <= SMALL_PLATFORM
+        }
+        return false
+    }
+
+    /**
+     * Where her body would touch the first egg or fish on what she lands on at [top], after [x] and before its [end];
+     * infinity if none.
+     */
+    private fun nextNegative(x: Double, top: Int, end: Double): Double {
         val items = run.course.items
         var first = Double.POSITIVE_INFINITY
         for (i in items.indices) {
             val item = items[i]
-            if (item.taken || item.kind.adds || item.currentX <= x) continue
+            if (item.taken || item.kind.adds || item.currentX <= x || item.currentX >= end) continue
             if (abs(item.y - Item.ABOVE_GROUND - top) > Course.CORNER_TOLERANCE) continue
             first = minOf(first, item.currentX - Item.SIZE / 2 - movement.hitboxWidth / 2)
         }
@@ -290,10 +347,21 @@ internal class Pilot(private val run: GameRun, private val shortest: Boolean = f
         /** And before an egg or a fish on the ground, the generator's run-up to jump it. */
         const val OBSTACLE_RUN_UP_SECONDS = 0.4f
 
+        /** The widest of the small platforms of the generator (GEN-26), in pixels. */
+        const val SMALL_PLATFORM = 2 * TILE
+
         /** Just off a platform's end she can still jump from it, within the coyote time. */
         const val COYOTE_ROOM = 24.0
 
         /** How far ahead, in seconds of running, the greedy pilot starts looking for a jump onto a platform with an animal. */
         const val REWARD_LOOK_SECONDS = 0.6f
+
+        /**
+         * The greedy pilot, over a gap: how far past it, in seconds of running, an animal is worth landing on; how close
+         * before it a landing has to be to jump at once; and what it returns when there is none, for the usual jump.
+         */
+        const val REACH_SECONDS = 0.5f
+        const val ONTO_SLACK = 24.0
+        const val WAIT = -2
     }
 }

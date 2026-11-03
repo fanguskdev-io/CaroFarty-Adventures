@@ -119,6 +119,28 @@ class Caro(private val config: MovementConfig) {
         bufferedJumps = 0
     }
 
+    /** Takes on all of [other]'s state, so that two tries of the validator can go on from the same moment. */
+    fun copyFrom(other: Caro) {
+        x = other.x
+        y = other.y
+        vy = other.vy
+        speed = other.speed
+        state = other.state
+        jumps = other.jumps
+        coyoteJumps = other.coyoteJumps
+        bufferedJumps = other.bufferedJumps
+        previousX = other.previousX
+        previousY = other.previousY
+        startX = other.startX
+        holdTime = other.holdTime
+        coyote = other.coyote
+        buffer = other.buffer
+        landingTime = other.landingTime
+        knockback = other.knockback
+        cameraLag = other.cameraLag
+        previousLag = other.previousLag
+    }
+
     /** The first tap: she starts running, without jumping (ADR 0002). */
     fun start() {
         if (state == CaroState.Waiting) state = CaroState.Running

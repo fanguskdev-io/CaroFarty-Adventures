@@ -62,11 +62,11 @@ class GameRunTest {
     }
 
     @Test
-    fun theRunStartsWithTenPointsAndTheCourseAhead() {
+    fun theRunStartsWithFivePointsAndTheCourseAhead() {
         val run = newRun()
 
-        assertEquals(10, run.points)
-        assertEquals(10, run.maxPoints)
+        assertEquals(5, run.points)
+        assertEquals(5, run.maxPoints)
         assertTrue(run.course.end >= run.caro.x + GameRun.AHEAD)
     }
 
@@ -82,8 +82,8 @@ class GameRunTest {
 
         run.step(step, pressed = false, held = false)
 
-        assertEquals(10 + 1 + 1 - 3, run.points)
-        assertEquals(12, run.maxPoints)
+        assertEquals(5 + 1 + 1 - 5, run.points)
+        assertEquals(7, run.maxPoints)
         assertTrue(run.events.filterIsInstance<RunEvent.Picked>().size == 3)
     }
 

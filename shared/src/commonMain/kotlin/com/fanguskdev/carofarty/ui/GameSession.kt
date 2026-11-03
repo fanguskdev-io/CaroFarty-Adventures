@@ -271,6 +271,9 @@ internal class GameSession(
     val quitButtons: List<Box>
         get() = layout.row(quitButtonTexts, panelBottom(quitPanel, viewport.height) + MenuLayout.GAP, atLeast = MenuLayout.ANSWER_WIDTH)
 
+    /** The dip to plum between screens (VFX-05). */
+    val dip = Dip()
+
     /** The button under the finger, drawn pressed, and what it does when the finger goes up. */
     var pressed: Box? = null
         private set
@@ -339,6 +342,7 @@ internal class GameSession(
         fps.add(elapsed)
         if (startupMillis < 0) startupMillis = openedAt.elapsedNow().inWholeMilliseconds
         val started = TimeSource.Monotonic.markNow()
+        dip.step(elapsed)
         if (!paused) {
             if (screen == Screen.Game && run.phase == RunPhase.Running && budget.add(elapsed)) trimEffects()
             when (screen) {
@@ -366,6 +370,8 @@ internal class GameSession(
 
     /** A finger went down at ([x], [y]) in pixels of the phone; [first] says whether it is the only one. */
     fun fingerDown(x: Float, y: Float, first: Boolean) {
+        // The screen that is going to plum takes no taps (VFX-05).
+        if (dip.closing) return
         val gameX = (x - viewport.offsetX) / viewport.scale
         val gameY = (y - viewport.offsetY) / viewport.scale
         if (!first) {
@@ -376,7 +382,7 @@ internal class GameSession(
         onRelease = null
         when (screen) {
             // A tap anywhere: the screen is its button.
-            Screen.Intro -> press(null) { leaveIntro() }
+            Screen.Intro -> press(null) { crossing { leaveIntro() } }
             Screen.Title -> if (sheet != null) sheetTap(gameX, gameY) else titleTap(gameX, gameY)
             Screen.Records -> recordsTap(gameX, gameY)
             Screen.HowTo -> howToTap(gameX, gameY)
@@ -393,6 +399,11 @@ internal class GameSession(
         action()
     }
 
+    /** [change] goes to another screen, or to another run, under a dip to plum (VFX-05). */
+    private fun crossing(change: () -> Unit) {
+        dip.start(change)
+    }
+
     /** [box] shows pressed until the finger goes up, and then [action] happens. */
     private fun press(box: Box?, action: () -> Unit) {
         pressed = box
@@ -404,6 +415,7 @@ internal class GameSession(
      * on; a page back in how to play, and else the start screen.
      */
     fun back() {
+        if (dip.closing) return
         val running = screen == Screen.Game && run.phase == RunPhase.Running
         when {
             askingToQuit -> stopAskingToQuit()
@@ -412,7 +424,7 @@ internal class GameSession(
             running && paused -> resume()
             running -> pause()
             screen == Screen.HowTo -> goBackInHowTo()
-            screen == Screen.Records || screen == Screen.Game -> goHome()
+            screen == Screen.Records || screen == Screen.Game -> crossing { goHome() }
         }
     }
 
@@ -456,18 +468,18 @@ internal class GameSession(
             canQuit && layout.exit.contains(x, y) -> press(layout.exit) { askToQuit() }
             layout.titleSound.contains(x, y) -> press(layout.titleSound) { toggleSound() }
             layout.titleSettings.contains(x, y) -> press(layout.titleSettings) { openSettings() }
-            layout.recordsButton.contains(x, y) -> press(layout.recordsButton) { openRecords() }
-            layout.howToButton.contains(x, y) -> press(layout.howToButton) { openHowTo() }
+            layout.recordsButton.contains(x, y) -> press(layout.recordsButton) { crossing { openRecords() } }
+            layout.howToButton.contains(x, y) -> press(layout.howToButton) { crossing { openHowTo() } }
             else -> {
                 val card = layout.cards.indexOfFirst { it.contains(x, y, slack = 0) }
-                if (card >= 0) press(layout.cards[card]) { startRun(Scenario.entries[card]) }
+                if (card >= 0) press(layout.cards[card]) { crossing { startRun(Scenario.entries[card]) } }
             }
         }
     }
 
     private fun recordsTap(x: Float, y: Float) {
         if (layout.back.contains(x, y)) {
-            press(layout.back) { goHome() }
+            press(layout.back) { crossing { goHome() } }
             return
         }
         // The tabs side by side, with room for the finger above and below (GameMaster: 16 px are short).
@@ -503,9 +515,9 @@ internal class GameSession(
             val again = panelButtons.getOrNull(0)
             val home = panelButtons.getOrNull(1)
             when {
-                home != null && home.contains(x, y) -> press(home) { goHome() }
-                again != null && again.contains(x, y) -> press(again) { restart() }
-                else -> press(null) { restart() }
+                home != null && home.contains(x, y) -> press(home) { crossing { goHome() } }
+                again != null && again.contains(x, y) -> press(again) { crossing { restart() } }
+                else -> press(null) { crossing { restart() } }
             }
             return
         }
@@ -552,9 +564,9 @@ internal class GameSession(
         val buttons = pauseMenu?.buttons ?: return
         when (buttons.indexOfFirst { it.contains(x, y, Box.SLACK, MenuLayout.COLUMN_GAP / 2) }) {
             0 -> press(buttons[0]) { resume() }
-            1 -> press(buttons[1]) { restartFromPause() }
+            1 -> press(buttons[1]) { crossing { restartFromPause() } }
             2 -> press(buttons[2]) { openSettings() }
-            3 -> press(buttons[3]) { goHome() }
+            3 -> press(buttons[3]) { crossing { goHome() } }
         }
     }
 
@@ -770,13 +782,13 @@ internal class GameSession(
     /** How to play, a page forward; past the last one, it has been seen and the start screen comes. */
     private fun turnPage() {
         audio?.play(Sound.Tap)
-        if (howToPage + 1 >= TutorialScene.PAGES) closeHowTo() else showPage(howToPage + 1)
+        if (howToPage + 1 >= TutorialScene.PAGES) crossing { closeHowTo() } else showPage(howToPage + 1)
     }
 
     /** How to play, a page back; from the first one, the start screen. */
     private fun goBackInHowTo() {
         if (howToPage == 0) {
-            closeHowTo()
+            crossing { closeHowTo() }
             return
         }
         audio?.play(Sound.Back)

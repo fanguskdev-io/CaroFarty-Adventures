@@ -50,6 +50,7 @@ class PauseAndSettingsTest {
     private fun GameSession.running(): GameSession {
         frames(0.1)
         tapAt(10f, 100f)
+        frames(DIP)
         tap(layout.cards[0])
         frames(0.5)
         assertEquals(RunPhase.Running, run.phase)
@@ -118,6 +119,7 @@ class PauseAndSettingsTest {
         val session = session()
         session.frames(0.1)
         session.tapAt(10f, 100f)
+        session.frames(DIP)
         var vibrations = 0
         session.vibrate = { vibrations++ }
         session.tap(session.layout.titleSettings)
@@ -147,6 +149,7 @@ class PauseAndSettingsTest {
         val session = session()
         session.frames(0.1)
         session.tapAt(10f, 100f)
+        session.frames(DIP)
         session.tap(session.layout.titleSettings)
         val rows = session.layout.settingsRows
         session.tap(session.layout.switchTouch(rows[0])[1])
@@ -160,6 +163,7 @@ class PauseAndSettingsTest {
         val session = session()
         session.frames(0.1)
         session.tapAt(10f, 100f)
+        session.frames(DIP)
         session.tap(session.layout.titleSettings)
         session.tap(session.layout.creditsButton)
         session.tap(session.layout.forward(Texts.FULL_TEXTS))
@@ -167,6 +171,22 @@ class PauseAndSettingsTest {
         assertEquals(0, session.licencePage)
         session.back()
         assertEquals(Sheet.Credits, session.sheet)
+    }
+
+    @Test
+    fun aScreenGoesToPlumAndTheNextComesOutOfIt() {
+        // VFX-05: the change happens under the plum, and the screen that goes takes no taps meanwhile.
+        val session = session()
+        session.frames(0.1)
+        session.tapAt(10f, 100f)
+        assertEquals(Screen.Intro, session.screen, "still the title screen while it goes to plum")
+        assertTrue(session.dip.closing && session.dip.shade > 0f)
+        session.tapAt(10f, 100f)
+        session.frames(0.1)
+        assertEquals(Screen.Title, session.screen)
+        assertTrue(session.dip.shade in 0f..1f)
+        session.frames(0.2)
+        assertEquals(0f, session.dip.shade)
     }
 
     @Test
@@ -201,6 +221,9 @@ class PauseAndSettingsTest {
     private companion object {
         const val FPS = 60
         const val SLOW_FPS = 25
+
+        /** Long enough for the dip between two screens (VFX-05). */
+        const val DIP = 0.3
         const val NANOS = 1_000_000_000L
     }
 }

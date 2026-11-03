@@ -47,6 +47,11 @@ flowchart LR
   pulsadas de GameMaster. Solo el salto va con el dedo al bajar.
 - **Lo que queda centrado** se centra en la parte útil de la pantalla (sin márgenes ni zona segura) y, si no cabe en ella,
   en la pantalla.
+- **Entre pantallas, un fundido** (VFX-05; Fangusk lo aprobó con el pulido, y GameMaster lo pidió corto y sin destellos):
+  la pantalla se va a ciruela oscura en 90 ms, el cambio pasa debajo y la nueva sale en 140 ms. Al pasar de la
+  presentación al inicio o a «Cómo se juega», al empezar una partida, a los récords y de vuelta, al inicio desde la pausa
+  o el fin y en «Otra vez» y «Reiniciar». Mientras se va, la pantalla que se va no hace caso a los toques. Los ajustes,
+  los créditos y la pausa, que salen encima, no llevan fundido.
 
 ## Presentación
 

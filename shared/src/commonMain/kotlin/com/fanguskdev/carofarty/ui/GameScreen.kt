@@ -17,6 +17,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.drawscope.DrawScope
@@ -162,6 +163,15 @@ internal fun GameScreen(
             )
         val drawing = TimeSource.Monotonic.markNow()
         if (session.screen == Screen.Game) drawGame(session, world, viewport) else drawMenu(session, scenes, viewport)
+        // The dip to plum between screens (VFX-05), over everything.
+        val shade = session.dip.shade
+        if (shade > 0f) {
+            drawRect(
+                DIP.copy(alpha = shade),
+                Offset(viewport.offsetX.toFloat(), viewport.offsetY.toFloat()),
+                Size((viewport.width * viewport.scale).toFloat(), (viewport.height * viewport.scale).toFloat()),
+            )
+        }
         session.drawn(drawing.elapsedNow())
     }
 }
@@ -437,6 +447,9 @@ internal const val REST_CAMERA = GameRun.START_X - CARO_SCREEN_X
 /** The game pixels the camera leaves above Caro's head before going up. */
 internal const val HEAD_ROOM = 8
 private const val STRIDES_PER_METER = 4
+
+/** The plum of the dips between screens: «ciruela oscura» of the interface (GameMaster). */
+private val DIP = Color(0xFF3A1A34)
 
 /** How many times a second she goes on and off while blinking. */
 private const val BLINKS_PER_SECOND = 12

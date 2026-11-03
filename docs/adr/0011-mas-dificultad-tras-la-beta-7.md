@@ -144,6 +144,9 @@ Y la beta 9, con el arte de GameMaster, los cuatro peligros y los pájaros:
 - Hacer cada pieza cuesta unos 2 ms en la JVM. El validador prueba todas las pulsaciones de un salto a la vez, con la
   carrera y el dedo apoyado simulados una sola vez, y deja de seguir un salto que ya ha caído por debajo de donde podría
   aterrizar.
+- Fangusk jugó la beta 8 (quedarse sin puntos «es un peligro real»; la velocidad, bien a los 5 y a los 10 minutos; el
+  arranque, amable) y la 9: «La beta 9 me parece estupenda», también los pájaros y los peces que saltan. Los números de
+  esta propuesta quedan así mientras no pida otra cosa.
 - Con la beta 9, lo que resta llega a 3,7–4,2 cada 100 m desde los 2 km, con unos 0,2 pájaros. El piloto cuidadoso sigue
   limpio 10 minutos en los tres escenarios, con sus peligros. El que va a por todos los animales se cae más (la mitad de
   las partidas: los peligros nuevos castigan ir a por un animal sin mirar) y se queda sin puntos en una de cada 10.

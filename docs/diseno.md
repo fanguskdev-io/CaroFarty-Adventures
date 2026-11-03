@@ -99,7 +99,9 @@ que nunca están quietos en el aire: unos de frente y otros «que simplemente es
 8: quedarse sin puntos «es un peligro real», la velocidad que sube toda la partida le parece bien a los 5 y a los 10
 minutos y el arranque sigue siendo amable (GDD-21, GDD-23). Y no le gustaron los mensajes del final («te has caído», «te
 has quedado sin puntos»): eligió un título con gracia según cómo se pierde y, debajo, los animalitos salvados
-([pantallas](pantallas.md), UI-24). Del salto: «Estoy contento con el
+([pantallas](pantallas.md), UI-24). Tras jugar la beta 9, mirando sobre todo los pájaros y los peces que saltan: «La beta 9
+me parece estupenda»; da por buenos los peligros nuevos, la carrera sprint, los mensajes del final y la presentación con
+el título animado (UI-07). Del salto: «Estoy contento con el
 salto» (PLY-15); de caídas o recogidas injustas: «por el momento no» (CHR-08, ENM-11). El juego ocupa toda la pantalla
 sin que la cámara tape nada importante y se ve fluido a 120 Hz (UI-14, TEC-05, MOB-03); el botón de silencio funciona y
 se recuerda (UI-21); la mezcla de música y efectos está bien con el altavoz y con auriculares, sin cansar (AUD-21); y el

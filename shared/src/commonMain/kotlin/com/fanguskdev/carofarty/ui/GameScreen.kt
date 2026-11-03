@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
@@ -21,8 +22,10 @@ import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.drawscope.withTransform
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.changedToDown
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.lifecycle.Lifecycle
@@ -44,25 +47,34 @@ import com.fanguskdev.carofarty.storage.dayText
 import com.fanguskdev.carofarty.ui.render.Art
 import com.fanguskdev.carofarty.ui.render.Box
 import com.fanguskdev.carofarty.ui.render.CARO_HEIGHT
+import com.fanguskdev.carofarty.ui.render.CreditsTexts
 import com.fanguskdev.carofarty.ui.render.GreyPalette
 import com.fanguskdev.carofarty.ui.render.PixelBuffer
 import com.fanguskdev.carofarty.ui.render.RecordTexts
 import com.fanguskdev.carofarty.ui.render.SafeInsets
+import com.fanguskdev.carofarty.ui.render.SettingsTexts
 import com.fanguskdev.carofarty.ui.render.UiArt
 import com.fanguskdev.carofarty.ui.render.paintBackground
 import com.fanguskdev.carofarty.ui.render.paintButton
 import com.fanguskdev.carofarty.ui.render.paintCaro
 import com.fanguskdev.carofarty.ui.render.paintCaroSprite
+import com.fanguskdev.carofarty.ui.render.paintColumnMenu
+import com.fanguskdev.carofarty.ui.render.paintCountdown
+import com.fanguskdev.carofarty.ui.render.paintCredits
 import com.fanguskdev.carofarty.ui.render.paintDebug
 import com.fanguskdev.carofarty.ui.render.paintHint
 import com.fanguskdev.carofarty.ui.render.paintHud
 import com.fanguskdev.carofarty.ui.render.paintIntro
+import com.fanguskdev.carofarty.ui.render.paintLicences
+import com.fanguskdev.carofarty.ui.render.paintMenuBackground
 import com.fanguskdev.carofarty.ui.render.paintMenuGround
 import com.fanguskdev.carofarty.ui.render.paintPanel
 import com.fanguskdev.carofarty.ui.render.paintRecordCelebration
 import com.fanguskdev.carofarty.ui.render.paintRecords
+import com.fanguskdev.carofarty.ui.render.paintSettings
 import com.fanguskdev.carofarty.ui.render.paintShade
 import com.fanguskdev.carofarty.ui.render.paintTitle
+import com.fanguskdev.carofarty.ui.render.paintVeil
 import com.fanguskdev.carofarty.ui.render.paintWorld
 import com.fanguskdev.carofarty.ui.render.panelBox
 import kotlinx.coroutines.isActive
@@ -108,6 +120,9 @@ internal fun GameScreen(
             GameSession(loaded.config, loaded.art, audio, scope, records, choices, debugBuild, debugAtStart, autopilot, openedAt, quit)
         }
     val world = remember { PixelBuffer() }
+    // The soft vibration of what goes wrong (VFX-07): the phone's own «reject», which also follows its settings of touch.
+    val haptics = LocalHapticFeedback.current
+    SideEffect { session.vibrate = { haptics.performHapticFeedback(HapticFeedbackType.Reject) } }
 
     // A buffer for each scene of how to play: the phone draws the frame later, so two scenes in one buffer would both
     // show the last one drawn (Fangusk saw it on his Nothing).
@@ -213,6 +228,7 @@ private fun DrawScope.drawGame(session: GameSession, world: PixelBuffer, viewpor
                 paintHud(session.pointsText, session.metersText, session.layout, ui, session.soundOn, session.lowPoints, pressed)
             }
             if (session.hint) paintHint(Texts.HOLD_HINT, screenX, feet, session.hintFill, ui, millis)
+            if (session.paused) paintPause(session, viewport, ui, pressed)
             if (session.panel.isNotEmpty()) paintPanel(session.panel, viewport.width, viewport.height, ui)
             for (i in session.panelButtons.indices) {
                 val box = session.panelButtons[i]
@@ -230,6 +246,8 @@ private fun DrawScope.drawGame(session: GameSession, world: PixelBuffer, viewpor
                 val panel = panelBox(session.panel, viewport.width, viewport.height, ui)
                 paintRecordCelebration(caroArt, run.scenario, session.millis, panel, viewport.width)
             }
+            // The confetti of a new record, in front of everything (GameMaster).
+            session.confetti.paint(this, ui)
             if (session.showDebug) paintDebug(session.debugLines, viewport.height, session.insets)
         }
     }
@@ -264,7 +282,10 @@ private fun DrawScope.drawMenu(session: GameSession, scenes: List<PixelBuffer>, 
             val pressed = session.pressed
             when (session.screen) {
                 Screen.Intro -> paintIntro(session.layout, art, session.scenario, Texts.SUBTITLE, Texts.TAP_TO_START, millis)
-                Screen.Title -> {
+                Screen.Title -> if (session.sheet != null) {
+                    paintMenuBackground(ui, viewport.width, viewport.height)
+                    paintSheet(session, ui, pressed)
+                } else {
                     paintTitle(
                         session.layout,
                         art,
@@ -294,6 +315,41 @@ private fun DrawScope.drawMenu(session: GameSession, scenes: List<PixelBuffer>, 
     }
 }
 
+/**
+ * The pause (UI-05): the run stopped under the veil with the menu in a column, or a sheet of it, the settings and what
+ * opens from them; and, once she goes on, the count over the run without its veil.
+ */
+private fun DrawScope.paintPause(
+    session: GameSession,
+    viewport: PixelViewport,
+    ui: UiArt?,
+    pressed: Box?,
+) {
+    val countdown = session.countdown
+    if (countdown > 0) {
+        paintCountdown(countdown, viewport.width, viewport.height, ui)
+        return
+    }
+    paintVeil(viewport.width, viewport.height)
+    val menu = session.pauseMenu
+    when {
+        session.sheet != null -> paintSheet(session, ui, pressed)
+        menu != null -> paintColumnMenu(menu, Texts.PAUSE, session.pauseTexts, session.pauseIcons, ui, pressed)
+    }
+}
+
+/** The sheet open over the start screen or over the pause: the settings, the credits or a page of the licences. */
+private fun DrawScope.paintSheet(session: GameSession, ui: UiArt?, pressed: Box?) {
+    val layout = session.layout
+    when (session.sheet) {
+        Sheet.Settings -> paintSettings(layout, session.settings, SETTINGS_TEXTS, ui, pressed)
+        Sheet.Credits -> paintCredits(layout, session.creditsLayout, CREDITS_TEXTS, ui, pressed)
+        Sheet.Licences ->
+            paintLicences(layout, Texts.LICENCES, session.licenceNext, session.licenceLines, session.licenceWhere, ui, pressed)
+        null -> Unit
+    }
+}
+
 /** Whether to leave the game, over the start screen dimmed: the panel of the kit and its two buttons. */
 private fun DrawScope.paintQuestion(
     session: GameSession,
@@ -308,6 +364,11 @@ private fun DrawScope.paintQuestion(
 }
 
 private val RECORD_TEXTS = RecordTexts(Texts.RECORDS_TITLE, Texts.NO_RECORDS, Texts.METERS, Texts.POINTS, Texts.DAY) { dayText(it) }
+
+private val SETTINGS_TEXTS =
+    SettingsTexts(Texts.SETTINGS, listOf(Texts.MUSIC, Texts.EFFECTS, Texts.VIBRATION), Texts.ON, Texts.OFF, Texts.CREDITS)
+
+private val CREDITS_TEXTS = CreditsTexts(Texts.CREDITS, Texts.CREDITS_LINE, Texts.LICENCES, Texts.libraries, Texts.FULL_TEXTS)
 
 /** What the game reads before its first frame: the settings and the art, which may be missing. */
 private class Loaded(val config: GameConfig, val art: Art?)

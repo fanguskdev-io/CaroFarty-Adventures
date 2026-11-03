@@ -4,6 +4,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import carofarty.shared.generated.resources.Res
 import com.fanguskdev.carofarty.audio.GameAudio
 import com.fanguskdev.carofarty.audio.RescueStreak
 import com.fanguskdev.carofarty.audio.Sound
@@ -34,15 +35,27 @@ import com.fanguskdev.carofarty.ui.render.BackgroundPlan
 import com.fanguskdev.carofarty.ui.render.Box
 import com.fanguskdev.carofarty.ui.render.CaroLook
 import com.fanguskdev.carofarty.ui.render.CaroPose
+import com.fanguskdev.carofarty.ui.render.ColumnMenu
+import com.fanguskdev.carofarty.ui.render.Confetti
+import com.fanguskdev.carofarty.ui.render.CreditsLayout
 import com.fanguskdev.carofarty.ui.render.Icon
 import com.fanguskdev.carofarty.ui.render.MenuLayout
 import com.fanguskdev.carofarty.ui.render.PanelLine
 import com.fanguskdev.carofarty.ui.render.SafeInsets
+import com.fanguskdev.carofarty.ui.render.SettingsView
 import com.fanguskdev.carofarty.ui.render.Tone
 import com.fanguskdev.carofarty.ui.render.backgroundPlan
+import com.fanguskdev.carofarty.ui.render.licencePages
 import com.fanguskdev.carofarty.ui.render.panelBottom
+import com.fanguskdev.carofarty.ui.render.thousands
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
+import kotlin.math.PI
+import kotlin.math.ceil
+import kotlin.math.min
+import kotlin.math.pow
 import kotlin.math.roundToInt
+import kotlin.math.sin
 import kotlin.random.Random
 import kotlin.time.Duration
 import kotlin.time.TimeSource
@@ -57,6 +70,16 @@ internal enum class Screen {
     Records,
     HowTo,
     Game,
+}
+
+/**
+ * What can open over the start screen or over the pause (UI-11, UI-16, LEG-05): the settings, the credits from them and
+ * the whole texts of the licences from the credits.
+ */
+internal enum class Sheet {
+    Settings,
+    Credits,
+    Licences,
 }
 
 /**
@@ -148,6 +171,52 @@ internal class GameSession(
     var soundOn = choices.soundOn
         private set
 
+    /** The sheet open over the start screen or the pause, if any. */
+    var sheet: Sheet? = null
+        private set
+
+    /** What the settings show: the music, the sounds and the vibration (UI-11, TEC-09), and the button of the sound. */
+    val settings = SettingsView(choices.musicOn, choices.effectsOn, choices.vibrationOn, soundOn)
+
+    /** The texts of the licences, read when the credits open, and the page of them that shows, from 0. */
+    private var licenceTexts: List<String>? = null
+    private var pagesMade: List<List<String>> = emptyList()
+    private var pagesFor: MenuLayout? = null
+    var licencePage = 0
+        private set
+
+    /** Where the page of the licences is («3 DE 26»), made when it changes. */
+    var licenceWhere = ""
+        private set
+
+    /** The credits as they go on this screen, made again when the screen changes. */
+    val creditsLayout: CreditsLayout
+        get() {
+            val layout = layout
+            val made = credits
+            if (made != null && creditsFor === layout) return made
+            creditsFor = layout
+            return layout.credits(Texts.CREDITS_LINE, Texts.libraries).also { credits = it }
+        }
+    private var credits: CreditsLayout? = null
+    private var creditsFor: MenuLayout? = null
+
+    /** The menu of the pause in a column (UI-05), while it shows, and its buttons in GameMaster's order with their icons. */
+    var pauseMenu: ColumnMenu? = null
+        private set
+    val pauseTexts = listOf(Texts.RESUME, Texts.RESTART, Texts.SETTINGS, Texts.HOME)
+    val pauseIcons = listOf(Icon.Resume, Icon.Again, Icon.Settings, Icon.Home)
+
+    /** The seconds left of the count before a paused run goes on, or 0; and the digit it shows, 3, 2 and 1. */
+    private var resumeIn = 0.0
+    val countdown: Int get() = if (resumeIn > 0.0) ceil(resumeIn / RESUME_STEP).toInt() else 0
+
+    /** The counter of a new record in the panel of the end (UI-15), what it shows, and the confetti when it arrives. */
+    private var recordCounter: PanelLine? = null
+    private var counterShown = -1
+    val confetti = Confetti()
+    private var confettiStarted = false
+
     /** The scenario whose records show, and its best runs. */
     var recordsScenario = scenario
         private set
@@ -236,7 +305,7 @@ internal class GameSession(
     private var gapsMet = 0
 
     init {
-        audio?.muted = !soundOn
+        applySound()
         if (this.autopilot) startRun(scenario) else audio?.music(scenario)
     }
 
@@ -254,7 +323,13 @@ internal class GameSession(
                 else -> input.consumePress()
             }
             animationTime += elapsed
+        } else if (resumeIn > 0.0) {
+            // The count before going on: a frame that takes long does not swallow it.
+            resumeIn -= min(elapsed, LONGEST_FRAME)
+            if (resumeIn <= 0.0) goOn()
         }
+        countRecord()
+        if (confetti.falling) confetti.step(min(elapsed, LONGEST_FRAME).toFloat())
         if (showDebug) logic.add(started.elapsedNow())
         refreshTexts()
         frame.longValue = nanos
@@ -278,7 +353,7 @@ internal class GameSession(
         when (screen) {
             // A tap anywhere: the screen is its button.
             Screen.Intro -> press(null) { leaveIntro() }
-            Screen.Title -> titleTap(gameX, gameY)
+            Screen.Title -> if (sheet != null) sheetTap(gameX, gameY) else titleTap(gameX, gameY)
             Screen.Records -> recordsTap(gameX, gameY)
             Screen.HowTo -> howToTap(gameX, gameY)
             Screen.Game -> gameTap(gameX, gameY)
@@ -300,26 +375,35 @@ internal class GameSession(
         onRelease = action
     }
 
-    /** The back button of the phone: the pause in a run, a page back in how to play, and else the start screen. */
+    /**
+     * The back button of the phone: a sheet back to where it came from; in a run, the pause, and from the pause the run goes
+     * on; a page back in how to play, and else the start screen.
+     */
     fun back() {
+        val running = screen == Screen.Game && run.phase == RunPhase.Running
         when {
             askingToQuit -> stopAskingToQuit()
-            screen == Screen.Game && run.phase == RunPhase.Running && !paused -> pause()
+            sheet != null -> closeSheet()
+            running && paused && resumeIn > 0.0 -> pause()
+            running && paused -> resume()
+            running -> pause()
             screen == Screen.HowTo -> goBackInHowTo()
             screen == Screen.Records || screen == Screen.Game -> goHome()
         }
     }
 
-    /** Pauses the run, if it is going: the pause button, the app going to the background or the back button (MOB-05). */
+    /**
+     * Pauses the run, if it is going, with its menu: the pause button, the app going to the background or the back button
+     * (MOB-05); and back to the menu from the count before going on. Its settings, if open, stay.
+     */
     fun pause() {
-        if (screen != Screen.Game || run.phase != RunPhase.Running || paused) return
+        if (screen != Screen.Game || run.phase != RunPhase.Running) return
+        if (paused && resumeIn <= 0.0) return
         paused = true
+        resumeIn = 0.0
         input.clear()
-        panel = pausePanel()
-        // Its menu (UI-05): go on, the same scenario from the start, or the start screen.
-        panelButtonTexts = listOf(Texts.RESUME, Texts.RESTART, Texts.HOME)
-        panelButtonIcons = listOf(Icon.Resume, Icon.Again, null)
-        panelButtons = layout.row(panelButtonTexts, panelBottom(panel, viewport.height) + MenuLayout.GAP, panelButtonIcons)
+        // Its menu (UI-05, GameMaster's mockup): go on, the same scenario from the start, the settings or the start screen.
+        pauseMenu = layout.pauseMenu(pauseTexts, pauseIcons)
         audio?.pause()
     }
 
@@ -347,6 +431,7 @@ internal class GameSession(
         when {
             canQuit && layout.exit.contains(x, y) -> press(layout.exit) { askToQuit() }
             layout.titleSound.contains(x, y) -> press(layout.titleSound) { toggleSound() }
+            layout.titleSettings.contains(x, y) -> press(layout.titleSettings) { openSettings() }
             layout.recordsButton.contains(x, y) -> press(layout.recordsButton) { openRecords() }
             layout.howToButton.contains(x, y) -> press(layout.howToButton) { openHowTo() }
             else -> {
@@ -361,7 +446,8 @@ internal class GameSession(
             press(layout.back) { goHome() }
             return
         }
-        val tab = layout.tabs(scenarioNames).indexOfFirst { it.contains(x, y, slack = 0) }
+        // The tabs side by side, with room for the finger above and below (GameMaster: 16 px are short).
+        val tab = layout.tabs(scenarioNames).indexOfFirst { it.contains(x, y, across = 0, up = MenuLayout.TAB_SLACK) }
         if (tab >= 0 && tab != recordsScenario.ordinal) {
             press(null) {
                 audio?.play(Sound.Tap)
@@ -384,16 +470,7 @@ internal class GameSession(
 
     private fun gameTap(x: Float, y: Float) {
         if (paused) {
-            // Its three buttons; a tap anywhere else goes on too, as it always did.
-            val again = panelButtons.getOrNull(1)
-            val home = panelButtons.getOrNull(2)
-            val going = panelButtons.getOrNull(0)
-            when {
-                again != null && again.contains(x, y) -> press(again) { restartFromPause() }
-                home != null && home.contains(x, y) -> press(home) { goHome() }
-                going != null && going.contains(x, y) -> press(going) { resume() }
-                else -> press(null) { resume() }
-            }
+            pausedTap(x, y)
             return
         }
         if (run.phase == RunPhase.Over) {
@@ -429,6 +506,180 @@ internal class GameSession(
         input.press()
     }
 
+    /**
+     * In the pause: its settings if open; the buttons of its menu, each with half the gap above and below it; and the
+     * buttons of the marker under the veil, the sound and the pause, which goes on too (GameMaster). A tap anywhere else
+     * does nothing: only «CONTINUAR» or the pause button go on. In the count before going on, the pause button stops it.
+     */
+    private fun pausedTap(x: Float, y: Float) {
+        if (sheet != null) {
+            sheetTap(x, y)
+            return
+        }
+        val layout = layout
+        if (layout.corner.contains(x, y)) {
+            press(layout.corner) { if (resumeIn > 0.0) pause() else resume() }
+            return
+        }
+        if (layout.hudSound.contains(x, y)) {
+            press(layout.hudSound) { toggleSound() }
+            return
+        }
+        val buttons = pauseMenu?.buttons ?: return
+        when (buttons.indexOfFirst { it.contains(x, y, Box.SLACK, MenuLayout.COLUMN_GAP / 2) }) {
+            0 -> press(buttons[0]) { resume() }
+            1 -> press(buttons[1]) { restartFromPause() }
+            2 -> press(buttons[2]) { openSettings() }
+            3 -> press(buttons[3]) { goHome() }
+        }
+    }
+
+    /** On a sheet: the settings, the credits or a page of the licences. */
+    private fun sheetTap(x: Float, y: Float) {
+        val layout = layout
+        if (layout.back.contains(x, y)) {
+            press(layout.back) { closeSheet() }
+            return
+        }
+        when (sheet) {
+            Sheet.Settings -> settingsTap(x, y)
+            Sheet.Credits -> {
+                val forward = layout.forward(Texts.FULL_TEXTS)
+                if (forward.contains(x, y)) press(forward) { openLicences() }
+            }
+            Sheet.Licences -> {
+                // The button forward, or a tap anywhere on the page, to the next one; from the last, nowhere.
+                val forward = layout.forward(Texts.NEXT)
+                if (licencePage + 1 < licencePages().size) press(forward.takeIf { it.contains(x, y) }) { turnLicencePage(1) }
+            }
+            null -> Unit
+        }
+    }
+
+    /**
+     * The settings (UI-11, GameMaster's mockup A): each half of a «SÍ | NO» chooses its own, the rest of the row changes
+     * from one to the other; the music and the sounds, dimmed while the button of the sound silences everything, do
+     * nothing then. And the credits.
+     */
+    private fun settingsTap(x: Float, y: Float) {
+        val layout = layout
+        if (layout.creditsButton.contains(x, y)) {
+            press(layout.creditsButton) { openCredits() }
+            return
+        }
+        val rows = layout.settingsRows
+        val index = rows.indexOfFirst { it.contains(x, y, slack = 0) }
+        if (index < 0 || (index < 2 && !soundOn)) return
+        val row = rows[index]
+        val halves = layout.switchHalves(row)
+        val touch = layout.switchTouch(row)
+        when {
+            touch[0].contains(x, y, slack = 0) -> press(halves[0]) { setSetting(index, true) }
+            touch[1].contains(x, y, slack = 0) -> press(halves[1]) { setSetting(index, false) }
+            else -> press(null) { setSetting(index, !setting(index)) }
+        }
+    }
+
+    private fun setting(index: Int): Boolean = when (index) {
+        0 -> settings.music
+        1 -> settings.effects
+        else -> settings.vibration
+    }
+
+    /**
+     * A setting changes, remembered: the music stops or goes on at once, the sounds sound with the tap that turns them on,
+     * and the vibration, turned on, shakes once so she knows what it is.
+     */
+    private fun setSetting(index: Int, on: Boolean) {
+        when (index) {
+            0 -> {
+                settings.music = on
+                choices.musicOn = on
+            }
+            1 -> {
+                settings.effects = on
+                choices.effectsOn = on
+            }
+            else -> {
+                settings.vibration = on
+                choices.vibrationOn = on
+            }
+        }
+        if (index < 2) applySound()
+        audio?.play(Sound.Tap)
+        if (index == 2 && on) shake()
+    }
+
+    /** The settings, over the start screen or over the pause: from the gear of the one or the button of the other. */
+    private fun openSettings() {
+        audio?.play(Sound.Tap)
+        openSheet(Sheet.Settings)
+    }
+
+    /** The credits, from the settings; the texts of the licences are read now, for when she wants them. */
+    private fun openCredits() {
+        audio?.play(Sound.Tap)
+        openSheet(Sheet.Credits)
+        if (licenceTexts != null) return
+        scope.launch {
+            licenceTexts = LICENCE_FILES.map { file -> runCatching { Res.readBytes(file).decodeToString() }.getOrDefault("") }
+            pagesFor = null
+        }
+    }
+
+    private fun openLicences() {
+        audio?.play(Sound.Tap)
+        openSheet(Sheet.Licences)
+        showLicencePage(0)
+    }
+
+    private fun openSheet(next: Sheet) {
+        sheet = next
+        backEnabled = true
+    }
+
+    /** A sheet back: from the licences, a page back and the credits from the first; then the settings; then out of them. */
+    private fun closeSheet() {
+        audio?.play(Sound.Back)
+        when (sheet) {
+            Sheet.Licences -> if (licencePage > 0) showLicencePage(licencePage - 1) else sheet = Sheet.Credits
+            Sheet.Credits -> sheet = Sheet.Settings
+            Sheet.Settings, null -> sheet = null
+        }
+        backEnabled = sheet != null || backFor(screen)
+    }
+
+    private fun turnLicencePage(by: Int) {
+        audio?.play(Sound.Tap)
+        showLicencePage(licencePage + by)
+    }
+
+    private fun showLicencePage(page: Int) {
+        val pages = licencePages()
+        licencePage = page.coerceIn(0, (pages.size - 1).coerceAtLeast(0))
+        licenceWhere = if (pages.isEmpty()) "" else Texts.page(licencePage + 1, pages.size)
+    }
+
+    /**
+     * The texts of the licences in pages of this screen, made again when the screen changes or the texts arrive; the page
+     * that shows, kept among them.
+     */
+    private fun licencePages(): List<List<String>> {
+        val layout = layout
+        if (pagesFor !== layout) {
+            val texts = licenceTexts ?: return emptyList()
+            pagesMade = licencePages(texts, layout.licencesText.width, layout.licenceLines)
+            pagesFor = layout
+            licencePage = licencePage.coerceAtMost((pagesMade.size - 1).coerceAtLeast(0))
+            licenceWhere = if (pagesMade.isEmpty()) "" else Texts.page(licencePage + 1, pagesMade.size)
+        }
+        return pagesMade
+    }
+
+    /** The lines of the page of the licences that shows, and the text of the button to the next one, if there is one. */
+    val licenceLines: List<String> get() = licencePages().getOrNull(licencePage) ?: emptyList()
+    val licenceNext: String? get() = if (licencePage + 1 < licencePages().size) Texts.NEXT else null
+
     private fun askToQuit() {
         audio?.play(Sound.Tap)
         askingToQuit = true
@@ -453,8 +704,25 @@ internal class GameSession(
     private fun toggleSound() {
         soundOn = !soundOn
         choices.soundOn = soundOn
-        audio?.muted = !soundOn
+        settings.soundOn = soundOn
+        applySound()
         audio?.play(Sound.Tap)
+    }
+
+    /** The button of the sound silences everything; with it on, the music and the sounds as the settings say (UI-11). */
+    private fun applySound() {
+        audio?.muted = !soundOn || !choices.musicOn
+        audio?.effectsMuted = !soundOn || !choices.effectsOn
+    }
+
+    /**
+     * What the phone does with a soft vibration (VFX-07), the screen's; null where it cannot. The run calls it with what
+     * goes wrong: an egg, a fish, a bird or a fall (Fangusk), if the vibration of the settings is on.
+     */
+    var vibrate: (() -> Unit)? = null
+
+    private fun shake() {
+        if (choices.vibrationOn && !autopilot) vibrate?.invoke()
     }
 
     private fun openRecords() {
@@ -531,10 +799,8 @@ internal class GameSession(
             replaceRun()
         }
         choices.scenario = chosen
-        result = null
-        paused = false
-        panel = emptyList()
-        panelButtons = emptyList()
+        leavePause()
+        clearEnd()
         show(Screen.Game)
         run.step(JumpLab.STEP, pressed = true, held = false)
         lastNanos = -1L
@@ -546,23 +812,52 @@ internal class GameSession(
     private fun goHome() {
         audio?.play(Sound.Back)
         if (run.phase != RunPhase.Ready) replaceRun()
-        paused = false
-        result = null
-        panel = emptyList()
-        panelButtons = emptyList()
+        leavePause()
+        clearEnd()
         input.clear()
         show(Screen.Title)
         audio?.music(scenario, restart = true)
     }
 
+    /**
+     * «CONTINUAR»: the menu goes and, after a short breath for the finger, 3, 2, 1 (GameMaster: «un respiro corto al
+     * continuar»), the run goes on.
+     */
     private fun resume() {
+        audio?.play(Sound.Back)
+        pauseMenu = null
+        sheet = null
+        input.clear()
+        resumeIn = RESUME_COUNT * RESUME_STEP
+    }
+
+    /** The count is over: the run goes on where it was, with its music. */
+    private fun goOn() {
+        resumeIn = 0.0
         paused = false
         lastNanos = -1L
         clock.reset()
+        input.clear()
+        audio?.resume()
+    }
+
+    /** Out of the pause, its menu, its sheets and its count. */
+    private fun leavePause() {
+        paused = false
+        pauseMenu = null
+        sheet = null
+        resumeIn = 0.0
+        backEnabled = backFor(screen)
+    }
+
+    /** The end of a run cleared: its panel, its buttons, its counter and its confetti. */
+    private fun clearEnd() {
+        result = null
         panel = emptyList()
         panelButtons = emptyList()
-        audio?.play(Sound.Back)
-        audio?.resume()
+        recordCounter = null
+        confettiStarted = false
+        confetti.stop()
     }
 
     private fun step() {
@@ -653,9 +948,13 @@ internal class GameSession(
                     } else {
                         streak.broken()
                         audio?.play(soundOf(event.kind))
+                        shake()
                     }
                 }
-                is RunEvent.Ended -> finish(event.cause)
+                is RunEvent.Ended -> {
+                    if (event.cause == EndCause.Fall) shake()
+                    finish(event.cause)
+                }
             }
         }
         run.events.clear()
@@ -666,31 +965,57 @@ internal class GameSession(
         result = ended
         overAt = time
         hint = false
+        recordCounter = null
+        counterShown = -1
+        confettiStarted = false
         if (!autopilot) choices.runsPlayed = choices.runsPlayed + 1
         panel = overPanel(ended)
         panelButtonTexts = listOf(Texts.AGAIN, Texts.HOME)
-        panelButtonIcons = listOf(Icon.Again, null)
+        panelButtonIcons = listOf(Icon.Again, Icon.Home)
         panelButtons = layout.row(panelButtonTexts, panelBottom(panel, viewport.height) + MenuLayout.GAP, panelButtonIcons)
         // The music stops: the sound of the end, and a moment later its jingle, of a record if there is one.
         if (cause == EndCause.NoPoints) audio?.play(Sound.NoPoints)
         audio?.end(scenario, ended.newRecord, JINGLE_DELAY_MILLIS)
     }
 
-    /** Another run at once, already running: from the end of a run to playing again takes one tap (UI-06). */
     /** From the pause, the run is left and another starts in the same scenario (UI-05). */
     private fun restartFromPause() {
-        paused = false
+        leavePause()
         audio?.play(Sound.Tap)
         restart()
     }
 
+    /** Another run at once, already running: from the end of a run to playing again takes one tap (UI-06). */
     private fun restart() {
         replaceRun()
-        result = null
+        clearEnd()
         run.step(JumpLab.STEP, pressed = true, held = false)
-        panel = emptyList()
-        panelButtons = emptyList()
         audio?.start(scenario, run.seed)
+    }
+
+    /**
+     * The counter of a new record (UI-15, GameMaster's design): from 0 to the metres in [RECORD_COUNT] seconds, quickly
+     * and braking at the end, `final·(1−(1−t)³)`, in cream; at the metres, in gold, it bounces up 2 px for 120 ms and the
+     * confetti starts, once.
+     */
+    private fun countRecord() {
+        val counter = recordCounter ?: return
+        val meters = result?.meters ?: return
+        val since = time - overAt
+        val share = (since / RECORD_COUNT).coerceIn(0.0, 1.0)
+        val shown = (meters * (1 - (1 - share).pow(3))).roundToInt()
+        if (shown != counterShown) {
+            counterShown = shown
+            counter.text = "${thousands(shown)} M"
+        }
+        if (share < 1.0) return
+        counter.tone = Tone.Record
+        val bounce = since - RECORD_COUNT
+        counter.lift = if (bounce < BOUNCE_SECONDS) (BOUNCE_PIXELS * sin(PI * bounce / BOUNCE_SECONDS)).roundToInt() else 0
+        if (!confettiStarted) {
+            confettiStarted = true
+            confetti.start(viewport.width, viewport.height)
+        }
     }
 
     private fun soundOf(kind: ItemKind): Sound = when (kind) {
@@ -764,19 +1089,24 @@ internal class GameSession(
         }
     }
 
-    private fun pausePanel(): List<PanelLine> = listOf(PanelLine(Texts.PAUSE, size = 2))
-
+    /**
+     * The panel of the end: how she lost, the animals she saved, the metres and the most points. With a new record
+     * (UI-15, GameMaster's mockup), «¡NUEVO RÉCORD!» and its metres big, counting, where the distance and the record went,
+     * which would say the same twice.
+     */
     private fun overPanel(result: RunResult): List<PanelLine> {
-        val lines = mutableListOf(
-            PanelLine(Texts.endTitle(run.endCause, scenario, run.lastTaken), Tone.Warning, size = 2),
-            PanelLine(Texts.saved(run.rescued)),
-            PanelLine("${Texts.DISTANCE} ${result.meters} M · ${Texts.RECORD} ${result.bestMeters} M"),
-            PanelLine("${Texts.MAX_POINTS} ${result.maxPoints}"),
-        )
-        when {
-            result.newRecord -> lines += PanelLine(Texts.NEW_RECORD, Tone.Record, size = 2)
-            result.place > 1 -> lines += PanelLine(Texts.place(result.place, Records.SIZE), Tone.Record)
+        val title = PanelLine(Texts.endTitle(run.endCause, scenario, run.lastTaken), Tone.Warning, size = 2)
+        val saved = PanelLine(Texts.saved(run.rescued))
+        val points = PanelLine("${Texts.MAX_POINTS} ${result.maxPoints}")
+        if (result.newRecord) {
+            val counter = PanelLine("0 M", size = 2)
+            recordCounter = counter
+            return listOf(title, saved, PanelLine(Texts.NEW_RECORD, Tone.Record, size = 2), counter, points)
         }
+        // The metres as the records and the counter write them, with a dot every three figures.
+        val distance = "${Texts.DISTANCE} ${thousands(result.meters)} M · ${Texts.RECORD} ${thousands(result.bestMeters)} M"
+        val lines = mutableListOf(title, saved, PanelLine(distance), points)
+        if (result.place > 1) lines += PanelLine(Texts.place(result.place, Records.SIZE), Tone.Record)
         return lines
     }
 
@@ -800,6 +1130,21 @@ internal class GameSession(
 
         /** How long the finger has to stay down for the long jump to sound. */
         const val LONG_JUMP_SECONDS = 0.1f
+
+        /** The count before a paused run goes on: three digits, this long each. */
+        const val RESUME_COUNT = 3
+        const val RESUME_STEP = 0.35
+
+        /** The longest a frame counts for the count and for the confetti. */
+        const val LONGEST_FRAME = 0.1
+
+        /** The counter of a new record: how long it counts, and its bounce when it arrives (GameMaster). */
+        const val RECORD_COUNT = 1.0
+        const val BOUNCE_SECONDS = 0.12
+        const val BOUNCE_PIXELS = 2
+
+        /** The texts of the licences, in the order they show: the list of the libraries, the Apache 2.0 and Skia's. */
+        val LICENCE_FILES = listOf("files/licencias/librerias.txt", "files/licencias/apache-2.0.txt", "files/licencias/skia.txt")
         const val DEBUG_TAKE_AWAY = 5
         const val SEED_DIGITS = 100_000
         const val DEBUG_REFRESH_FRAMES = 15

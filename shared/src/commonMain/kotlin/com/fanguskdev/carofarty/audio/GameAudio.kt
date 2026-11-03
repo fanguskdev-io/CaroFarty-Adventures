@@ -59,7 +59,10 @@ internal class GameAudio(private val music: MusicPlayer, private val sounds: Sou
     private var level = 1
     private var tense = false
 
-    /** Whether she turned the sound off (the button by the pause): no music and no sounds until she turns it on. */
+    /**
+     * Whether the music is off: by the button of the sound by the pause, which silences everything, or in the settings
+     * (UI-11), with the jingles, which are music too.
+     */
     var muted = false
         set(value) {
             field = value
@@ -69,6 +72,9 @@ internal class GameAudio(private val music: MusicPlayer, private val sounds: Sou
                 music.resume()
             }
         }
+
+    /** Whether the sounds are off: by the same button, or on their own in the settings (UI-11). */
+    var effectsMuted = false
     private var loading: Job? = null
     private var after: Job? = null
     private val random = Random.Default
@@ -129,7 +135,8 @@ internal class GameAudio(private val music: MusicPlayer, private val sounds: Sou
      * pentatonic with its [streak] ([RescueStreak]), played that much faster.
      */
     fun play(sound: Sound, scenario: Scenario? = null, streak: Int = 0) {
-        if (muted) return
+        // The jingles go with the music; the rest are the sounds.
+        if (if (sound.byScenario) muted else effectsMuted) return
         val file = fileOf(sound, scenario)
         if (sound.byScenario || sound == Sound.Tap || sound == Sound.Back) {
             sounds.play(file)

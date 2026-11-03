@@ -11,6 +11,31 @@ internal object Texts {
     const val PAUSE = "PAUSA"
     const val RESUME = "CONTINUAR"
     const val RESTART = "REINICIAR"
+    const val SETTINGS = "AJUSTES"
+    const val MUSIC = "MÚSICA"
+    const val EFFECTS = "EFECTOS"
+    const val VIBRATION = "VIBRACIÓN"
+    const val ON = "SÍ"
+    const val OFF = "NO"
+    const val CREDITS = "CRÉDITOS"
+
+    /** The credits, as Fangusk wants them (UI-16): «A FANGUSK.DEV GAME», in English, and the licences under it. */
+    const val CREDITS_LINE = "A FANGUSK.DEV GAME"
+    const val LICENCES = "LICENCIAS"
+    const val FULL_TEXTS = "TEXTOS"
+
+    /** The libraries of the game and their licences (LEG-05, docs/licencias.md), one a line in the credits. */
+    val libraries = listOf(
+        "KOTLIN" to "APACHE 2.0",
+        "KOTLINX COROUTINES" to "APACHE 2.0",
+        "KOTLINX SERIALIZATION" to "APACHE 2.0",
+        "COMPOSE MULTIPLATFORM" to "APACHE 2.0",
+        "ANDROIDX" to "APACHE 2.0",
+        "SKIA (EN IOS)" to "BSD",
+    )
+
+    /** Where a page of the texts of the licences is. */
+    fun page(page: Int, of: Int): String = "$page DE $of"
     const val TAP_TO_START = "TOCA PARA EMPEZAR"
 
     /** The subtitle of the title screen, which Fangusk chose. */

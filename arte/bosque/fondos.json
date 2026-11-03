@@ -3,5 +3,11 @@
  "filas-bajo-el-suelo": {
   "lejano": 0,
   "medio": 96
+ },
+ "variantes": {
+  "lejano": {
+   "luz-1": "fondo-lejano-luz-1.png",
+   "luz-2": "fondo-lejano-luz-2.png"
+  }
  }
 }

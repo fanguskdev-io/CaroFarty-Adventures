@@ -1,0 +1,59 @@
+GIMP Palette
+Name: efectos-desierto
+Columns: 8
+#
+ 36  22  28	contorno
+ 59  33  29	pelo oscuro
+ 90  50  38	pelo
+140  84  52	pelo brillo
+248 217 196	piel
+236 185 159	piel media
+207 145 122	piel sombra
+192  57  77	labios
+240 106 150	ropa
+196  71 111	ropa sombra
+240 226 207	pantalón
+201 176 152	pantalón sombra
+ 47  98 200	mochila
+ 31  65 141	mochila sombra
+251 247 240	blanco
+246 166  76	gatito pelo
+217 122  44	gatito sombra
+181  90  34	gatito rayas
+253 231 196	gatito tripa
+242 154 166	gatito nariz
+154 154 162	huevo sombra
+248 184  50	yema
+239 143  18	yema sombra
+228 138  60	pescado
+192  98  42	pescado sombra
+124  58  30	pescado parrilla
+243 184 116	pescado tripa
+159 224  90	olor
+227 145  76	perrito N
+180  96  43	perrito n
+252 239 217	perrito C
+232 203 164	perrito c
+240 138 153	perrito R
+ 62  50  54	perrito k
+ 66  76  99	perrito K
+255  46 136	perrito D
+184  29  99	perrito d
+ 32  18  90	pájaro negro azulado
+ 74  88 188	pájaro reflejo azul
+194 200 216	pájaro gris claro
+244 122  30	pájaro naranja
+200  56  78	pájaro rojo
+ 90  48  16	pájaro marrón
+154  96  56	pájaro marrón claro
+244 122 154	pájaro rosa
+255 242 176	polvo luz
+252 210 122	polvo
+204 108  56	polvo sombra
+142  64  48	polvo brizna
+255 241 210	destello crema
+247 197  72	destello oro
+224 137  44	destello ámbar
+ 93 154  60	olor sombra
+ 90  48  16	pluma
+154  96  56	pluma luz

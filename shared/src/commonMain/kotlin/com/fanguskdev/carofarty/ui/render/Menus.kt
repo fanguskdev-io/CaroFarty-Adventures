@@ -19,8 +19,15 @@ internal data class Box(
     val centreX: Int get() = left + width / 2
 
     /** Whether ([x], [y]) is on it, with some [slack] around for the finger. */
-    fun contains(x: Float, y: Float, slack: Int = SLACK): Boolean =
-        x >= left - slack && x < right + slack && y >= top - slack && y < bottom + slack
+    fun contains(x: Float, y: Float, slack: Int = SLACK): Boolean = contains(x, y, slack, slack)
+
+    /** The same with a slack [across] at the sides and another [up] and down: for boxes side by side or one over another. */
+    fun contains(
+        x: Float,
+        y: Float,
+        across: Int,
+        up: Int,
+    ): Boolean = x >= left - across && x < right + across && y >= top - up && y < bottom + up
 
     companion object {
         /** The room around a box that still counts as on it, for the finger (ACC-03). */
@@ -39,8 +46,14 @@ internal enum class Icon(val key: String) {
     Again("reintentar"),
     Exit("salir"),
 
-    /** To go on with a paused run (UI-05): GameMaster's ▶; until it comes, the button has only its word. */
+    /** To go on with a paused run (UI-05): GameMaster's ▶. */
     Resume("continuar"),
+
+    /** The start screen, from the pause and the end of a run; the settings, the music and the vibration (UI-11). */
+    Home("inicio"),
+    Settings("ajustes"),
+    Music("musica"),
+    Vibration("vibracion"),
 }
 
 /**
@@ -79,6 +92,112 @@ internal class MenuLayout(val width: Int, val height: Int, val insets: SafeInset
     /** Where something [across] wide begins, centred on the useful part of the screen; on the screen, if it does not fit. */
     private fun centred(across: Int): Int = ((left + right - across) / 2).coerceIn(0, max(0, width - across))
 
+    /**
+     * The pause (UI-05, GameMaster's mockup): a panel with «PAUSA» on top, twice as big, and its buttons for [names] in a
+     * column under it, all as wide as the widest, [COLUMN_GAP] apart, with the [icons]; in the middle of the screen.
+     */
+    fun pauseMenu(names: List<String>, icons: List<Icon?>): ColumnMenu {
+        val across = names.indices.maxOf { buttonWidth(names[it], icon = icons.getOrNull(it) != null) }
+        val buttons = names.size * BUTTON_HEIGHT + (names.size - 1) * COLUMN_GAP
+        val panelWide = across + 2 * (PANEL_BORDER + MENU_SIDE)
+        val panelTall = PANEL_BORDER + MENU_TOP + MENU_TITLE + MENU_TITLE_GAP + buttons + MENU_BOTTOM + PANEL_BORDER
+        val panel = Box(centred(panelWide), ((height - panelTall) / 2).coerceAtLeast(0), panelWide, panelTall)
+        val titleTop = panel.top + PANEL_BORDER + MENU_TOP
+        val first = titleTop + MENU_TITLE + MENU_TITLE_GAP
+        val boxes =
+            List(names.size) {
+                Box(panel.left + PANEL_BORDER + MENU_SIDE, first + it * (BUTTON_HEIGHT + COLUMN_GAP), across, BUTTON_HEIGHT)
+            }
+        return ColumnMenu(panel, titleTop, boxes)
+    }
+
+    /**
+     * The settings (UI-11, GameMaster's mockup A): under the ribbon, a panel with a row for each setting, its icon, its name
+     * and its «SÍ | NO» on the right, and the button of the credits under it.
+     */
+    val settingsPanel: Box
+    val settingsRows: List<Box>
+    val creditsButton: Box
+
+    init {
+        val tall = 2 * PANEL_BORDER + 2 * ROWS_PAD + SETTINGS_ROWS * SETTINGS_ROW
+        val block = tall + GAP + BUTTON_HEIGHT
+        val top = headerBottom + max(RECORDS_MIN_GAP, (bottom - headerBottom - block) / 2)
+        settingsPanel = Box(centred(SETTINGS_WIDTH), top, SETTINGS_WIDTH, tall)
+        settingsRows = List(SETTINGS_ROWS) {
+            val rowTop = top + PANEL_BORDER + ROWS_PAD + it * SETTINGS_ROW
+            Box(settingsPanel.left + PANEL_BORDER, rowTop, SETTINGS_WIDTH - 2 * PANEL_BORDER, SETTINGS_ROW)
+        }
+        val across = buttonWidth(CREDITS_TEXT, icon = false)
+        creditsButton = Box(centred(across), settingsPanel.bottom + GAP, across, BUTTON_HEIGHT)
+    }
+
+    /**
+     * The «SÍ | NO» of the setting in [row] (GameMaster's mockup A): its slot at the right of the row and the two tabs in it,
+     * the «SÍ» first, sharing the column between them.
+     */
+    fun switchSlot(row: Box): Box =
+        Box(row.right - SWITCH_SIDE - (2 * SWITCH_HALF - 1), row.top + (row.height - SWITCH_HEIGHT) / 2, 2 * SWITCH_HALF - 1, SWITCH_HEIGHT)
+
+    fun switchHalves(row: Box): List<Box> {
+        val slot = switchSlot(row)
+        return listOf(
+            Box(slot.left, slot.top, SWITCH_HALF, SWITCH_HEIGHT),
+            Box(slot.left + SWITCH_HALF - 1, slot.top, SWITCH_HALF, SWITCH_HEIGHT),
+        )
+    }
+
+    /** Where a finger chooses each half of the «SÍ | NO» of [row]: as wide as the half and as tall as the row. */
+    fun switchTouch(row: Box): List<Box> = switchHalves(row).map { Box(it.left, row.top, it.width, row.height) }
+
+    /**
+     * The credits (UI-16, GameMaster's mockup): «A FANGUSK.DEV GAME» big, a line, the heading of the licences and a line for
+     * each of the [libraries] with its licence on the right, in a panel under the ribbon as wide as [title] or the libraries
+     * need.
+     */
+    fun credits(title: String, libraries: List<Pair<String, String>>): CreditsLayout {
+        val names = libraries.maxOfOrNull { PixelFont.width(it.first) } ?: 0
+        val licences = libraries.maxOfOrNull { PixelFont.width(it.second) } ?: 0
+        val table = names + CREDITS_COLUMNS_GAP + licences
+        val inner = max(PixelFont.width(title, TITLE_SIZE), table)
+        val wide = inner + 2 * (PANEL_BORDER + CREDITS_SIDE)
+        val tall = PANEL_BORDER + CREDITS_TOP + MENU_TITLE + CREDITS_RULE_GAP + PixelFont.LINE + CREDITS_HEADING_GAP +
+            libraries.size * PixelFont.LINE + CREDITS_BOTTOM + PANEL_BORDER
+        val top = headerBottom + max(RECORDS_MIN_GAP, (bottom - headerBottom - tall) / 2)
+        val panel = Box(centred(wide), top, wide, tall)
+        val titleTop = top + PANEL_BORDER + CREDITS_TOP
+        val heading = titleTop + MENU_TITLE + CREDITS_RULE_GAP
+        val tableLeft = panel.centreX - table / 2
+        return CreditsLayout(
+            panel = panel,
+            titleTop = titleTop,
+            rule = Box(panel.left + PANEL_BORDER + CREDITS_SIDE, heading - CREDITS_RULE_UP, wide - 2 * (PANEL_BORDER + CREDITS_SIDE), 1),
+            headingTop = heading,
+            firstLine = heading + PixelFont.LINE + CREDITS_HEADING_GAP,
+            namesLeft = tableLeft,
+            licencesRight = tableLeft + table,
+        )
+    }
+
+    /**
+     * The texts of the licences (LEG-05): a panel as big as the screen leaves under the header, for a page of them, with
+     * where the page is at its foot.
+     */
+    val licencesPanel: Box =
+        (headerBottom + RECORDS_MIN_GAP).let { top -> Box(left, top, right - left, bottom - top) }
+
+    /** Where the text of a page of the licences goes in its panel: its first line, its left and how wide it may be. */
+    val licencesText = Box(
+        licencesPanel.left + PANEL_BORDER + CREDITS_SIDE,
+        licencesPanel.top + PANEL_BORDER + CREDITS_TOP,
+        licencesPanel.width - 2 * (PANEL_BORDER + CREDITS_SIDE),
+        licencesPanel.height - 2 * PANEL_BORDER - CREDITS_TOP - CREDITS_BOTTOM - PixelFont.LINE,
+    )
+
+    /** How many lines of the texts of the licences fit in a page, and the top of where the page is, under them. */
+    val licenceLines: Int = licencesText.height / PixelFont.LINE
+    val licencesFoot: Int = licencesPanel.bottom - PANEL_BORDER - CREDITS_BOTTOM - PixelFont.HEIGHT
+
     /** The ribbon with the title of the records and of how to play, centred; its text decides its width. */
     fun ribbon(text: String): Box {
         val across = PixelFont.width(text) + RIBBON_SIDES
@@ -91,6 +210,7 @@ internal class MenuLayout(val width: Int, val height: Int, val insets: SafeInset
     val recordsButton: Box
     val howToButton: Box
     val titleSound: Box
+    val titleSettings: Box
 
     init {
         val gap = max(MIN_START_GAP, (bottom - insets.top - MARGIN - TITLE_HEIGHT - CARD_HEIGHT - BUTTON_HEIGHT) / 4)
@@ -107,6 +227,8 @@ internal class MenuLayout(val width: Int, val height: Int, val insets: SafeInset
         recordsButton = Box(buttonsLeft, y, records, BUTTON_HEIGHT)
         howToButton = Box(buttonsLeft + records + GAP, y, howTo, BUTTON_HEIGHT)
         titleSound = Box(cardsLeft + row - SMALL, y + 1, SMALL, SMALL)
+        // The settings, the gear at the left of the sound, apart enough for their touch to stay apart (GameMaster).
+        titleSettings = Box(titleSound.left - GEAR_GAP - SMALL, titleSound.top, SMALL, SMALL)
     }
 
     /**
@@ -203,6 +325,48 @@ internal class MenuLayout(val width: Int, val height: Int, val insets: SafeInset
     companion object {
         const val GAP = 8
 
+        /**
+         * The menus in a column, the pause (GameMaster's mockup, diseno/ui/menus.py): between their buttons; from the frame
+         * of their panel to its title, to the sides and under the buttons; the title, twice as big with its shadow, and
+         * from it to the first button.
+         */
+        const val COLUMN_GAP = 6
+        private const val MENU_TOP = 6
+        private const val MENU_SIDE = 8
+        private const val MENU_BOTTOM = 7
+        const val TITLE_SIZE = 2
+        private const val MENU_TITLE = PixelFont.HEIGHT * TITLE_SIZE + 2
+        private const val MENU_TITLE_GAP = 8
+
+        /**
+         * The settings: how wide their panel is, from its frame to the rows, the rows and how tall; and the «SÍ | NO»:
+         * each half, the slot of both and its room on the right.
+         */
+        const val SETTINGS_WIDTH = 208
+        private const val ROWS_PAD = 3
+        const val SETTINGS_ROWS = 3
+        const val SETTINGS_ROW = 26
+        const val SWITCH_HALF = 26
+        const val SWITCH_HEIGHT = 22
+        const val SWITCH_SIDE = 6
+        const val CREDITS_TEXT = "CRÉDITOS"
+
+        /**
+         * The credits: from the frame of their panel to the text, above, at the sides and below; from the title to the
+         * heading of the licences, with the line between them; from the heading to the libraries, and between their two
+         * columns.
+         */
+        private const val CREDITS_TOP = 8
+        private const val CREDITS_SIDE = 12
+        private const val CREDITS_BOTTOM = 6
+        private const val CREDITS_RULE_GAP = 12
+        private const val CREDITS_RULE_UP = 7
+        private const val CREDITS_HEADING_GAP = 4
+        private const val CREDITS_COLUMNS_GAP = 24
+
+        /** From the gear to the sound on the start screen. */
+        const val GEAR_GAP = 8
+
         /** The narrowest a button with an answer is: «SÍ» and «NO». */
         const val ANSWER_WIDTH = 56
         const val SMALL = 20
@@ -219,6 +383,9 @@ internal class MenuLayout(val width: Int, val height: Int, val insets: SafeInset
         const val RIBBON_HEIGHT = 17
         const val TAB_HEIGHT = 16
         const val TAB_OVERLAP = 2
+
+        /** The room above and below a tab of the records that still takes the finger (GameMaster: 16 px are short). */
+        const val TAB_SLACK = 4
 
         /** A card: the view of 88 × 56 in the frame of GameMaster's card, with the plate of the name over it. */
         const val CARD_WIDTH = 96
@@ -272,10 +439,27 @@ internal class MenuLayout(val width: Int, val height: Int, val insets: SafeInset
     }
 }
 
+/** A menu in a column: its [panel], where its title goes ([titleTop]) and its [buttons], from the top. */
+internal class ColumnMenu(val panel: Box, val titleTop: Int, val buttons: List<Box>)
+
+/**
+ * Where everything of the credits goes: their [panel], the top of its title, the [rule] under it, the top of the heading
+ * of the licences and of the first library, where the names begin and where the licences end.
+ */
+internal class CreditsLayout(
+    val panel: Box,
+    val titleTop: Int,
+    val rule: Box,
+    val headingTop: Int,
+    val firstLine: Int,
+    val namesLeft: Int,
+    val licencesRight: Int,
+)
+
 /**
  * A button with [text], and [icon] before it if given, in [box]: GameMaster's if there is [ui] art, in its pressed look
- * while the finger is on it ([pressed]), with what is in it centred on its face; or the grey prototype's, where [lit]
- * marks the main one.
+ * while the finger is on it ([pressed]), with what is in it centred on its face, or from its left ([fromLeft]) in the
+ * buttons of a column, so their icons go in a column too; or the grey prototype's, where [lit] marks the main one.
  */
 internal fun DrawScope.paintButton(
     box: Box,
@@ -284,6 +468,7 @@ internal fun DrawScope.paintButton(
     icon: Icon? = null,
     pressed: Boolean = false,
     lit: Boolean = false,
+    fromLeft: Boolean = false,
 ) {
     val piece = ui?.piece(if (pressed) "boton-pulsado" else "boton")
     if (piece == null) {
@@ -296,7 +481,7 @@ internal fun DrawScope.paintButton(
     val face = piece.inside(box)
     val icons = ui.icons?.takeIf { icon != null }
     val across = PixelFont.width(text) + if (icons != null) MenuLayout.ICON + MenuLayout.ICON_GAP else 0
-    var x = (face.left + face.right - across) / 2
+    var x = if (fromLeft) box.left + MenuLayout.BUTTON_PAD else (face.left + face.right - across) / 2
     if (icon != null && icons != null) {
         drawUiSprite(icons, icon.key, x, (face.top + face.bottom - MenuLayout.ICON) / 2)
         x += MenuLayout.ICON + MenuLayout.ICON_GAP

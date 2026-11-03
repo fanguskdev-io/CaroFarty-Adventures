@@ -86,6 +86,47 @@ class MenusTest {
     }
 
     @Test
+    fun thePauseTheSettingsAndTheCreditsFitEveryScreen() {
+        val pause = listOf(Texts.RESUME, Texts.RESTART, Texts.SETTINGS, Texts.HOME)
+        val icons = listOf(Icon.Resume, Icon.Again, Icon.Settings, Icon.Home)
+        for (layout in layouts()) {
+            val on = "${layout.width} × ${layout.height}, ${layout.insets}"
+            val menu = layout.pauseMenu(pause, icons)
+            assertTrue(layout.has(menu.panel), "the pause on $on")
+            for (button in menu.buttons) assertTrue(button.top >= menu.titleTop + 16 && button.bottom <= menu.panel.bottom, "in its panel")
+            // All as wide as «CONTINUAR» with its icon, GameMaster's 87 px.
+            assertTrue(menu.buttons.all { it.width == 87 && it.height == MenuLayout.BUTTON_HEIGHT })
+            val header = layout.back.bottom
+            assertTrue(layout.has(layout.settingsPanel) && layout.settingsPanel.top > header, "the settings on $on")
+            assertTrue(layout.has(layout.creditsButton) && layout.creditsButton.top > layout.settingsPanel.bottom, "the credits button")
+            for (row in layout.settingsRows) {
+                val slot = layout.switchSlot(row)
+                assertTrue(slot.left > row.left && slot.right < row.right && slot.top >= row.top && slot.bottom <= row.bottom, "the switch")
+                val (yes, no) = layout.switchTouch(row)
+                assertEquals(26, yes.width)
+                assertEquals(26, no.height)
+                assertTrue(yes.right - no.left == 1, "the two halves share their middle column")
+            }
+            val credits = layout.credits(Texts.CREDITS_LINE, Texts.libraries)
+            assertTrue(layout.has(credits.panel) && credits.panel.top > header, "the credits on $on")
+            assertTrue(
+                credits.firstLine + Texts.libraries.size * PixelFont.LINE <= credits.panel.bottom - MenuLayout.PANEL_BORDER,
+                "the libraries",
+            )
+            assertTrue(PixelFont.width(Texts.CREDITS_LINE, MenuLayout.TITLE_SIZE) <= credits.panel.width - 2 * MenuLayout.PANEL_BORDER)
+            assertFalse(layout.forward(Texts.FULL_TEXTS).overlaps(layout.ribbon(Texts.CREDITS)), "«TEXTOS» and the ribbon on $on")
+            assertFalse(layout.forward(Texts.NEXT).overlaps(layout.ribbon(Texts.LICENCES)), "«SIGUIENTE» and the ribbon on $on")
+            assertTrue(layout.has(layout.licencesPanel) && layout.licenceLines >= 8, "a page of the licences on $on")
+            assertTrue(layout.licencesText.top + layout.licenceLines * PixelFont.LINE < layout.licencesFoot, "the page and its foot")
+            // The gear, left of the sound, its finger's room apart from it (GameMaster).
+            assertEquals(layout.titleSound.left - 8 - 20, layout.titleSettings.left)
+            assertFalse(layout.titleSettings.overlaps(layout.howToButton), "the gear and how to play on $on")
+        }
+        // At 320 × 180 the pause is 12 px from the top, as in GameMaster's mockup.
+        assertEquals(12, MenuLayout(320, 180, SafeInsets()).pauseMenu(pause, icons).panel.top)
+    }
+
+    @Test
     fun theSmallButtonsKeepClearOfARoundedCorner() {
         val layout = MenuLayout(400, 180, SafeInsets())
         assertEquals(400 - 8 - 20, layout.corner.left)

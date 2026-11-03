@@ -1,0 +1,14 @@
+CaroFarty · A FANGUSK.DEV GAME
+
+Librerías de terceros que lleva el juego (docs/licencias.md):
+
+- Kotlin, biblioteca estándar y Kotlin/Native (JetBrains): Apache 2.0.
+- kotlinx.coroutines y kotlinx.serialization (JetBrains): Apache 2.0.
+- Compose Multiplatform: runtime, foundation, ui, animation y resources (JetBrains, a partir de Jetpack Compose de Google): Apache 2.0.
+- Lifecycle y SavedState (JetBrains y The Android Open Source Project): Apache 2.0.
+- AndroidX y sus dependencias: activity, core, lifecycle, savedstate, collection, annotation, window, emoji2, profileinstaller, startup, tracing y otras (The Android Open Source Project): Apache 2.0.
+- Guava ListenableFuture, JSpecify y JetBrains Annotations: Apache 2.0.
+- Skiko (JetBrains): Apache 2.0; y Skia (Google), solo en iOS: BSD de 3 cláusulas.
+
+El texto de la licencia Apache 2.0 está en apache-2.0.txt, y el aviso de Skia en skia.txt.
+La fuente, el arte, la música y los sonidos son propios del juego.

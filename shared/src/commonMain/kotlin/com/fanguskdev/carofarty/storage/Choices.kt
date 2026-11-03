@@ -16,6 +16,22 @@ class Choices(private val store: KeyValueStore) {
         get() = store.getBoolean(SOUND, true)
         set(value) = store.putBoolean(SOUND, value)
 
+    /**
+     * The settings (UI-11, TEC-09; Fangusk: «Me parece bien»): the music and the sounds each on its own, and the soft
+     * vibration with what goes wrong; all on at first. The button of the sound by the pause still silences everything.
+     */
+    var musicOn: Boolean
+        get() = store.getBoolean(MUSIC, true)
+        set(value) = store.putBoolean(MUSIC, value)
+
+    var effectsOn: Boolean
+        get() = store.getBoolean(EFFECTS, true)
+        set(value) = store.putBoolean(EFFECTS, value)
+
+    var vibrationOn: Boolean
+        get() = store.getBoolean(VIBRATION, true)
+        set(value) = store.putBoolean(VIBRATION, value)
+
     var tutorialSeen: Boolean
         get() = store.getBoolean(TUTORIAL, false)
         set(value) = store.putBoolean(TUTORIAL, value)
@@ -27,6 +43,9 @@ class Choices(private val store: KeyValueStore) {
     private companion object {
         const val SCENARIO = "chosen_scenario"
         const val SOUND = "sound_on"
+        const val MUSIC = "music_on"
+        const val EFFECTS = "effects_on"
+        const val VIBRATION = "vibration_on"
         const val TUTORIAL = "tutorial_seen"
         const val RUNS = "runs_played"
     }

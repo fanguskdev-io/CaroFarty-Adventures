@@ -102,7 +102,7 @@ internal fun DrawScope.paintPanel(
             Tone.Warning -> ui?.colors?.warning ?: GreyPalette.bad
             Tone.Record -> ui?.colors?.record ?: GreyPalette.record
         }
-        drawTextAround(line.text, width / 2, y, color, ui?.colors?.shadow ?: GreyPalette.shadow, line.size)
+        drawTextAround(line.text, width / 2, y - line.lift, color, ui?.colors?.shadow ?: GreyPalette.shadow, line.size)
         y += PixelFont.HEIGHT * line.size + 2
     }
 }
@@ -122,7 +122,15 @@ internal fun panelBox(
 /** What a line of a panel says, by its colour: something plain, a warning or a record. */
 internal enum class Tone { Plain, Warning, Record }
 
-internal class PanelLine(val text: String, val tone: Tone = Tone.Plain, val size: Int = 1)
+/**
+ * A line of a panel: what it says, its tone and its size. The counter of a new record (UI-15) changes its text and its
+ * tone as it counts, and lifts it a little ([lift], in pixels) when it arrives.
+ */
+internal class PanelLine(text: String, tone: Tone = Tone.Plain, val size: Int = 1) {
+    var text = text
+    var tone = tone
+    var lift = 0
+}
 
 private fun panelHeight(lines: List<PanelLine>): Int = lines.sumOf { PixelFont.LINE * it.size + 2 } + 2 * PANEL_TOP
 

@@ -965,12 +965,12 @@
   "efectos": {
    "hoja": "efectos.png",
    "tamaño": [
-    16,
-    8
+    64,
+    32
    ],
    "ancla": [
-    8,
-    8
+    32,
+    16
    ],
    "columnas": 16,
    "animaciones": {
@@ -985,10 +985,116 @@
       140,
       140
      ],
-     "vacias-abajo": 0
+     "vacias-abajo": 16
+    },
+    "polvo-salto": {
+     "fotogramas": [
+      3,
+      4,
+      5,
+      6
+     ],
+     "ms": [
+      60,
+      60,
+      70,
+      80
+     ],
+     "vacias-abajo": 16
+    },
+    "polvo-aterriza": {
+     "fotogramas": [
+      7,
+      8,
+      9,
+      10
+     ],
+     "ms": [
+      60,
+      60,
+      70,
+      80
+     ],
+     "vacias-abajo": 16
+    },
+    "estela": {
+     "fotogramas": [
+      11,
+      12,
+      13,
+      14
+     ],
+     "ms": [
+      60,
+      60,
+      60,
+      60
+     ],
+     "vacias-abajo": 16
+    },
+    "recogido": {
+     "fotogramas": [
+      15,
+      16,
+      17
+     ],
+     "ms": [
+      50,
+      50,
+      50
+     ],
+     "vacias-abajo": 8
+    },
+    "olor-revienta": {
+     "fotogramas": [
+      18,
+      19,
+      20,
+      21
+     ],
+     "ms": [
+      60,
+      70,
+      80,
+      90
+     ],
+     "vacias-abajo": 11
+    },
+    "plumas": {
+     "fotogramas": [
+      22,
+      23,
+      24,
+      25,
+      26
+     ],
+     "ms": [
+      60,
+      70,
+      80,
+      90,
+      90
+     ],
+     "vacias-abajo": 7
     }
    },
-   "variantes": [],
+   "variantes": [
+    {
+     "familia": "",
+     "nombre": "bosque",
+     "hoja": "efectos@bosque.png"
+    },
+    {
+     "familia": "",
+     "nombre": "nieve",
+     "hoja": "efectos@nieve.png"
+    },
+    {
+     "familia": "",
+     "nombre": "desierto",
+     "hoja": "efectos@desierto.png"
+    }
+   ],
    "razas": []
   },
   "bosque-tiles": {
@@ -1235,6 +1341,51 @@
       250
      ],
      "vacias-abajo": 0
+    },
+    "ambiente-hoja-1": {
+     "fotogramas": [
+      36,
+      37,
+      38,
+      39
+     ],
+     "ms": [
+      140,
+      140,
+      140,
+      140
+     ],
+     "vacias-abajo": 5
+    },
+    "ambiente-hoja-2": {
+     "fotogramas": [
+      40,
+      41,
+      42,
+      43
+     ],
+     "ms": [
+      140,
+      140,
+      140,
+      140
+     ],
+     "vacias-abajo": 5
+    },
+    "ambiente-hoja-3": {
+     "fotogramas": [
+      44,
+      45,
+      46,
+      47
+     ],
+     "ms": [
+      140,
+      140,
+      140,
+      140
+     ],
+     "vacias-abajo": 5
     }
    },
    "variantes": [],
@@ -1905,10 +2056,55 @@
      ],
      "vacias-abajo": 1
     },
+    "continuar": {
+     "fotogramas": [
+      8
+     ],
+     "ms": [
+      0
+     ],
+     "vacias-abajo": 2
+    },
+    "inicio": {
+     "fotogramas": [
+      9
+     ],
+     "ms": [
+      0
+     ],
+     "vacias-abajo": 1
+    },
+    "ajustes": {
+     "fotogramas": [
+      10
+     ],
+     "ms": [
+      0
+     ],
+     "vacias-abajo": 0
+    },
+    "musica": {
+     "fotogramas": [
+      11
+     ],
+     "ms": [
+      0
+     ],
+     "vacias-abajo": 1
+    },
+    "vibracion": {
+     "fotogramas": [
+      12
+     ],
+     "ms": [
+      0
+     ],
+     "vacias-abajo": 1
+    },
     "dedo-toca": {
      "fotogramas": [
-      8,
-      9
+      13,
+      14
      ],
      "ms": [
       450,
@@ -1918,14 +2114,164 @@
     },
     "dedo-mantiene": {
      "fotogramas": [
-      10,
-      11
+      15,
+      16
      ],
      "ms": [
       300,
       300
      ],
      "vacias-abajo": 0
+    },
+    "confeti-frambuesa-2x2": {
+     "fotogramas": [
+      17,
+      18,
+      19,
+      20
+     ],
+     "ms": [
+      90,
+      60,
+      90,
+      60
+     ],
+     "vacias-abajo": 14
+    },
+    "confeti-frambuesa-2x3": {
+     "fotogramas": [
+      21,
+      22,
+      23,
+      24
+     ],
+     "ms": [
+      90,
+      60,
+      90,
+      60
+     ],
+     "vacias-abajo": 13
+    },
+    "confeti-oro-2x2": {
+     "fotogramas": [
+      25,
+      26,
+      27,
+      28
+     ],
+     "ms": [
+      90,
+      60,
+      90,
+      60
+     ],
+     "vacias-abajo": 14
+    },
+    "confeti-oro-2x3": {
+     "fotogramas": [
+      29,
+      30,
+      31,
+      32
+     ],
+     "ms": [
+      90,
+      60,
+      90,
+      60
+     ],
+     "vacias-abajo": 13
+    },
+    "confeti-azul-2x2": {
+     "fotogramas": [
+      33,
+      34,
+      35,
+      36
+     ],
+     "ms": [
+      90,
+      60,
+      90,
+      60
+     ],
+     "vacias-abajo": 14
+    },
+    "confeti-azul-2x3": {
+     "fotogramas": [
+      37,
+      38,
+      39,
+      40
+     ],
+     "ms": [
+      90,
+      60,
+      90,
+      60
+     ],
+     "vacias-abajo": 13
+    },
+    "confeti-violeta-2x2": {
+     "fotogramas": [
+      41,
+      42,
+      43,
+      44
+     ],
+     "ms": [
+      90,
+      60,
+      90,
+      60
+     ],
+     "vacias-abajo": 14
+    },
+    "confeti-violeta-2x3": {
+     "fotogramas": [
+      45,
+      46,
+      47,
+      48
+     ],
+     "ms": [
+      90,
+      60,
+      90,
+      60
+     ],
+     "vacias-abajo": 13
+    },
+    "confeti-crema-2x2": {
+     "fotogramas": [
+      49,
+      50,
+      51,
+      52
+     ],
+     "ms": [
+      90,
+      60,
+      90,
+      60
+     ],
+     "vacias-abajo": 14
+    },
+    "confeti-crema-2x3": {
+     "fotogramas": [
+      53,
+      54,
+      55,
+      56
+     ],
+     "ms": [
+      90,
+      60,
+      90,
+      60
+     ],
+     "vacias-abajo": 13
     }
    },
    "variantes": [],
@@ -2136,7 +2482,11 @@
    },
    "lejano": {
     "hoja": "bosque-fondo-lejano.png",
-    "bajo-el-suelo": 0
+    "bajo-el-suelo": 0,
+    "variantes": {
+     "luz-1": "bosque-fondo-lejano-luz-1.png",
+     "luz-2": "bosque-fondo-lejano-luz-2.png"
+    }
    },
    "medio": {
     "hoja": "bosque-fondo-medio.png",

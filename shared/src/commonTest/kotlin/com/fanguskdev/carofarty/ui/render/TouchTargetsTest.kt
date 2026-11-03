@@ -1,13 +1,15 @@
 package com.fanguskdev.carofarty.ui.render
 
 import com.fanguskdev.carofarty.engine.PixelViewport
+import com.fanguskdev.carofarty.game.Scenario
 import com.fanguskdev.carofarty.ui.Texts
 import kotlin.test.Test
 import kotlin.test.assertTrue
 
 /**
  * ACC-03: every button, with the room around it that still takes the finger, at least 48 dp on Android and 44 pt on
- * iOS, on screens from Fangusk's Nothing to a small iPhone; and the row of the pause fits on the narrowest of them.
+ * iOS, on screens from Fangusk's Nothing to a small iPhone: the buttons, the pause in its column, the rows and the
+ * «SÍ | NO» of the settings and the tabs of the records; and the pause fits on the smallest of them.
  */
 class TouchTargetsTest {
     /** A screen: its pixels across and down, how many of them make a dp (or a pt) and the least a button may be. */
@@ -34,14 +36,40 @@ class TouchTargetsTest {
             val viewport = PixelViewport.fit(screen.width, screen.height)
             val layout = MenuLayout(viewport.width, viewport.height, SafeInsets())
             val units = viewport.scale / screen.density
-            val pause = layout.row(listOf(Texts.RESUME, Texts.RESTART, Texts.HOME), top = 100, listOf(Icon.Resume, Icon.Again, null))
-            val boxes = listOf(layout.corner, layout.hudSound, layout.back, layout.titleSound, layout.recordsButton, layout.howToButton) +
-                pause
-            for (box in boxes) {
-                val side = (minOf(box.width, box.height) + 2 * Box.SLACK) * units
-                assertTrue(side >= screen.least, "${screen.name}: a button of $side, at least ${screen.least}")
+            fun check(what: String, across: Int, down: Int) {
+                val side = minOf(across, down) * units
+                assertTrue(side >= screen.least, "${screen.name}: $what of $side, at least ${screen.least}")
             }
-            assertTrue(pause.first().left >= 0 && pause.last().right <= viewport.width, "${screen.name}: the pause fits")
+            // The buttons with the room around them that the game counts.
+            val buttons = listOf(
+                layout.corner,
+                layout.hudSound,
+                layout.back,
+                layout.titleSound,
+                layout.titleSettings,
+                layout.recordsButton,
+                layout.howToButton,
+                layout.creditsButton,
+                layout.forward(Texts.FULL_TEXTS),
+                layout.forward(Texts.NEXT),
+            )
+            for (box in buttons) check("a button", box.width + 2 * Box.SLACK, box.height + 2 * Box.SLACK)
+            // The pause in a column: each button with half the gap above and below it (GameMaster).
+            val pause = layout.pauseMenu(
+                listOf(Texts.RESUME, Texts.RESTART, Texts.SETTINGS, Texts.HOME),
+                listOf(Icon.Resume, Icon.Again, Icon.Settings, Icon.Home),
+            )
+            for (box in pause.buttons) check("a button of the pause", box.width + 2 * Box.SLACK, box.height + MenuLayout.COLUMN_GAP)
+            // The settings: each half of a «SÍ | NO» and each row, side by side and one over another, without room around.
+            for (row in layout.settingsRows) {
+                check("a row of the settings", row.width, row.height)
+                for (half in layout.switchTouch(row)) check("a half of a «SÍ | NO»", half.width, half.height)
+            }
+            // The tabs of the records, side by side, with room above and below.
+            for (tab in layout.tabs(Scenario.entries.map { Texts.scenario(it) })) {
+                check("a tab of the records", tab.width, tab.height + 2 * MenuLayout.TAB_SLACK)
+            }
+            assertTrue(pause.panel.left >= 0 && pause.panel.bottom <= viewport.height, "${screen.name}: the pause fits")
         }
     }
 

@@ -13,6 +13,7 @@ import com.fanguskdev.carofarty.storage.Choices
 import com.fanguskdev.carofarty.storage.MemoryStore
 import com.fanguskdev.carofarty.storage.Records
 import com.fanguskdev.carofarty.ui.render.Box
+import com.fanguskdev.carofarty.ui.render.Icon
 import com.fanguskdev.carofarty.ui.render.IntroShow
 import com.fanguskdev.carofarty.ui.render.MenuLayout
 import com.fanguskdev.carofarty.ui.render.PanelLine
@@ -220,6 +221,45 @@ class SnapshotsTest {
         val points = Offset(60f, 50f)
         val noPoints = start + mapOf(40 to Tap(hold = 2, at = points), 50 to Tap(hold = 2, at = points))
         render("fin-sin-puntos", 2400, 1080, Script(frames = 90, taps = noPoints, debug = true), seen())
+    }
+
+    @Test
+    fun thePauseItsSettingsTheCreditsAndTheLicences() {
+        val pauseTexts = listOf(Texts.RESUME, Texts.RESTART, Texts.SETTINGS, Texts.HOME)
+        val pauseIcons = listOf(Icon.Resume, Icon.Again, Icon.Settings, Icon.Home)
+        for ((name, width, height) in listOf(Triple("", 2400, 1080), Triple("-320x180", 320 * 3, 180 * 3))) {
+            val start = mapOf(10 to Tap(hold = 2, at = at(width, height) { it.cards[0] }))
+            val pause = start + mapOf(60 to Tap(hold = 2, at = at(width, height) { it.corner }))
+            val menu = { button: Int -> Tap(hold = 2, at = at(width, height) { it.pauseMenu(pauseTexts, pauseIcons).buttons[button] }) }
+            render("pausa$name", width, height, Script(frames = 80, taps = pause), seen())
+            render("pausa-ajustes$name", width, height, Script(frames = 100, taps = pause + mapOf(80 to menu(2))), seen())
+            // «CONTINUAR»: the count before the run goes on, over the run without its veil.
+            render("pausa-cuenta$name", width, height, Script(frames = 90, taps = pause + mapOf(80 to menu(0))), seen())
+            // From the start screen: the gear, the settings, the credits and a page of the licences.
+            val gear = Tap(hold = 2, at = at(width, height) { it.titleSettings })
+            val credits = Tap(hold = 2, at = at(width, height) { it.creditsButton })
+            val texts = Tap(hold = 2, at = at(width, height) { it.forward(Texts.FULL_TEXTS) })
+            val next = Tap(hold = 2, at = at(width, height) { it.forward(Texts.NEXT) })
+            render("inicio-ajustes$name", width, height, Script(frames = 30), seen())
+            render("ajustes$name", width, height, Script(frames = 30, taps = mapOf(10 to gear)), seen())
+            render("creditos$name", width, height, Script(frames = 50, taps = mapOf(10 to gear, 30 to credits)), seen())
+            val licences = mapOf(10 to gear, 30 to credits, 50 to texts)
+            render("licencias$name", width, height, Script(frames = 80, taps = licences), seen())
+            render("licencias-2$name", width, height, Script(frames = 100, taps = licences + mapOf(80 to next)), seen())
+        }
+        // With the sound off by its button, the music and the sounds dimmed; and the vibration turned off from its «NO».
+        val silent = seen().also { Choices(it).soundOn = false }
+        val gear = Tap(hold = 2, at = at(2400, 1080) { it.titleSettings })
+        val no = Tap(hold = 2, at = at(2400, 1080) { it.switchTouch(it.settingsRows[2])[1] })
+        render("ajustes-silencio", 2400, 1080, Script(frames = 50, taps = mapOf(10 to gear, 30 to no)), silent)
+        assertFalse(Choices(silent).vibrationOn, "«NO» turns the vibration off")
+    }
+
+    @Test
+    fun aNewRecordCountsItsMetresAndThrowsConfetti() {
+        // The first run of a scenario is always a record: its end at a few moments, the counter and the confetti.
+        val start = startIn(Scenario.Bosque)
+        for (seconds in listOf(5, 6, 7, 8)) render("record-$seconds", 2400, 1080, Script(frames = 60 * seconds, taps = start), seen())
     }
 
     @Test

@@ -32,6 +32,20 @@ class ChoicesTest {
     }
 
     @Test
+    fun theMusicTheSoundsAndTheVibrationAreOnAtFirstAndEachStaysAsSheLeavesIt() {
+        // UI-11, TEC-09: each on its own (Fangusk: «Me parece bien»).
+        val store = MemoryStore()
+        val first = Choices(store)
+        assertTrue(first.musicOn && first.effectsOn && first.vibrationOn)
+        first.musicOn = false
+        first.vibrationOn = false
+        val again = Choices(store)
+        assertFalse(again.musicOn)
+        assertTrue(again.effectsOn)
+        assertFalse(again.vibrationOn)
+    }
+
+    @Test
     fun howToPlayShowsUntilSheHasSeenIt() {
         val store = MemoryStore()
         assertFalse(Choices(store).tutorialSeen)

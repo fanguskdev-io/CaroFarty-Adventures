@@ -36,6 +36,10 @@ No van en la app: kotlin-test y las de las pruebas, ktlint y los plugins de Grad
 - **BSD de 3 cláusulas** (Skia, solo en iOS): reproducir su aviso de copyright, sus condiciones y su descargo en la
   documentación o en los materiales que acompañan a la app.
 
-Así que los créditos (UI-16) llevan una línea con las librerías y sus licencias, y el texto de la Apache 2.0 y el aviso
-de Skia van dentro de la app, para leerlos sin internet ([ADR 0005](adr/0005-un-regalo-sin-conexion.md)). El texto de
-los créditos lo decide Fangusk; las licencias entran con él.
+Así que los créditos (UI-16) llevan una línea con cada librería y su licencia, y el texto de la Apache 2.0 y el aviso
+de Skia van dentro de la app, para leerlos sin internet ([ADR 0005](adr/0005-un-regalo-sin-conexion.md)): están en
+`shared/src/commonMain/composeResources/files/licencias/`, con la lista de las librerías, y se leen desde «Textos» en los
+créditos ([pantallas](pantallas.md#créditos-y-licencias)). El texto de los créditos lo eligió Fangusk: «A FANGUSK.DEV
+GAME».
+
+Si cambian las librerías, se cambian aquí, en `librerias.txt` y en `Texts.libraries`, la lista de los créditos.

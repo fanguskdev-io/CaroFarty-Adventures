@@ -3,18 +3,21 @@
 Aquí se deja cada APK de Android para instalar en el móvil. El APK no se versiona: se genera con
 `./gradlew :androidApp:assembleRelease` y se copia aquí con la fecha en el nombre.
 
-## La beta del 2026-11-02 (la séptima)
+## La beta del 2026-11-03 (la octava)
 
-`CaroFarty-beta-2026-11-02-7.apk`, 9,8 MB, versión de lanzamiento firmada con la clave de depuración de este Mac
-(SHA-256 del fichero: `cdd8461a00864b11924d8f18eba92a844d3a9dbf9ff72e9395a96645498381aa`), del commit `1d28255`.
-Sustituye a la sexta y añade lo que pidió Fangusk tras jugarla: **la presentación** con el título animado, el subtítulo
-«SALVANDO EL MUNDO, PATITA A PATITA» y «TOCA PARA EMPEZAR»; **algo más de plataformeo**; y **huevos y pescados junto a los
-animales**. Probada en el emulador y, la parte común, en el simulador de iOS; falta probarla en su Nothing Phone (3).
+`CaroFarty-beta-2026-11-03-8.apk`, 9,8 MB, versión de lanzamiento firmada con la clave de depuración de este Mac
+(SHA-256 del fichero: `44688fc8abe438adc00fb64e1d260ecb47b0660fc457d901d6485f19927f768d`), del commit `0498095`.
+Sustituye a la séptima y es **mucho más difícil**, como pidió Fangusk tras jugarla
+([ADR 0011](../docs/adr/0011-mas-dificultad-tras-la-beta-7.md)): se empieza con 5 puntos y el huevo resta 3 y el pescado
+5; hay muchos menos animales y más huevos y pescados, más difíciles de esquivar; plataformas de 1 y 2 tiles; y la
+velocidad y la dificultad siguen subiendo hasta el minuto 30. Quedarse sin puntos ya es un riesgo de verdad. Probada en
+el emulador y, la parte común, en el simulador de iOS; falta probarla en su Nothing Phone (3).
 
 ## La app de medida (AUD-29)
 
 `CaroFarty-medida-2026-11-02.apk`, 9,8 MB (SHA-256 `77281408f6b548b3fe8f61f3a5314c9407840ea174172558b9d9cdac5ed2b9e6`),
-del mismo commit. Es otra app, «CaroFarty medida», que se instala aparte del juego y no toca sus récords. Juega sola con el
+de la beta 7. Ya cumplió su papel: Fangusk midió 30 minutos en su Nothing (60 FPS, sin fotogramas lentos) y se puede
+desinstalar. Es otra app, «CaroFarty medida», que se instala aparte del juego y no toca sus récords. Juega sola con el
 piloto automático, optimizada como la beta, para ver si el sonido y los fotogramas aguantan 30 minutos en su teléfono:
 
 1. Instálala como la beta (abajo) y ábrela: empieza a jugar sola, con música, y la pantalla no se apaga.
@@ -44,7 +47,17 @@ piloto automático, optimizada como la beta, para ver si el sonido y los fotogra
   225 px/s) y más a menudo, y las calmas más cortas.
 - **Animales vigilados** (ADR 0010): a veces un huevo frito o un pescado junto a un animal, donde aterriza el salto. Unos
   se rescatan limpios con un salto bien medido; otros son un dilema: o el animal o no restar. Siempre hay un camino que
-  no toca nada que reste. Pocos al principio y más con la distancia.
+  no toca nada que reste. Pocos al principio y más con la distancia: desde esta beta, a toda dificultad, uno de cada 2
+  animales, y casi siempre un dilema que cuesta 2 o 4 puntos.
+- **Más difícil** (ADR 0011), desde esta beta: 5 puntos al empezar, el huevo a −3 y el pescado a −5; muchos menos
+  animales (unos 4 cada 100 m al empezar y 1 a toda dificultad, por 11 y 9 en la séptima) y más huevos y pescados: en
+  el camino del salto, en parejas, uno arriba y otro abajo, que obligan a medir la altura, donde se aterriza y entre
+  plataformas. Quien va a por todos los animales se puede quedar sin puntos; quien los elige, no.
+- **Plataformas pequeñas**: desde la mitad de la dificultad, las de los barrancos miden 1 o 2 tiles, quietas o móviles,
+  para aterrizar y volver a saltar enseguida.
+- **Hasta el minuto 30**: la velocidad sigue subiendo despacio tras los primeros minutos, hasta 460 px/s a los 10 y unos
+  550 a los 30, y con ella la dificultad; a esas velocidades Caro corre más cerca del borde izquierdo para ver más por
+  delante.
 - **Récords por fase**: las 5 mejores partidas con medallas, sus metros, sus puntos máximos y la fecha (2 NOV 2026).
 - **Cómo se juega**: dos páginas con dos viñetas que se juegan solas; sale la primera vez que se abre. Ya no se mezclan
   las dos viñetas de una página en el móvil y el salto no se sale del marco.
@@ -68,7 +81,7 @@ piloto automático, optimizada como la beta, para ver si el sonido y los fotogra
 **Con el cable** (y las opciones de desarrollador con la depuración USB activada):
 
 ```bash
-~/Library/Android/sdk/platform-tools/adb install -r entregas/CaroFarty-beta-2026-11-02-7.apk
+~/Library/Android/sdk/platform-tools/adb install -r entregas/CaroFarty-beta-2026-11-03-8.apk
 ```
 
 La primera vez, el móvil pregunta si permite la depuración USB desde este Mac: hay que aceptar en su pantalla.

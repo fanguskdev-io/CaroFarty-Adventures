@@ -138,7 +138,7 @@ Probado el 2026-11-03 en el emulador (Pixel 10 Pro XL, Android 16), en una parti
 | Una notificación | El juego sigue debajo, sin pararse |
 | Batería baja | Igual: el aviso no para el juego |
 | Girar el teléfono 180° | Sigue en horizontal, sin reiniciarse |
-| Una llamada | Con la llamada a pantalla completa, se pausa como al salir de la app. Si solo sale el aviso de arriba, la partida sigue mientras suena: pausarla pide quedarse con el foco del audio, y entonces la música de otras apps se pararía al jugar (pendiente de Fangusk) |
+| Una llamada | Se pausa con su menú en cuanto suena, también si solo sale el aviso de arriba: el juego tiene el foco del audio de Android mientras suena su música, y la llamada se lo quita (Fangusk: «Okey adelante»). Con la música del juego apagada en los ajustes, lo suelta para que la música de otras apps suene con el juego; entonces la llamada solo pausa al cogerla |
 | Cerrar la app justo al acabar una partida | Los récords se guardan con `apply()` de SharedPreferences: Android los escribe al momento en segundo plano y espera a que acaben antes de dejar la app en segundo plano. Solo se perdería la última partida si el teléfono matara la app en esos milisegundos |
 
 ## En qué teléfonos

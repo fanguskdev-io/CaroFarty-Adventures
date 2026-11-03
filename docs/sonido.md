@@ -36,6 +36,15 @@ La mezcla, la que propuso GameMaster para empezar: la música a 0,8 y los efecto
 (±40 cents de tono y ±1,5 dB al azar), para que una racha de ellos no suene a máquina; la cola del salto largo, con el
 mismo tono que su salto corto, para que empalmen; los jingles y los botones, siempre iguales. En el escritorio solo cambia el volumen, no el tono.
 
+## Con las demás apps (QA-07)
+
+Mientras suena la música del juego, el juego se queda con el sonido del teléfono, el foco del audio de Android. Así la
+música de otras apps se para al jugar, y una llamada que suena o una voz que habla se lo quitan y la partida se pausa con
+su menú, como al salir de la app. Con la música del juego apagada en los ajustes, o con todo el sonido apagado, lo
+suelta, y la música de otras apps suena con el juego: así Caro puede jugar con la suya. Entonces la llamada solo pausa
+al cogerla. Lo eligió Fangusk: «Okey adelante». Si cambia el ajuste en mitad de una partida, lo coge o lo suelta en ese
+momento.
+
 ## Cómo suena en cada teléfono
 
 - **Android**: la música, con un AudioTrack al que un hilo propio, con prioridad de audio, le da las muestras: las del

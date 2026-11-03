@@ -1,5 +1,6 @@
 package com.fanguskdev.carofarty.ui
 
+import com.fanguskdev.carofarty.audio.AudioFocus
 import com.fanguskdev.carofarty.engine.PixelViewport
 import com.fanguskdev.carofarty.game.GameConfig
 import com.fanguskdev.carofarty.game.RunPhase
@@ -110,6 +111,40 @@ class PauseAndSettingsTest {
         assertTrue(after.panel != before && after.panel.right <= session.layout.width, "laid out again: $after.panel")
         session.tap(after.buttons[0])
         assertEquals(3, session.countdown, "its buttons where they are drawn")
+    }
+
+    /** The phone's sound as the test sees it: whether the game holds it, and a way to take it from the game. */
+    private class FakeFocus : AudioFocus {
+        var held = false
+        override var listener: AudioFocus.Listener? = null
+
+        override fun hold(holding: Boolean) {
+            held = holding
+        }
+
+        fun takeAway() {
+            held = false
+            listener?.lost()
+        }
+    }
+
+    @Test
+    fun aCallThatRingsPausesTheRunAndTheMusicOffLetsTheSoundGo() {
+        // QA-07, Fangusk: «Okey adelante». The audio is not played here, so the session is given the focus as if it was.
+        val focus = FakeFocus()
+        val session =
+            GameSession(GameConfig(), null, null, scope, Records(store), choices, debugBuild = false, focus = focus).running()
+        assertTrue(focus.held, "with its music on, the game holds the phone's sound")
+        focus.takeAway()
+        assertTrue(session.paused)
+        assertNotNull(session.pauseMenu, "paused with its menu, as when the app goes away")
+        session.background()
+        assertFalse(focus.held, "away, it lets it go")
+        session.foreground()
+        assertTrue(focus.held)
+        session.tap(assertNotNull(session.pauseMenu).buttons[2])
+        session.tap(session.layout.switchTouch(session.layout.settingsRows[0])[1])
+        assertFalse(focus.held, "with its music off, the music of other apps plays along")
     }
 
     @Test

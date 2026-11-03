@@ -9,6 +9,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import com.fanguskdev.carofarty.audio.AndroidAudioFocus
 import com.fanguskdev.carofarty.storage.AndroidKeyValueStore
 
 /** The app for Android (MOB-03): one activity, in landscape and immersive full screen, drawing behind the cutout too. */
@@ -21,6 +22,7 @@ class MainActivity : ComponentActivity() {
         }
         hideSystemBars()
         val store = AndroidKeyValueStore(applicationContext)
+        val focus = AndroidAudioFocus(applicationContext)
         // `adb shell am start -n com.fanguskdev.carofarty/.MainActivity --ez debug true` opens the debugging tools at once,
         // `--ez autopilot true` lets the pilot play and `--ez silencio true` turns the sound off, to measure without it.
         // The build to measure (AUD-29) does the first two by itself, with the sound on and the screen kept awake.
@@ -32,7 +34,7 @@ class MainActivity : ComponentActivity() {
         if (measure) window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         setContent {
             // The button to leave the game of the start screen (UI-22) closes the app and takes it out of the recent ones.
-            App(store, tools, debugAtStart, autopilot, sound, quit = { finishAndRemoveTask() })
+            App(store, tools, debugAtStart, autopilot, sound, quit = { finishAndRemoveTask() }, focus = focus)
         }
     }
 

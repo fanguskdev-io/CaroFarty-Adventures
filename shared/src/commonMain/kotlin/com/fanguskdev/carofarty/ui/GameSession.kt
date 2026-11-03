@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import carofarty.shared.generated.resources.Res
+import com.fanguskdev.carofarty.audio.AudioFocus
 import com.fanguskdev.carofarty.audio.GameAudio
 import com.fanguskdev.carofarty.audio.RescueStreak
 import com.fanguskdev.carofarty.audio.Sound
@@ -112,6 +113,7 @@ internal class GameSession(
     autopilot: Boolean = false,
     private val openedAt: TimeSource.Monotonic.ValueTimeMark = TimeSource.Monotonic.markNow(),
     private val quit: (() -> Unit)? = null,
+    private val focus: AudioFocus? = null,
 ) {
     var scenario = choices.scenario
         private set
@@ -358,9 +360,38 @@ internal class GameSession(
     private var hintGap = Int.MIN_VALUE
     private var gapsMet = 0
 
+    /** Whether the app is in front, where it may hold the phone's sound. */
+    private var inFront = true
+
     init {
         applySound()
         if (this.autopilot) startRun(scenario) else audio?.music(scenario)
+        focus?.listener =
+            object : AudioFocus.Listener {
+                override fun lost() = interrupted()
+
+                override fun regained() {
+                    if (!paused && !(screen == Screen.Game && run.phase == RunPhase.Over)) audio?.resume()
+                }
+            }
+        holdFocus()
+    }
+
+    /**
+     * The phone's sound, held while the game's music sounds and the app is in front; with the music off in the settings
+     * (or all the sound), let go, so the music of other apps plays along (Fangusk: «Okey adelante»).
+     */
+    private fun holdFocus() {
+        focus?.hold(inFront && soundOn && choices.musicOn)
+    }
+
+    /**
+     * Another app took the phone's sound: a call that rings, a voice that speaks or its music. The run pauses with its
+     * menu, as when the app goes away, and the music stops (QA-07).
+     */
+    private fun interrupted() {
+        pause()
+        audio?.pause()
     }
 
     fun onFrame(nanos: Long) {
@@ -471,14 +502,18 @@ internal class GameSession(
         audio?.pause()
     }
 
-    /** The app went to the background: the run pauses and the music stops. */
+    /** The app went to the background: the run pauses, the music stops and the phone's sound is let go. */
     fun background() {
         pause()
         audio?.pause()
+        inFront = false
+        holdFocus()
     }
 
     /** The app came back: the music goes on, unless the run waits in its pause or has just ended. */
     fun foreground() {
+        inFront = true
+        holdFocus()
         if (!paused && !(screen == Screen.Game && run.phase == RunPhase.Over)) audio?.resume()
     }
 
@@ -670,6 +705,7 @@ internal class GameSession(
             }
         }
         if (index < 2) applySound()
+        if (index == 0) holdFocus()
         audio?.play(Sound.Tap)
         if (index == 2 && on) shake()
     }
@@ -770,6 +806,7 @@ internal class GameSession(
         choices.soundOn = soundOn
         settings.soundOn = soundOn
         applySound()
+        holdFocus()
         audio?.play(Sound.Tap)
     }
 
@@ -869,6 +906,7 @@ internal class GameSession(
         run.step(JumpLab.STEP, pressed = true, held = false)
         lastNanos = -1L
         clock.reset()
+        holdFocus()
         audio?.start(scenario, run.seed)
     }
 
@@ -880,6 +918,7 @@ internal class GameSession(
         clearEnd()
         input.clear()
         show(Screen.Title)
+        holdFocus()
         audio?.music(scenario, restart = true)
     }
 
@@ -895,13 +934,14 @@ internal class GameSession(
         resumeIn = RESUME_COUNT * RESUME_STEP
     }
 
-    /** The count is over: the run goes on where it was, with its music. */
+    /** The count is over: the run goes on where it was, with its music, and the phone's sound again if another app took it. */
     private fun goOn() {
         resumeIn = 0.0
         paused = false
         lastNanos = -1L
         clock.reset()
         input.clear()
+        holdFocus()
         audio?.resume()
     }
 
@@ -1088,6 +1128,7 @@ internal class GameSession(
         replaceRun()
         clearEnd()
         run.step(JumpLab.STEP, pressed = true, held = false)
+        holdFocus()
         audio?.start(scenario, run.seed)
     }
 

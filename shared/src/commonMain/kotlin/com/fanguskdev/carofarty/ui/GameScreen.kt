@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.IntSize
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import carofarty.shared.generated.resources.Res
+import com.fanguskdev.carofarty.audio.AudioFocus
 import com.fanguskdev.carofarty.audio.GameAudio
 import com.fanguskdev.carofarty.audio.musicPlayer
 import com.fanguskdev.carofarty.audio.soundPlayer
@@ -102,6 +103,7 @@ internal fun GameScreen(
     autopilot: Boolean = false,
     sound: Boolean = false,
     quit: (() -> Unit)? = null,
+    focus: AudioFocus? = null,
 ) {
     val openedAt = remember { TimeSource.Monotonic.markNow() }
     val resources by produceState<Loaded?>(null) {
@@ -119,7 +121,20 @@ internal fun GameScreen(
     DisposableEffect(audio) { onDispose { audio?.release() } }
     val session =
         remember(loaded) {
-            GameSession(loaded.config, loaded.art, audio, scope, records, choices, debugBuild, debugAtStart, autopilot, openedAt, quit)
+            GameSession(
+                loaded.config,
+                loaded.art,
+                audio,
+                scope,
+                records,
+                choices,
+                debugBuild,
+                debugAtStart,
+                autopilot,
+                openedAt,
+                quit,
+                focus.takeIf { audio != null },
+            )
         }
     val world = remember { PixelBuffer() }
     // The soft vibration of what goes wrong (VFX-07): the phone's own «reject», which also follows its settings of touch.

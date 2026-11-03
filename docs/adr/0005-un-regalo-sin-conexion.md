@@ -28,6 +28,13 @@ ahora, quizá publicar después».
 | Preparar desde ya la publicación | Menos trabajo si al final se publica | Fangusk no lo ha decidido; multiplica el backlog (de unos 330 a unos 750 días-persona) |
 | Analítica para ajustar la dificultad | Datos reales | Saca datos del teléfono de su esposa sin necesidad; las pruebas las hace Fangusk |
 
+## Matiz: la copia de seguridad de Android (2026-11-03)
+
+La app deja que Android guarde sus récords y sus ajustes en la copia de seguridad de Google del teléfono
+(`allowBackup`), si el teléfono la tiene activada, para que sobrevivan a un cambio de móvil. Fangusk: «Okey adelante».
+No contradice esta decisión: lo que prohíbe es que el juego se conecte, con anuncios, analítica o servicios en línea.
+La copia la hace Android, no el juego, y va a la cuenta privada de quien usa el teléfono.
+
 ## Consecuencias
 
 - La dificultad se ajusta con las partidas de prueba de Fangusk y con el piloto automático de los tests, no con datos

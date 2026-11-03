@@ -1,5 +1,6 @@
 package com.fanguskdev.carofarty.ui
 
+import com.fanguskdev.carofarty.engine.PixelViewport
 import com.fanguskdev.carofarty.game.GameConfig
 import com.fanguskdev.carofarty.game.RunPhase
 import com.fanguskdev.carofarty.storage.Choices
@@ -96,6 +97,19 @@ class PauseAndSettingsTest {
         session.tap(assertNotNull(session.pauseMenu).buttons[0])
         session.background()
         assertNotNull(session.pauseMenu)
+    }
+
+    @Test
+    fun thePauseFollowsTheScreenIfItChangesWhileItWaits() {
+        // The lock screen is upright: the game is measured that way while it waits, and comes back to its own (QA-07).
+        val session = session().running()
+        session.back()
+        val before = assertNotNull(session.pauseMenu).panel
+        session.viewport = PixelViewport.fit(1600, 720)
+        val after = assertNotNull(session.pauseMenu)
+        assertTrue(after.panel != before && after.panel.right <= session.layout.width, "laid out again: $after.panel")
+        session.tap(after.buttons[0])
+        assertEquals(3, session.countdown, "its buttons where they are drawn")
     }
 
     @Test

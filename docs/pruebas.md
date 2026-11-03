@@ -97,6 +97,20 @@ xcrun simctl launch booted com.fanguskdev.carofarty.CaroFarty -debug -autopilot
 - [ ] En modo avión: todo funciona igual ([ADR 0005](adr/0005-un-regalo-sin-conexion.md)).
 - [x] Instalada en su teléfono y probada allí de principio a fin: la beta 6 en su Nothing Phone (3), «sí» (TEC-13).
 
+## Interrupciones y casos límite (QA-07)
+
+Probado el 2026-11-03 en el emulador (Pixel 10 Pro XL, Android 16), en una partida con la app de medida, que juega sola:
+
+| Caso | Qué pasa |
+|---|---|
+| Ir al inicio del teléfono y volver | La partida se pausa sola y vuelve en su menú, sin música hasta «Continuar» |
+| Bloquear la pantalla y desbloquearla | Igual. La pantalla de bloqueo va en vertical y el juego se medía así mientras esperaba: el menú de la pausa y los botones del fin se quedaban donde no tocaba. Desde la beta 12 se colocan siempre en la pantalla de ese momento |
+| Una notificación | El juego sigue debajo, sin pararse |
+| Batería baja | Igual: el aviso no para el juego |
+| Girar el teléfono 180° | Sigue en horizontal, sin reiniciarse |
+| Una llamada | Con la llamada a pantalla completa, se pausa como al salir de la app. Si solo sale el aviso de arriba, la partida sigue mientras suena: pausarla pide quedarse con el foco del audio, y entonces la música de otras apps se pararía al jugar (pendiente de Fangusk) |
+| Cerrar la app justo al acabar una partida | Los récords se guardan con `apply()` de SharedPreferences: Android los escribe al momento en segundo plano y espera a que acaben antes de dejar la app en segundo plano. Solo se perdería la última partida si el teléfono matara la app en esos milisegundos |
+
 ## En qué teléfonos
 
 Los de desarrollo están en [dispositivos](dispositivos.md): cada tarea, en el emulador `Tester_API36` y el simulador del

@@ -205,9 +205,22 @@ internal class GameSession(
     private var credits: CreditsLayout? = null
     private var creditsFor: MenuLayout? = null
 
-    /** The menu of the pause in a column (UI-05), while it shows, and its buttons in GameMaster's order with their icons. */
-    var pauseMenu: ColumnMenu? = null
-        private set
+    /**
+     * The menu of the pause in a column (UI-05), while it shows, and its buttons in GameMaster's order with their icons;
+     * laid out on the screen as it is now, which may have changed while it waited (the lock screen is upright).
+     */
+    val pauseMenu: ColumnMenu?
+        get() {
+            if (!pauseShown) return null
+            val layout = layout
+            val made = pauseMade
+            if (made != null && pauseFor === layout) return made
+            pauseFor = layout
+            return layout.pauseMenu(pauseTexts, pauseIcons).also { pauseMade = it }
+        }
+    private var pauseShown = false
+    private var pauseMade: ColumnMenu? = null
+    private var pauseFor: MenuLayout? = null
     val pauseTexts = listOf(Texts.RESUME, Texts.RESTART, Texts.SETTINGS, Texts.HOME)
     val pauseIcons = listOf(Icon.Resume, Icon.Again, Icon.Settings, Icon.Home)
 
@@ -252,9 +265,24 @@ internal class GameSession(
     var tutorial: List<TutorialScene> = emptyList()
         private set
 
-    /** The buttons under the panel of the pause or of the end of a run: another run at the end, and the start screen. */
-    var panelButtons: List<Box> = emptyList()
-        private set
+    /**
+     * The buttons under the panel of the end of a run: another run, and the start screen; laid out on the screen as it is
+     * now, which may have changed since the run ended.
+     */
+    val panelButtons: List<Box>
+        get() {
+            if (panelButtonTexts.isEmpty()) return emptyList()
+            val layout = layout
+            val made = buttonsMade
+            if (made != null && buttonsFor === layout) return made
+            buttonsFor = layout
+            return layout.row(panelButtonTexts, panelBottom(panel, layout.height) + MenuLayout.GAP, panelButtonIcons).also {
+                buttonsMade =
+                    it
+            }
+        }
+    private var buttonsMade: List<Box>? = null
+    private var buttonsFor: MenuLayout? = null
     var panelButtonTexts: List<String> = emptyList()
         private set
     var panelButtonIcons: List<Icon?> = emptyList()
@@ -439,7 +467,7 @@ internal class GameSession(
         resumeIn = 0.0
         input.clear()
         // Its menu (UI-05, GameMaster's mockup): go on, the same scenario from the start, the settings or the start screen.
-        pauseMenu = layout.pauseMenu(pauseTexts, pauseIcons)
+        pauseShown = true
         audio?.pause()
     }
 
@@ -861,7 +889,7 @@ internal class GameSession(
      */
     private fun resume() {
         audio?.play(Sound.Back)
-        pauseMenu = null
+        pauseShown = false
         sheet = null
         input.clear()
         resumeIn = RESUME_COUNT * RESUME_STEP
@@ -880,7 +908,7 @@ internal class GameSession(
     /** Out of the pause, its menu, its sheets and its count. */
     private fun leavePause() {
         paused = false
-        pauseMenu = null
+        pauseShown = false
         sheet = null
         resumeIn = 0.0
         backEnabled = backFor(screen)
@@ -890,7 +918,8 @@ internal class GameSession(
     private fun clearEnd() {
         result = null
         panel = emptyList()
-        panelButtons = emptyList()
+        panelButtonTexts = emptyList()
+        buttonsMade = null
         recordCounter = null
         confettiStarted = false
         confetti.stop()
@@ -1041,7 +1070,7 @@ internal class GameSession(
         panel = overPanel(ended)
         panelButtonTexts = listOf(Texts.AGAIN, Texts.HOME)
         panelButtonIcons = listOf(Icon.Again, Icon.Home)
-        panelButtons = layout.row(panelButtonTexts, panelBottom(panel, viewport.height) + MenuLayout.GAP, panelButtonIcons)
+        buttonsMade = null
         // The music stops: the sound of the end, and a moment later its jingle, of a record if there is one.
         if (cause == EndCause.NoPoints) audio?.play(Sound.NoPoints)
         audio?.end(scenario, ended.newRecord, JINGLE_DELAY_MILLIS)

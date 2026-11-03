@@ -22,6 +22,12 @@ récords de prueba. Ya lo sabe.
 **Si se pierden la clave o su contraseña**, ninguna versión nueva se podrá instalar encima de la que tenga Caro: habría
 que desinstalarla, y se perderían sus récords. Por eso la copia.
 
+## La versión
+
+Todas las versiones se llaman «1.0». Su número, el que compara Android para instalar una encima de otra, es el de
+commits del repo (`git rev-list --count HEAD`), así que cada APK va encima del anterior y el mismo commit da siempre el
+mismo número. Sin git, 1.
+
 ## Firmar
 
 ```bash

@@ -25,7 +25,9 @@ android {
         applicationId = "com.fanguskdev.carofarty"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = 1
+        // El número de cada APK (TEC-14): los commits del repo, así uno nuevo siempre va encima del anterior y el mismo
+        // commit da el mismo. Sin git, 1.
+        versionCode = commitCount()
         versionName = "1.0"
         buildConfigField("boolean", "MEASURE", "false")
     }
@@ -82,3 +84,13 @@ android {
         buildConfig = true
     }
 }
+
+/** Cuántos commits lleva el repo, o 1 si no se puede saber. */
+fun commitCount(): Int = providers
+    .exec {
+        commandLine("git", "rev-list", "--count", "HEAD")
+        isIgnoreExitValue = true
+    }.standardOutput.asText
+    .get()
+    .trim()
+    .toIntOrNull() ?: 1

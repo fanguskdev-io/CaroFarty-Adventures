@@ -81,8 +81,12 @@ pista: el dedo que mantiene, el medidor y «MANTÉN». Va con ella; si salta, su
 mantiene el salto (hasta los 0,36 s que da el salto más largo). Al aterrizar al otro lado, se va.
 
 - **Pausa**: el panel de pausa y el botón «Inicio»; un toque en cualquier otro sitio, a seguir.
-- **Fin de partida**: por qué acabó, la distancia contra el récord de la fase, los puntos máximos y, si la partida entra
-  en las 5 mejores, «¡NUEVO RÉCORD!» (con Caro celebrándolo a los lados del panel) o su puesto. Debajo, «Otra vez» e
+- **Fin de partida**: un título con gracia según cómo acabó, que eligió Fangusk tras la beta 8: «¡UPS! ¡AL AGUA!» al caer
+  a un barranco del Bosque o la Nieve, «¡UPS! ¡AL CAÑÓN!» en el Desierto, «¡PUAJ! DEMASIADO MAL OLOR» sin puntos y, si
+  los últimos se los quitó un pájaro, «¡AY! ¡QUÉ PICOTAZO!» (idea de GameMaster). Debajo, los animales salvados en la
+  partida, que enlazan con el subtítulo: «HAS SALVADO 23 ANIMALITOS», «HAS SALVADO 1 ANIMALITO» o, sin ninguno, «¡LOS
+  ANIMALITOS TE ESPERAN!» (UI-24). Después, la distancia contra el récord de la fase, los puntos máximos y, si la partida
+  entra en las 5 mejores, «¡NUEVO RÉCORD!» (con Caro celebrándolo a los lados del panel) o su puesto. Debajo, «Otra vez» e
   «Inicio»; un toque en cualquier otro sitio, otra vez, como antes (UI-06). Durante 0,6 s no hace caso a los toques.
 
 ## Récords

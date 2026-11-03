@@ -85,6 +85,9 @@ class GameRunTest {
         assertEquals(5 + 1 + 1 - 5, run.points)
         assertEquals(7, run.maxPoints)
         assertTrue(run.events.filterIsInstance<RunEvent.Picked>().size == 3)
+        // For the end: the animals she saved and what took her points (Fangusk).
+        assertEquals(2, run.rescued)
+        assertEquals(ItemKind.Pescado, run.lastTaken)
     }
 
     @Test

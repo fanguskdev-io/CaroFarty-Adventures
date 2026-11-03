@@ -689,7 +689,15 @@ internal class GameSession(
     private fun lookOf(art: Art?): CaroLook {
         val run = art?.caro?.animation(CaroPose.Corre, Reaction.None)
         val fast = art?.caro?.animation(CaroPose.CorreRapido, Reaction.None)
-        return CaroLook(run?.size ?: DEFAULT_RUN_FRAMES, fast?.size ?: DEFAULT_RUN_FRAMES, run?.cycleTiles, fast?.cycleTiles)
+        val sprint = art?.caro?.animation(CaroPose.CorreSprint, Reaction.None)
+        return CaroLook(
+            run?.size ?: DEFAULT_RUN_FRAMES,
+            fast?.size ?: DEFAULT_RUN_FRAMES,
+            run?.cycleTiles,
+            fast?.cycleTiles,
+            sprint?.size ?: DEFAULT_RUN_FRAMES,
+            sprint?.cycleTiles,
+        )
     }
 
     private fun replaceRun() {
@@ -744,8 +752,8 @@ internal class GameSession(
 
     private fun overPanel(result: RunResult): List<PanelLine> {
         val lines = mutableListOf(
-            PanelLine(Texts.GAME_OVER, size = 2),
-            PanelLine(Texts.cause(run.endCause), Tone.Warning),
+            PanelLine(Texts.endTitle(run.endCause, scenario, run.lastTaken), Tone.Warning, size = 2),
+            PanelLine(Texts.saved(run.rescued)),
             PanelLine("${Texts.DISTANCE} ${result.meters} M · ${Texts.RECORD} ${result.bestMeters} M"),
             PanelLine("${Texts.MAX_POINTS} ${result.maxPoints}"),
         )

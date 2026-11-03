@@ -15,8 +15,8 @@ import kotlin.test.assertTrue
 class CaroLookTest {
     private val step = JumpLab.STEP
 
-    /** A run on [grounds] alone, with nothing to pick up. */
-    private fun runOn(vararg grounds: Ground): GameRun {
+    /** A run on [grounds] alone, with nothing to pick up, with [config]. */
+    private fun runOn(vararg grounds: Ground, config: GameConfig = GameConfig()): GameRun {
         val pieces = object : PieceSource {
             private var given = false
 
@@ -26,7 +26,7 @@ class CaroLookTest {
                 return Piece(grounds.toList(), emptyList(), grounds.last().end)
             }
         }
-        return GameRun(GameConfig(), Scenario.Bosque, seed = 1, pieces = pieces)
+        return GameRun(config, Scenario.Bosque, seed = 1, pieces = pieces)
     }
 
     @Test
@@ -80,6 +80,30 @@ class CaroLookTest {
             last = frame
         }
         assertTrue(changes in 19..22, "$changes frames in a second at the start")
+    }
+
+    @Test
+    fun pastFourHundredAndFiftyPixelsASecondSheSprints() {
+        // GameMaster's third gait (ADR 0011), with its quickest frame of 30 ms: at 500 px/s and a cycle of 9 tiles, a frame
+        // every 18 px, about 28 a second.
+        val fast = GameConfig().let {
+            it.copy(movement = it.movement.copy(startSpeed = 500f, quickSpeed = 500f, maxSpeed = 500f, lateSpeed = 500f))
+        }
+        val run = runOn(Ground(-512, 1_000_000, 32), config = fast)
+        val look = CaroLook(sprintFrames = 8, sprintCycleTiles = 9f)
+        run.step(step, pressed = true, held = false)
+        var changes = 0
+        var last = -1
+        val animation = Animation(IntArray(8) { it }, IntArray(8) { 1 }, emptyBelow = 0)
+        repeat(60) {
+            run.step(step, pressed = false, held = false)
+            look.step(step, run, newRecord = false)
+            val frame = look.frame(animation)
+            if (frame != last) changes++
+            last = frame
+        }
+        assertEquals(CaroPose.CorreSprint, look.pose)
+        assertTrue(changes in 26..30, "$changes frames in a second at 500 px/s")
     }
 
     @Test

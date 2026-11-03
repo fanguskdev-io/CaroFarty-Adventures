@@ -82,9 +82,10 @@ Los nombres son los que busca el juego; las duraciones, una propuesta para ajust
 | `espera` | Antes del primer toque | 4, en bucle | 150–250 ms |
 | `corre` | Corriendo, hasta 240 px/s | 6 a 8, en bucle | La pone la distancia: un ciclo cada 3 tiles, así que con 6 fotogramas cada uno dura 50 ms a 160 px/s; nunca menos de 40 ms, para que no se vea frenética |
 | `corre-rapido` | Desde 240 px/s, con zancadas más largas | 6, en bucle | Un ciclo cada 5 tiles: 56 ms por fotograma a 240 px/s y 37 a 360, que se quedan en 40 como mínimo (propuesta de GameMaster en su guía 2) |
+| `corre-sprint` | Desde 450 px/s, hacia el minuto 8 (ADR 0011): más inclinada, zancada muy larga y melena al viento | 8, en bucle | Un ciclo cada 9 tiles, 18 px por fotograma: 40 ms a 450 px/s y 32 a 560, con 30 ms como mínimo para que el pie no patine |
 
-`corre` y `corre-rapido` pueden llevar `"ciclo-tiles"`: los tiles que avanza Caro en un ciclo entero de la animación. Si
-no lo llevan, 3 y 5. Con más fotogramas hace falta un ciclo más largo, porque el mínimo de 40 ms por fotograma haría
+`corre`, `corre-rapido` y `corre-sprint` pueden llevar `"ciclo-tiles"`: los tiles que avanza Caro en un ciclo entero de la animación. Si
+no lo llevan, 3, 5 y 9. Con más fotogramas hace falta un ciclo más largo, porque el mínimo de 40 ms por fotograma haría
 patinar los pies: con 8 fotogramas y 3 tiles, ya desde 150 px/s.
 | `salta` | Subiendo | 1 o 2 | Se queda en el último hasta el ápice |
 | `apice` | Arriba del todo | 1 | Mientras apenas sube o baja |
@@ -207,7 +208,7 @@ no son suyas (`--sin-iconos`); la puerta comprueba que están al día.
 
 - **Lo que falte se dibuja en gris**: el juego arranca con todo, parte o nada del arte (TEC-18).
 - **Caro**: su ancla va en el centro de sus pies. La pose sale de lo que hace: `espera` antes del primer toque; `corre` y,
-  desde 240 px/s, `corre-rapido`, con la zancada al ritmo de la distancia; `salta` mientras sube a más de 80 px/s,
+  desde 240 px/s, `corre-rapido` y, desde 450, `corre-sprint`, con la zancada al ritmo de la distancia; `salta` mientras sube a más de 80 px/s,
   `apice` arriba y `cae` al bajar (al caerse de un borde sin saltar, `cae` directamente); `aterriza` los 0,1 s del
   aterrizaje; `retroceso` los 0,3 s que la empuja hacia atrás un huevo o un pescado, en el suelo o en el aire;
   `al-barranco` cuando ya no hay suelo que la recoja; `sin-puntos` al quedarse sin puntos y, si ha batido un

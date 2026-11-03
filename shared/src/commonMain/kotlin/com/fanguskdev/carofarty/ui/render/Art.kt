@@ -189,6 +189,9 @@ internal enum class CaroPose(val key: String, val loops: Boolean, val byDistance
     Espera("espera", loops = true),
     Corre("corre", loops = true, byDistance = true),
     CorreRapido("corre-rapido", loops = true, byDistance = true),
+
+    /** The third gait, past the speed of the first minutes (ADR 0011): GameMaster's sprint, leaning and with long strides. */
+    CorreSprint("corre-sprint", loops = true, byDistance = true),
     Salta("salta", loops = false),
     Apice("apice", loops = false),
     Cae("cae", loops = false),
@@ -226,6 +229,7 @@ internal class CaroArt private constructor(set: SpriteSet, private val poses: Ar
 
         private fun closest(set: SpriteSet, pose: CaroPose): Animation? = when (pose) {
             CaroPose.CorreRapido -> set.animation(CaroPose.Corre.key)
+            CaroPose.CorreSprint -> set.animation(CaroPose.CorreRapido.key) ?: set.animation(CaroPose.Corre.key)
             CaroPose.Apice -> set.animation(CaroPose.Salta.key) ?: set.animation(CaroPose.Cae.key)
             CaroPose.Salta, CaroPose.AlBarranco -> set.animation(CaroPose.Cae.key)
             CaroPose.Cae -> set.animation(CaroPose.Salta.key)

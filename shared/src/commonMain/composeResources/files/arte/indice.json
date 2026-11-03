@@ -118,10 +118,34 @@
      "vacias-abajo": 0,
      "ciclo-tiles": 6
     },
-    "al-barranco": {
+    "corre-sprint": {
      "fotogramas": [
       27,
-      28
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34
+     ],
+     "ms": [
+      40,
+      40,
+      40,
+      40,
+      40,
+      40,
+      40,
+      40
+     ],
+     "vacias-abajo": 0,
+     "ciclo-tiles": 9
+    },
+    "al-barranco": {
+     "fotogramas": [
+      35,
+      36
      ],
      "ms": [
       100,
@@ -131,10 +155,10 @@
     },
     "sin-puntos": {
      "fotogramas": [
-      29,
-      30,
-      31,
-      32
+      37,
+      38,
+      39,
+      40
      ],
      "ms": [
       150,
@@ -146,10 +170,10 @@
     },
     "record": {
      "fotogramas": [
-      33,
-      34,
-      35,
-      36
+      41,
+      42,
+      43,
+      44
      ],
      "ms": [
       120,
@@ -161,8 +185,8 @@
     },
     "retroceso": {
      "fotogramas": [
-      37,
-      38
+      45,
+      46
      ],
      "ms": [
       100,
@@ -171,30 +195,6 @@
      "vacias-abajo": 0
     },
     "corre-contenta": {
-     "fotogramas": [
-      39,
-      40,
-      41,
-      42,
-      43,
-      44,
-      45,
-      46
-     ],
-     "ms": [
-      50,
-      50,
-      50,
-      50,
-      50,
-      50,
-      50,
-      50
-     ],
-     "vacias-abajo": 0,
-     "ciclo-tiles": 4
-    },
-    "corre-asco": {
      "fotogramas": [
       47,
       48,
@@ -218,100 +218,16 @@
      "vacias-abajo": 0,
      "ciclo-tiles": 4
     },
-    "salta-contenta": {
+    "corre-asco": {
      "fotogramas": [
       55,
-      56
-     ],
-     "ms": [
-      70,
-      230
-     ],
-     "vacias-abajo": 0
-    },
-    "salta-asco": {
-     "fotogramas": [
+      56,
       57,
-      58
-     ],
-     "ms": [
-      70,
-      230
-     ],
-     "vacias-abajo": 0
-    },
-    "apice-contenta": {
-     "fotogramas": [
-      59
-     ],
-     "ms": [
-      150
-     ],
-     "vacias-abajo": 2
-    },
-    "apice-asco": {
-     "fotogramas": [
-      60
-     ],
-     "ms": [
-      150
-     ],
-     "vacias-abajo": 2
-    },
-    "cae-contenta": {
-     "fotogramas": [
+      58,
+      59,
+      60,
       61,
       62
-     ],
-     "ms": [
-      70,
-      230
-     ],
-     "vacias-abajo": 0
-    },
-    "cae-asco": {
-     "fotogramas": [
-      63,
-      64
-     ],
-     "ms": [
-      70,
-      230
-     ],
-     "vacias-abajo": 0
-    },
-    "aterriza-contenta": {
-     "fotogramas": [
-      65,
-      66
-     ],
-     "ms": [
-      50,
-      50
-     ],
-     "vacias-abajo": 0
-    },
-    "aterriza-asco": {
-     "fotogramas": [
-      67,
-      68
-     ],
-     "ms": [
-      50,
-      50
-     ],
-     "vacias-abajo": 0
-    },
-    "corre-rapido-contenta": {
-     "fotogramas": [
-      69,
-      70,
-      71,
-      72,
-      73,
-      74,
-      75,
-      76
      ],
      "ms": [
       50,
@@ -324,9 +240,93 @@
       50
      ],
      "vacias-abajo": 0,
-     "ciclo-tiles": 6
+     "ciclo-tiles": 4
     },
-    "corre-rapido-asco": {
+    "salta-contenta": {
+     "fotogramas": [
+      63,
+      64
+     ],
+     "ms": [
+      70,
+      230
+     ],
+     "vacias-abajo": 0
+    },
+    "salta-asco": {
+     "fotogramas": [
+      65,
+      66
+     ],
+     "ms": [
+      70,
+      230
+     ],
+     "vacias-abajo": 0
+    },
+    "apice-contenta": {
+     "fotogramas": [
+      67
+     ],
+     "ms": [
+      150
+     ],
+     "vacias-abajo": 2
+    },
+    "apice-asco": {
+     "fotogramas": [
+      68
+     ],
+     "ms": [
+      150
+     ],
+     "vacias-abajo": 2
+    },
+    "cae-contenta": {
+     "fotogramas": [
+      69,
+      70
+     ],
+     "ms": [
+      70,
+      230
+     ],
+     "vacias-abajo": 0
+    },
+    "cae-asco": {
+     "fotogramas": [
+      71,
+      72
+     ],
+     "ms": [
+      70,
+      230
+     ],
+     "vacias-abajo": 0
+    },
+    "aterriza-contenta": {
+     "fotogramas": [
+      73,
+      74
+     ],
+     "ms": [
+      50,
+      50
+     ],
+     "vacias-abajo": 0
+    },
+    "aterriza-asco": {
+     "fotogramas": [
+      75,
+      76
+     ],
+     "ms": [
+      50,
+      50
+     ],
+     "vacias-abajo": 0
+    },
+    "corre-rapido-contenta": {
      "fotogramas": [
       77,
       78,
@@ -349,6 +349,78 @@
      ],
      "vacias-abajo": 0,
      "ciclo-tiles": 6
+    },
+    "corre-rapido-asco": {
+     "fotogramas": [
+      85,
+      86,
+      87,
+      88,
+      89,
+      90,
+      91,
+      92
+     ],
+     "ms": [
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50
+     ],
+     "vacias-abajo": 0,
+     "ciclo-tiles": 6
+    },
+    "corre-sprint-contenta": {
+     "fotogramas": [
+      93,
+      94,
+      95,
+      96,
+      97,
+      98,
+      99,
+      100
+     ],
+     "ms": [
+      40,
+      40,
+      40,
+      40,
+      40,
+      40,
+      40,
+      40
+     ],
+     "vacias-abajo": 0,
+     "ciclo-tiles": 9
+    },
+    "corre-sprint-asco": {
+     "fotogramas": [
+      101,
+      102,
+      103,
+      104,
+      105,
+      106,
+      107,
+      108
+     ],
+     "ms": [
+      40,
+      40,
+      40,
+      40,
+      40,
+      40,
+      40,
+      40
+     ],
+     "vacias-abajo": 0,
+     "ciclo-tiles": 9
     }
    },
    "variantes": [

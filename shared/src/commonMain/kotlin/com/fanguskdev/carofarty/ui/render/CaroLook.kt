@@ -9,18 +9,23 @@ import kotlin.math.min
 
 /**
  * Which of Caro's animations shows and how far into it (CHR-02 to CHR-06, docs/arte.md), stepped with the run so it looks
- * the same at any frame rate. Her stride follows the ground she covers: a cycle of corre every [runCycleTiles] tiles and
- * of corre-rapido, from [FAST_SPEED], every [fastCycleTiles], never faster than [MIN_FRAME_SECONDS] a frame. [runFrames]
- * and [fastFrames] are how many frames those two animations have; the art can say how many tiles each cycle covers.
+ * the same at any frame rate. Her stride follows the ground she covers: a cycle of corre every [runCycleTiles] tiles, of
+ * corre-rapido, from [FAST_SPEED], every [fastCycleTiles], and of corre-sprint, from [SPRINT_SPEED], every
+ * [sprintCycleTiles]; never faster than [MIN_FRAME_SECONDS] a frame, nor [SPRINT_MIN_FRAME_SECONDS] in the sprint, so its
+ * foot does not slide (GameMaster). [runFrames], [fastFrames] and [sprintFrames] are how many frames those animations
+ * have; the art can say how many tiles each cycle covers.
  */
 internal class CaroLook(
     private val runFrames: Int = DEFAULT_FRAMES,
     private val fastFrames: Int = DEFAULT_FRAMES,
     runCycleTiles: Float? = null,
     fastCycleTiles: Float? = null,
+    private val sprintFrames: Int = DEFAULT_FRAMES,
+    sprintCycleTiles: Float? = null,
 ) {
     private val runCycleTiles = runCycleTiles ?: RUN_CYCLE_TILES
     private val fastCycleTiles = fastCycleTiles ?: FAST_CYCLE_TILES
+    private val sprintCycleTiles = sprintCycleTiles ?: SPRINT_CYCLE_TILES
 
     var pose = CaroPose.Espera
         private set
@@ -37,10 +42,14 @@ internal class CaroLook(
             seconds = 0f
         }
         if (pose.byDistance) {
-            val fast = pose == CaroPose.CorreRapido
-            val frames = if (fast) fastFrames else runFrames
-            val pixelsPerFrame = (if (fast) fastCycleTiles else runCycleTiles) * TILE.toDouble() / frames
-            stride += min(run.caro.speed * dt / pixelsPerFrame, dt / MIN_FRAME_SECONDS)
+            val (frames, cycle) = when (pose) {
+                CaroPose.CorreSprint -> sprintFrames to sprintCycleTiles
+                CaroPose.CorreRapido -> fastFrames to fastCycleTiles
+                else -> runFrames to runCycleTiles
+            }
+            val pixelsPerFrame = cycle * TILE.toDouble() / frames
+            val least = if (pose == CaroPose.CorreSprint) SPRINT_MIN_FRAME_SECONDS else MIN_FRAME_SECONDS
+            stride += min(run.caro.speed * dt / pixelsPerFrame, dt / least)
         }
     }
 
@@ -61,7 +70,11 @@ internal class CaroLook(
             // The push back of an egg or a fish, on the ground or in the air (GameMaster drew it for both).
             caro.knockedBack -> CaroPose.Retroceso
             caro.state == CaroState.Landing -> CaroPose.Aterriza
-            caro.state.grounded -> if (caro.speed >= FAST_SPEED) CaroPose.CorreRapido else CaroPose.Corre
+            caro.state.grounded -> when {
+                caro.speed >= SPRINT_SPEED -> CaroPose.CorreSprint
+                caro.speed >= FAST_SPEED -> CaroPose.CorreRapido
+                else -> CaroPose.Corre
+            }
             caro.vy > APEX_SPEED -> CaroPose.Salta
             // The top of a jump; walking off a ledge she just falls.
             caro.vy >= -APEX_SPEED && (pose == CaroPose.Salta || pose == CaroPose.Apice) -> CaroPose.Apice
@@ -92,6 +105,11 @@ internal class CaroLook(
         const val FAST_CYCLE_TILES = 5f
         const val FAST_SPEED = 240f
         const val MIN_FRAME_SECONDS = 0.04
+
+        /** The sprint (ADR 0011): from this speed, about the minute 8; its cycle without the art; and its quickest frame. */
+        const val SPRINT_SPEED = 450f
+        const val SPRINT_CYCLE_TILES = 9f
+        const val SPRINT_MIN_FRAME_SECONDS = 0.03
 
         /** How slowly she rises or falls at the top of a jump, in pixels a second: the apice (GameMaster: 45 to 60). */
         const val APEX_SPEED = 60f

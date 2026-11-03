@@ -95,7 +95,11 @@ movedizas en el Desierto ([ADR 0011](adr/0011-mas-dificultad-tras-la-beta-7.md))
 medida en su Nothing (60 FPS, el peor fotograma de 17 ms y 0,0 % de fotogramas lentos; con sonido unos 7 minutos, «ha ido
 bien»; AUD-29): «la velocidad creo debería de ajustarse a mayor; una partida continua de 30 minutos debería de ser muy
 difícil entre obstáculos y velocidad, pero sin embargo actualmente se ve asequible». Y pidió pájaros que restan 8 puntos,
-que nunca están quietos en el aire: unos de frente y otros «que simplemente estén paseando por el aire». Del salto: «Estoy contento con el
+que nunca están quietos en el aire: unos de frente y otros «que simplemente estén paseando por el aire». Tras jugar la beta
+8: quedarse sin puntos «es un peligro real», la velocidad que sube toda la partida le parece bien a los 5 y a los 10
+minutos y el arranque sigue siendo amable (GDD-21, GDD-23). Y no le gustaron los mensajes del final («te has caído», «te
+has quedado sin puntos»): eligió un título con gracia según cómo se pierde y, debajo, los animalitos salvados
+([pantallas](pantallas.md), UI-24). Del salto: «Estoy contento con el
 salto» (PLY-15); de caídas o recogidas injustas: «por el momento no» (CHR-08, ENM-11). El juego ocupa toda la pantalla
 sin que la cámara tape nada importante y se ve fluido a 120 Hz (UI-14, TEC-05, MOB-03); el botón de silencio funciona y
 se recuerda (UI-21); la mezcla de música y efectos está bien con el altavoz y con auriculares, sin cansar (AUD-21); y el

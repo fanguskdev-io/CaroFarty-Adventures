@@ -65,6 +65,14 @@ class GameRun(
         private set
     private var reactionTime = 0f
 
+    /** How many animals she has rescued in this run, for the end (Fangusk: «salvando el mundo, patita a patita»). */
+    var rescued = 0
+        private set
+
+    /** What took her points away the last time: the end says something else when a bird took the last ones. */
+    var lastTaken: ItemKind? = null
+        private set
+
     /** The seconds left of her blinking after an egg or a fish, in which eggs and fish do not take points away. */
     var blinking = 0f
         private set
@@ -130,6 +138,7 @@ class GameRun(
             events += RunEvent.Picked(item.kind, value)
             reaction = if (item.kind.adds) Reaction.Happy else Reaction.Disgusted
             reactionTime = config.items.reactionSeconds
+            if (item.kind.adds) rescued++ else lastTaken = item.kind
             if (!item.kind.adds) {
                 caro.knockBack()
                 blinking = config.items.blinkSeconds

@@ -13,14 +13,15 @@ récords de prueba. Ya lo sabe.
 - **La huella SHA-256 del certificado**:
   `7D:22:0E:DC:C1:5D:8F:C0:D9:A5:96:41:D7:47:5E:90:6A:8D:8F:7E:F4:86:4B:8A:67:99:E6:08:21:1F:B3:5D`.
 - **La contraseña** sirve para el almacén y para la clave. Solo está en el llavero de este Mac (servicio
-  `carofarty-firma`, cuenta `carofarty`) y en la copia de seguridad. Nunca en el repo, en `local.properties` ni en los
+  `carofarty-firma`, cuenta `carofarty`) y en la nota de la carpeta. Nunca en el repo, en `local.properties` ni en los
   ficheros de Gradle.
-- **La copia de seguridad**, en un pendrive o disco externo, como eligió Fangusk: la carpeta `~/CaroFarty-firma` entera,
-  con el almacén y `LEEME-CLAVE.txt` (el alias, la contraseña, la huella y cómo usarla). Cuando la copia esté en el
-  pendrive y se abra, `LEEME-CLAVE.txt` se borra del Mac.
+- **Sin copia fuera del Mac**: Fangusk decidió el 2026-11-03 que no hace falta («no es necesario»). La clave se queda
+  solo en este Mac: el almacén y `LEEME-CLAVE.txt` (el alias, la contraseña, la huella y cómo usarla) en
+  `~/CaroFarty-firma`, y la contraseña también en el llavero. **Esa carpeta no se borra**: es la única nota de cómo se
+  usa la clave. Si el Mac tiene copia de seguridad (Time Machine), la carpeta va en ella.
 
-**Si se pierden la clave o su contraseña**, ninguna versión nueva se podrá instalar encima de la que tenga Caro: habría
-que desinstalarla, y se perderían sus récords. Por eso la copia.
+**Si se pierden la clave o su contraseña** (el Mac, la carpeta), ninguna versión nueva se podrá instalar encima de la que
+tenga Caro: habría que desinstalarla, y se perderían sus récords.
 
 ## La versión
 
@@ -41,9 +42,9 @@ de arriba. Compila sin la caché de configuración de Gradle, para que la contra
 Sin esas dos variables, el APK de lanzamiento sigue firmándose con la clave de depuración, para las pruebas y la puerta.
 La app de medida siempre va con la de depuración.
 
-## En otro ordenador, o si este se pierde
+## En otro ordenador
 
-Desde el pendrive:
+Con la carpeta copiada allí:
 
 ```bash
 export CAROFARTY_FIRMA=/ruta/a/carofarty.p12

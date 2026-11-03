@@ -97,6 +97,36 @@ xcrun simctl launch booted com.fanguskdev.carofarty.CaroFarty -debug -autopilot
 - [ ] En modo avión: todo funciona igual ([ADR 0005](adr/0005-un-regalo-sin-conexion.md)).
 - [x] Instalada en su teléfono y probada allí de principio a fin: la beta 6 en su Nothing Phone (3), «sí» (TEC-13).
 
+## Casos funcionales (QA-05)
+
+Lo que tiene que pasar en cada parte del juego, y la prueba automática que lo comprueba, si la hay:
+
+| Parte | Caso | Prueba |
+|---|---|---|
+| Salto | Un toque salta poco y mantener salta más, hasta 0,36 s; se puede saltar justo después del borde (coyote) y un toque justo antes de aterrizar salta al tocar suelo (buffer) | `CaroTest` |
+| Generación | Ningún tramo pide un salto imposible ni mete un peligro donde no se puede esquivar; la dificultad sube con la distancia | `CourseGeneratorTest` |
+| Peligros | Los huevos y peces que flotan, los pájaros, los peces que saltan, las plataformas que caen, el hielo y las arenas | `HazardsTest` |
+| Puntos | Perritos y gatitos suman 1, el huevo resta 3, el pescado 5 y el pájaro 8; nunca bajan de 0 | `GameRunTest`, `HazardsTest` |
+| Fin | Caer a un barranco o quedarse sin puntos acaba la partida, con su título | `GameRunTest`, `TextsTest` |
+| Récords | Las 5 mejores de cada escenario, con sus puntos y su día; un récord nuevo cuenta sus metros y tira confeti | `RecordsTest`, `ConfettiTest` |
+| Pausa | El botón, la app al fondo, el bloqueo y el botón atrás la pausan; solo «Continuar» y el botón de pausa siguen, con 3, 2, 1 | `PauseAndSettingsTest` |
+| Ajustes | Música, efectos y vibración, cada uno por su lado, recordados; con el sonido apagado, los dos primeros atenuados | `PauseAndSettingsTest`, `ChoicesTest` |
+| Créditos | Las licencias, y sus textos enteros por páginas | `LicencesTest`, `PauseAndSettingsTest` |
+| Pantallas | Todo cabe y se toca con el dedo en todas las proporciones, píxel perfecto | `MenusTest`, `TouchTargetsTest`, `SnapshotsTest` |
+| Sonido | Los ficheros se leen en todas las plataformas; el ambiente entra y sale a su tiempo bajo la música | `AudioFilesTest`, `AmbienceTest` |
+
+## Antes de instalar (QA-10)
+
+Antes de pasar un APK a un teléfono, en este orden:
+
+1. `bash scripts/verificar.sh` termina en «La puerta pasa». Hay que leerlo en el registro: si la puerta corre en segundo
+   plano, su aviso puede llegar sin error aunque haya fallado.
+2. En el emulador (`adb -s emulator-5554`, nunca sin `-s`: el Nothing de Fangusk puede estar enchufado): se abre, la
+   presentación lleva al inicio, una partida en cada escenario empieza y acaba, la pausa y los ajustes van, y
+   `adb logcat` no tiene errores de la app.
+3. La versión definitiva, firmada con `bash scripts/firmar.sh`: tiene que salir la huella de [la firma](firma.md).
+4. El SHA-256 del APK, en `entregas/LEEME.md`.
+
 ## Interrupciones y casos límite (QA-07)
 
 Probado el 2026-11-03 en el emulador (Pixel 10 Pro XL, Android 16), en una partida con la app de medida, que juega sola:

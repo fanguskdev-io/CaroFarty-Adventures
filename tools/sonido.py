@@ -17,7 +17,7 @@ RAIZ = Path(__file__).resolve().parent.parent
 RECURSOS = RAIZ / "shared" / "src" / "commonMain" / "composeResources" / "files"
 ESCENARIOS = ("bosque", "nieve", "desierto")
 SONIDOS = (
-    "salto-corto", "salto-largo", "aterrizaje", "rescate-perrito", "rescate-gatito", "huevo", "pescado",
+    "salto-corto", "salto-largo", "aterrizaje", "rescate-perrito", "rescate-gatito", "huevo", "pescado", "pajaro",
     "caida-barranco", "fin-partida", "record", "ui-pulsar", "ui-volver", "jingle-inicio", "jingle-record", "jingle-fin",
 )
 

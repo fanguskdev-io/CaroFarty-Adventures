@@ -681,8 +681,8 @@ internal class GameSession(
         ItemKind.Perrito -> Sound.Perrito
         ItemKind.Gatito -> Sound.Gatito
         ItemKind.Huevo -> Sound.Huevo
-        // The birds sound like the fish, the driest, until they have a sound of their own.
-        ItemKind.Pescado, ItemKind.Pajaro -> Sound.Pescado
+        ItemKind.Pescado -> Sound.Pescado
+        ItemKind.Pajaro -> Sound.Pajaro
     }
 
     /** Caro's look with the frames of her runs and, if the art says, how many tiles a cycle of each covers. */

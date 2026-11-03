@@ -21,7 +21,7 @@ en el prototipo en gris, cuadrados de 12 × 12 px con una letra.
 | **Aspecto** (M2) | De perfil con la cabeza en tres cuartos; camina o se para | Una hogaza sentada, con su reposo animado | Chisporrotea, con ondas de mal olor encima | Colea, con ondas de mal olor encima | Aletea de frente; el que pasea planea y aletea para girar |
 | **Caro al cogerlo** (CHR-07) | Cara de contenta, 0,4 s | Igual | Cara de asco, 0,4 s, un retroceso de 0,3 s y 1 s parpadeando en el que los huevos y pescados no restan | Igual | Igual |
 | **Cómo se distingue** (propuesta) | Un animal de colores cálidos, que se mueve (el rabo) | Un animal de colores cálidos, que se mueve (las orejas o el rabo) | Comida quieta, blanca y amarilla | Comida quieta, gris azulada | Un ave oscura que vuela |
-| **Al recogerlo** (M4) | Un sonido alegre y corto | El suyo, distinto del perrito | Un sonido seco | Más seco aún | El del pescado, hasta que tenga el suyo |
+| **Al recogerlo** (M4) | Un sonido alegre y corto | El suyo, distinto del perrito | Un sonido seco | Más seco aún | Un «puf» de plumas y un «¡cuac!», algo más fuerte que el del pescado |
 | **En el prototipo** | «P» marrón con borde verde, que se mueve | «G» con borde verde, del color de su pelaje | «H» crema con borde rojo | «F» azul con borde rojo (de *fish*: la P ya es del perrito) | «A» gris con borde rojo |
 
 Las frecuencias están medidas en 20 partidas de 5 km ([métricas](metricas.md)). Perritos y gatitos salen a partes

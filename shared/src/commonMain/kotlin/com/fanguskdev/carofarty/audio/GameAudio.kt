@@ -22,6 +22,7 @@ enum class Sound(val file: String) {
     Gatito("rescate-gatito"),
     Huevo("huevo"),
     Pescado("pescado"),
+    Pajaro("pajaro"),
     IntoTheGap("caida-barranco"),
     NoPoints("fin-partida"),
     Record("record"),

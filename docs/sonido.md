@@ -13,7 +13,8 @@ beta. Cuándo suena cada cosa es propuesta mía, para que Fangusk la cambie al o
 | Pantalla inicial, récords y cómo se juega | El bucle de la última fase elegida |
 | Pulsar un botón: récords, cómo se juega, una pestaña, una página, la pausa, el sonido | `ui-pulsar` |
 | Reanudar tras la pausa o volver al inicio | `ui-volver`; al reanudar, la música sigue donde estaba, y al volver, la de la fase desde su principio |
-| Empezar una partida | La música se calla, suena `jingle-inicio` (2,6 s) y, al acabar, empieza la música de la partida: la canción que elige su semilla, al nivel 1 |
+| Empezar una partida | La música se calla, suena `jingle-inicio` (2,6 s) y, al acabar, empieza la música de la partida: la canción que elige su semilla, al nivel 1, con el ambiente del escenario debajo |
+| Durante la partida | El ambiente (AUD-17, de GameMaster): pájaros en el Bosque, viento en la Nieve y viento seco en el Desierto, en bucle, unos 16 dB por debajo de la música. Va en la música: se apaga con ella y se pausa con ella. Entra en 2 s y se va en 0,8 s desde el fin de la partida, antes del jingle |
 | Correr más deprisa | La música sube de nivel con la velocidad (GameMaster, AUD-04): el 2 a 200 px/s, el 3 a 240, el 4 a 280 (entra la melodía) y el 5 a 320; cada capa entra en el compás siguiente |
 | Quedarse con 3 puntos o menos | La propia música toca el aviso en el pulso siguiente y su versión tensa desde el compás siguiente; al recuperarse, vuelve |
 | Saltar | `salto-corto`, en el mismo instante del despegue, y si a los 100 ms sigue con el dedo, `salto-largo` encima: la cola que sigue subiendo (Fangusk, opción C) |
@@ -39,7 +40,8 @@ mismo tono que su salto corto, para que empalmen; los jingles y los botones, sie
 
 - **Android**: la música, con un AudioTrack al que un hilo propio, con prioridad de audio, le da las muestras: las del
   bucle una y otra vez, así que no tiene hueco, o las que hace la música de la partida, a la frecuencia del teléfono
-  (48 000 o 44 100 Hz); los efectos, con SoundPool.
+  (48 000 o 44 100 Hz); los efectos, con SoundPool, que los empieza en un hilo propio con prioridad de audio: en el
+  hilo del juego, en un Xiaomi Mi 10 cada salto y cada aterrizaje se comían dos o tres fotogramas ([rendimiento](rendimiento.md)).
 - **iOS**: los bucles y los efectos con AVAudioPlayer; la música de la partida, con AVAudioEngine, en tres búferes de
   85 ms que se hacen de nuevo al acabar cada uno. Todo en una cola propia: en el hilo que dibuja, cada efecto lo paraba
   unos milisegundos y se notaba en la carrera. Respeta el interruptor de silencio, como cualquier juego.
@@ -52,7 +54,8 @@ mismo tono que su salto corto, para que empalmen; los jingles y los botones, sie
 
 ## Los ficheros
 
-En `shared/src/commonMain/composeResources/files/`: `musica/<escenario>.wav` y `sonidos/<nombre>.wav`, WAV de PCM de 16
-bits en mono a 22 050 Hz, que leen las tres plataformas sin convertir. Los instala `tools/sonido.py --desde <entrega>`,
+En `shared/src/commonMain/composeResources/files/`: `musica/<escenario>.wav`, `musica/ambiente-<escenario>.wav` y
+`sonidos/<nombre>.wav`, WAV de PCM de 16 bits en mono a 22 050 Hz, que leen las tres plataformas sin convertir. El
+ambiente se mezcla en las muestras de la música de la partida, en el teléfono, así que no necesita un reproductor más. Los instala `tools/sonido.py --desde <entrega>`,
 que comprueba el formato, y una prueba comprueba que están todos y se pueden leer. Ocupan unos 7,4 MB, casi todo los
 bucles; si pesa demasiado en el APK, se pueden pasar a OGG más adelante.

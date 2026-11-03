@@ -130,18 +130,8 @@ private fun DrawScope.paintScene(
         } else if (shown) {
             paintCaro(caroX, feet, caro.state, stride = (caro.meters * STRIDES_PER_METER).toInt() % 2 == 0)
         }
-        val digits = art?.ui?.digits
         // The numbers go up over her, a little ahead, so they stay in the small scene while she runs on.
-        for (floating in scene.floating) {
-            val centre = caroX + FLOAT_AHEAD
-            val top = box.bottom + cameraBottom - floating.y.roundToInt() - (floating.age * RISE).roundToInt() - FLOAT_UP
-            if (digits != null) {
-                drawDigits(digits, floating.text, floating.good, centre - digitsWidth(digits, floating.text) / 2, top)
-            } else {
-                val color = if (floating.good) GreyPalette.good else GreyPalette.bad
-                drawText(floating.text, centre - PixelFont.width(floating.text) / 2, top, color, GreyPalette.shadow)
-            }
-        }
+        paintFloating(scene.floating, caroX, box.bottom + cameraBottom, art?.ui)
         val ui = art?.ui
         if (scene.index == TutorialScene.JUMPING) paintFinger(box, scene, ui, millis)
         if (scene.index == TutorialScene.ENDING) {
@@ -187,6 +177,34 @@ private fun DrawScope.paintFinger(
     )
 }
 
+/**
+ * The numbers that float up from what she picked up (VFX-03): «+1» in gold and «-3» in violet with the digits of the
+ * interface, over Caro and a little ahead of her middle [caroX], from the height where she picked it up ([bottom] is the
+ * row of the screen of the world's y = 0) or, in a run, where she jumps much higher than they rise, from over her [head];
+ * [behind] her while the hint to hold the finger is over her, ahead, so they do not cross it.
+ */
+internal fun DrawScope.paintFloating(
+    floating: List<Floating>,
+    caroX: Int,
+    bottom: Int,
+    ui: UiArt?,
+    head: Int? = null,
+    behind: Boolean = false,
+) {
+    val digits = ui?.digits
+    for (i in floating.indices) {
+        val number = floating[i]
+        val centre = caroX + if (behind) -FLOAT_BEHIND else FLOAT_AHEAD
+        val top = (head ?: (bottom - number.y.roundToInt())) - (number.age * RISE).roundToInt() - FLOAT_UP
+        if (digits != null) {
+            drawDigits(digits, number.text, number.good, centre - digitsWidth(digits, number.text) / 2, top)
+        } else {
+            val color = if (number.good) GreyPalette.good else GreyPalette.bad
+            drawText(number.text, centre - PixelFont.width(number.text) / 2, top, color, GreyPalette.shadow)
+        }
+    }
+}
+
 /** Caro in the scenes: a third of the way in, so what comes can be seen. */
 private const val CARO_PART = 3
 
@@ -197,6 +215,7 @@ private const val RISE = 30f
 /** The numbers start a little over her head, and a little ahead of her middle. */
 private const val FLOAT_UP = 4
 private const val FLOAT_AHEAD = 8
+private const val FLOAT_BEHIND = 12
 private const val FINGER = 16
 private const val FINGER_FROM_EDGE = 22
 private const val BLINKS_PER_SECOND = 12

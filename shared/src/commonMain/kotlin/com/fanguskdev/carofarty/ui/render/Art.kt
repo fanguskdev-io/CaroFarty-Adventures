@@ -30,6 +30,7 @@ internal class Art(
     val items: ItemArt?,
     private val scenarios: Array<ScenarioArt?>,
     val ui: UiArt? = null,
+    val effects: EffectsArt? = null,
 ) {
     fun scenario(scenario: Scenario): ScenarioArt? = scenarios[scenario.ordinal]
 
@@ -80,7 +81,8 @@ internal class Art(
                 scenarios[scenario.ordinal] = ScenarioArt.of(tiles, sky, far, mid)
             }
             val caro = set("caro")?.let { CaroArt.of(it) }
-            val items = set("recolectables")?.let { ItemArt(it, set("efectos")) }
+            val effects = set("efectos")
+            val items = set("recolectables")?.let { ItemArt(it, effects) }
             val ui = index.ui?.let { entry ->
                 UiArt(
                     pieces = entry.pieces.mapValues { (_, it) -> UiPiece(image(it.sheet), it.slices, it.content, it.icon) },
@@ -93,7 +95,7 @@ internal class Art(
                     title = entry.title?.let { image(it) },
                 )
             }
-            return Art(caro, items, scenarios, ui)
+            return Art(caro, items, scenarios, ui, effects?.let { EffectsArt(it) })
         }
     }
 }
@@ -291,6 +293,23 @@ internal class ItemArt(set: SpriteSet, effects: SpriteSet?) {
     }
 }
 
+/**
+ * The effects of a run (VFX-01, VFX-03), GameMaster's for the beta 11: the dust where she jumps and where she lands, the
+ * trail of her sprint, the sparkle of a rescue, the burst of an egg or a fish and the feathers of a bird; each scenario in
+ * its colours. Frames of 64 × 32 with the point where they happen at ([anchorX], [anchorY]).
+ */
+internal class EffectsArt(set: SpriteSet) {
+    private val sheets = Scenario.entries.map { set.variant("", it.key) ?: set.sheet }
+    val anchorX = set.anchorX
+    val anchorY = set.anchorY
+    val trail: Animation? = set.animation("estela")
+    private val animations = Effect.entries.map { set.animation(it.key) }
+
+    fun sheet(scenario: Scenario): Sheet = sheets[scenario.ordinal]
+
+    fun animation(effect: Effect): Animation? = animations[effect.ordinal]
+}
+
 /** A bird (ENM-18): beating its wings and gliding, drawn flying to the left. */
 internal class BirdArt(val flap: Animation, val glide: Animation)
 
@@ -352,6 +371,8 @@ internal class ScenarioArt private constructor(
     val splash: Animation?,
     /** The surface of the stretches of ice of the Nieve or of quicksand of the Desierto (PLY-18). */
     val patch: PatchTiles?,
+    /** The leaves that fall in the air of the Bosque (ART-16), each its own animation. */
+    val leaves: List<Animation> = emptyList(),
 ) {
     companion object {
         /** The scenario's art, or null without its surface and its fill. */
@@ -399,10 +420,15 @@ internal class ScenarioArt private constructor(
                 splash = set.animation("salpicadura"),
                 patch = PatchTiles.of(set, "hielo", "hielo-borde-izq", "hielo-borde-der")
                     ?: PatchTiles.of(set, "arena-movediza", "arena-movediza-izq", "arena-movediza-der"),
+                leaves = (1..LEAF_KINDS).mapNotNull { set.animation("$LEAF$it") },
             )
         }
 
         private const val DECORATION = "decoracion-"
+
+        /** GameMaster's leaves of the Bosque: ambiente-hoja-1 to -3. */
+        private const val LEAF = "ambiente-hoja-"
+        private const val LEAF_KINDS = 3
 
         /** The names of the platforms' tiles (ADR 0009), with -izq and -der for their ends. */
         private const val PLATFORM = "plataforma"

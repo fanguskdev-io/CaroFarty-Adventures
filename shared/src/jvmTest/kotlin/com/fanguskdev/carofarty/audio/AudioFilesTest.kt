@@ -28,6 +28,18 @@ class AudioFilesTest {
     }
 
     @Test
+    fun eachScenarioHasItsAmbienceToMixUnderTheMusic() {
+        // AUD-17: mono, so it mixes into the music's own samples ([Ambience]), and a loop of several seconds.
+        val tracks = wavs("musica").associateBy { it.nameWithoutExtension }
+        if (tracks.isEmpty()) return
+        for (scenario in Scenario.entries) {
+            val file = assertNotNull(tracks["ambiente-${scenario.name.lowercase()}"], "no ambience for $scenario")
+            val loop = assertNotNull(readWav(file.readBytes()))
+            assertTrue(loop.channels == 1 && loop.samples.size / loop.rate >= 10, "${file.name}: mono and a long loop")
+        }
+    }
+
+    @Test
     fun theSoundsHaveTheNamesTheGameLooksFor() {
         val known = Sound.entries.map { it.file }.toSet() + Sound.entries.flatMap { sound -> Scenario.entries.map { sound.file(it) } }
         for (file in wavs("sonidos")) assertTrue(file.nameWithoutExtension in known, "${file.name} is not a sound of the game")

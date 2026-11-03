@@ -10,8 +10,10 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.math.max
 import kotlin.math.pow
 import kotlin.random.Random
+import kotlin.time.TimeSource
 
 /** The sounds of the game, by the names of their files in `files/sonidos/` (GameMaster's beta set). */
 enum class Sound(val file: String) {
@@ -44,9 +46,9 @@ enum class Sound(val file: String) {
  * The music and the sounds (AUD), as GameMaster designed them and Fangusk approved (ADR 0006: each scenario has «su
  * decorado, su paleta y su música»). In a run, the music of its scenario made as she plays (docs/musica.md): a song the
  * run's seed chooses, its layers coming in as the speed rises ([speed]), its tense version with few points left
- * ([lowPoints]) and its end. Around the runs, the loop of the scenario in `files/musica/<escenario>.wav`; and the sounds
- * of `files/sonidos/` over both. What is missing stays silent; until the instruments of a scenario are made, its run
- * plays the loop.
+ * ([lowPoints]) and its end, with the ambience of the scenario under it ([Ambience], AUD-17). Around the runs, the loop of
+ * the scenario in `files/musica/<escenario>.wav`; and the sounds of `files/sonidos/` over both. What is missing stays
+ * silent; until the instruments of a scenario are made, its run plays the loop.
  */
 internal class GameAudio(private val music: MusicPlayer, private val sounds: SoundPlayer, private val scope: CoroutineScope) {
     /** The scenario whose loop the player has, or null if it has a stream or nothing. */
@@ -56,6 +58,10 @@ internal class GameAudio(private val music: MusicPlayer, private val sounds: Sou
     /** The instruments of each scenario, made once in the background; and the music of the run, while there is one. */
     private val banks = arrayOfNulls<MusicBank>(Scenario.entries.size)
     private var stream: MusicStream? = null
+
+    /** The loops of the ambience of each scenario (AUD-17), and the one under the music of the run. */
+    private val ambiences = arrayOfNulls<Pcm>(Scenario.entries.size)
+    private var ambience: Ambience? = null
     private var level = 1
     private var tense = false
 
@@ -84,6 +90,14 @@ internal class GameAudio(private val music: MusicPlayer, private val sounds: Sou
     /** The files loaded, and how long each lasts in milliseconds. */
     private val millis = HashMap<String, Long>()
 
+    /**
+     * For the debugging line (TEC-10, the stutter of the Mi 10): the longest a sound took to start lately on the game's
+     * thread, where it must not stop the frame, and on the player's own.
+     */
+    private val calls = Peak()
+    val slowestCallMillis: Double get() = calls.millis
+    val slowestStartMillis: Double get() = sounds.slowestStartMillis
+
     init {
         // The three at once, each on a core of its own: on a phone they take a moment.
         for (scenario in Scenario.entries) {
@@ -100,6 +114,10 @@ internal class GameAudio(private val music: MusicPlayer, private val sounds: Sou
                 sounds.load(name, wav)
                 millis[name] = readWav(wav)?.let { it.samples.size * MILLIS / (it.channels * it.rate) } ?: 0L
             }
+            for (scenario in Scenario.entries) {
+                val wav = runCatching { Res.readBytes("$MUSIC/$AMBIENCE${scenario.name.lowercase()}.wav") }.getOrNull() ?: continue
+                ambiences[scenario.ordinal] = readWav(wav)
+            }
         }
     }
 
@@ -107,6 +125,7 @@ internal class GameAudio(private val music: MusicPlayer, private val sounds: Sou
     fun music(scenario: Scenario, restart: Boolean = false) {
         after?.cancel()
         stream = null
+        ambience = null
         playing = true
         // The same track is never read again: that would take a frame or two in the middle of a run.
         if (current == scenario) {
@@ -137,6 +156,12 @@ internal class GameAudio(private val music: MusicPlayer, private val sounds: Sou
     fun play(sound: Sound, scenario: Scenario? = null, streak: Int = 0) {
         // The jingles go with the music; the rest are the sounds.
         if (if (sound.byScenario) muted else effectsMuted) return
+        val started = TimeSource.Monotonic.markNow()
+        startSound(sound, scenario, streak)
+        calls.add(started.elapsedNow().inWholeMicroseconds / MICROS_IN_MILLI)
+    }
+
+    private fun startSound(sound: Sound, scenario: Scenario?, streak: Int) {
         val file = fileOf(sound, scenario)
         if (sound.byScenario || sound == Sound.Tap || sound == Sound.Back) {
             sounds.play(file)
@@ -194,7 +219,17 @@ internal class GameAudio(private val music: MusicPlayer, private val sounds: Sou
                 level = 1
                 tense = false
                 playing = true
-                music.stream(PcmSource { out, offset, frames -> made.render(out, offset, frames) }, music.streamRate, MUSIC_VOLUME)
+                // The ambience in the same samples as the music: on its bus, paused and silenced with it (GameMaster).
+                val under = ambiences[scenario.ordinal]?.let { Ambience(it, music.streamRate) }
+                ambience = under
+                music.stream(
+                    PcmSource { out, offset, frames ->
+                        made.render(out, offset, frames)
+                        under?.mixInto(out, offset, frames)
+                    },
+                    music.streamRate,
+                    MUSIC_VOLUME,
+                )
                 if (muted) music.pause()
             }
     }
@@ -225,6 +260,7 @@ internal class GameAudio(private val music: MusicPlayer, private val sounds: Sou
     fun end(scenario: Scenario, record: Boolean, wait: Long) {
         after?.cancel()
         playing = false
+        ambience?.end()
         val ending = stream
         if (ending != null) ending.end() else music.pause()
         after =
@@ -257,8 +293,10 @@ internal class GameAudio(private val music: MusicPlayer, private val sounds: Sou
     }
 
     private companion object {
+        const val MICROS_IN_MILLI = 1_000.0
         const val MUSIC = "files/musica"
         const val SOUNDS = "files/sonidos"
+        const val AMBIENCE = "ambiente-"
         const val MILLIS = 1000L
 
         /** The mix GameMaster proposed to start with: the music at 0.8 and the sounds at 1, varied by ±40 cents and ±1.5 dB. */
@@ -276,5 +314,35 @@ internal class GameAudio(private val music: MusicPlayer, private val sounds: Sou
 
         /** The speeds of the levels 2 to 5 of the music, in pixels a second (GameMaster's proposal for AUD-04). */
         val LEVEL_SPEEDS = floatArrayOf(200f, 240f, 280f, 320f)
+    }
+}
+
+/** The longest of what it is given over the last two windows of [WINDOW_SECONDS], so a peak stays a moment on the screen. */
+internal class Peak {
+    private var since = TimeSource.Monotonic.markNow()
+    private var current = 0.0
+    private var last = 0.0
+
+    val millis: Double
+        get() {
+            roll()
+            return max(current, last)
+        }
+
+    fun add(millis: Double) {
+        roll()
+        current = max(current, millis)
+    }
+
+    private fun roll() {
+        if (since.elapsedNow().inWholeMilliseconds < WINDOW_SECONDS * MILLIS_IN_SECOND) return
+        last = current
+        current = 0.0
+        since = TimeSource.Monotonic.markNow()
+    }
+
+    private companion object {
+        const val WINDOW_SECONDS = 2
+        const val MILLIS_IN_SECOND = 1_000
     }
 }

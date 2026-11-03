@@ -87,6 +87,37 @@ class HazardsTest {
     }
 
     @Test
+    fun whatSheTouchesSaysWhereItWas() {
+        // Where its effect plays (VFX-03): the centre of the bird where it was when she met it, flying.
+        val bird = Item(ItemKind.Pajaro, (GameRun.START_X + 60).toInt(), 32 + 10).also {
+            it.flight = Charge(it.x.toDouble(), 160f, 80f, 0, 1.0, 0.0)
+        }
+        val start = Piece(listOf(Ground(-512, 4_096, 32)), listOf(bird), 4_096)
+        val pieces = object : PieceSource {
+            var given = false
+
+            override fun nextOrNull(): Piece? = if (given) null else start.also { given = true }
+        }
+        val run = GameRun(config.copy(score = config.score.copy(startPoints = 20)), Scenario.Bosque, seed = 1, pieces = pieces)
+        run.step(step, pressed = true, held = false)
+        var picked: RunEvent.Picked? = null
+        var she = 0.0
+        var reach = 0.0
+        repeat(60) {
+            run.step(step, pressed = false, held = false)
+            if (picked == null) {
+                picked = run.events.filterIsInstance<RunEvent.Picked>().firstOrNull()
+                she = run.caro.x
+                reach = run.course.reach
+            }
+        }
+        val event = picked ?: error("she met the bird")
+        assertTrue(abs(event.x - she) < 24.0, "near her when she met it: ${event.x} and $she")
+        assertEquals(bird.xAt(reach), event.x, 1e-9)
+        assertEquals(bird.yAt(reach), event.y, 1e-9)
+    }
+
+    @Test
     fun onTheIceSheGoesFasterAndJumpsFurther() {
         // PLY-18: +12 % running and in the jump that takes off from it.
         val plain = course(listOf(Ground(0, 20_000, 32)))

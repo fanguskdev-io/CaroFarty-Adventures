@@ -209,7 +209,8 @@ internal fun DrawScope.paintItemSprites(
  * background: the sky still, the far layer at 30 % of the camera and the middle one at 60 % ([LAYER_SPEEDS]), each with its
  * own offset rounded to a pixel of the phone, so they glide instead of stepping. At the start of a run, with the camera at
  * [restCamera], they sit on the game's pixel grid. Their bottoms rest on the line of the lowest ground, less the rows
- * that go under it, which show inside the gaps.
+ * that go under it, which show inside the gaps. In front of them, the decoration in the air: the copos of the Nieve and
+ * the falling [leaves] of the Bosque; and with [haze], the calima of the Desierto on its far layer (ART-16).
  */
 internal fun DrawScope.paintScenery(
     scenery: ScenarioArt,
@@ -220,6 +221,8 @@ internal fun DrawScope.paintScenery(
     groundLine: Int,
     millis: Long,
     plan: BackgroundPlan?,
+    leaves: Leaves? = null,
+    haze: Boolean = false,
 ) {
     val scale = viewport.scale
     val sky = scenery.sky
@@ -233,9 +236,14 @@ internal fun DrawScope.paintScenery(
             filterQuality = FilterQuality.None,
         )
     }
-    scenery.far?.let { paintLayer(it, FAR, camera, restCamera, cameraBottom, viewport, groundLine, plan) }
+    val shifts = if (haze) Haze.at(millis) else null
+    scenery.far?.let { paintLayer(it, FAR, camera, restCamera, cameraBottom, viewport, groundLine, plan, shifts) }
     scenery.mid?.let { paintLayer(it, MID, camera, restCamera, cameraBottom, viewport, groundLine, plan) }
     scenery.weather?.let { paintWeather(it.at(millis), camera, restCamera, cameraBottom, viewport) }
+    if (leaves != null && scenery.leaves.isNotEmpty()) {
+        leaves.advance(millis, camera, viewport.width, viewport.height)
+        leaves.paint(this, scenery.tiles, scenery.leaves, viewport)
+    }
 }
 
 /** The mosaic of a decoration in the air over the whole screen, at [WEATHER_SPEED] of the camera. */
@@ -270,7 +278,8 @@ private fun DrawScope.paintWeather(
 
 /**
  * A layer of the background, round after round of its strip at its own speed; each round, its base or the variant that
- * [plan] gives it ([BackgroundPlan]). [index] is which layer it is: [FAR] or [MID].
+ * [plan] gives it ([BackgroundPlan]). [index] is which layer it is: [FAR] or [MID]. With [shifts], the rows of the calima
+ * go sideways by them, pair by pair ([Haze]).
  */
 private fun DrawScope.paintLayer(
     layer: Layer,
@@ -281,6 +290,7 @@ private fun DrawScope.paintLayer(
     viewport: PixelViewport,
     groundLine: Int,
     plan: BackgroundPlan?,
+    shifts: IntArray? = null,
 ) {
     val scale = viewport.scale
     val speed = LAYER_SPEEDS[index]
@@ -294,17 +304,40 @@ private fun DrawScope.paintLayer(
     while (x < viewport.width.toLong() * scale) {
         val variant = plan?.variant(index, lap) ?: -1
         val image = if (variant >= 0) layer.variants[variant].image else base
-        drawImage(
-            image,
-            IntOffset.Zero,
-            IntSize(image.width, image.height),
-            IntOffset(viewport.offsetX + x.toInt(), viewport.offsetY + top * scale),
-            IntSize(image.width * scale, image.height * scale),
-            filterQuality = FilterQuality.None,
-        )
+        val left = viewport.offsetX + x.toInt()
+        if (shifts == null || image.height <= Haze.LAST) {
+            drawRows(image, 0, image.height, left, viewport.offsetY + top * scale, scale)
+        } else {
+            drawRows(image, 0, Haze.FIRST, left, viewport.offsetY + top * scale, scale)
+            for (pair in shifts.indices) {
+                val row = Haze.FIRST + pair * Haze.ROWS
+                drawRows(image, row, Haze.ROWS, left + shifts[pair] * scale, viewport.offsetY + (top + row) * scale, scale)
+            }
+            val below = Haze.FIRST + shifts.size * Haze.ROWS
+            drawRows(image, below, image.height - below, left, viewport.offsetY + (top + below) * scale, scale)
+        }
         x += period
         lap++
     }
+}
+
+/** [count] rows of [image] from [from], at ([left], [top]) in pixels of the phone, each pixel [scale] of them. */
+private fun DrawScope.drawRows(
+    image: ImageBitmap,
+    from: Int,
+    count: Int,
+    left: Int,
+    top: Int,
+    scale: Int,
+) {
+    drawImage(
+        image,
+        IntOffset(0, from),
+        IntSize(image.width, count),
+        IntOffset(left, top),
+        IntSize(image.width * scale, count * scale),
+        filterQuality = FilterQuality.None,
+    )
 }
 
 /**

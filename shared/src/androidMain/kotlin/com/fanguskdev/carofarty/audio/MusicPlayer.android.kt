@@ -5,6 +5,10 @@ import android.media.AudioFormat
 import android.media.AudioManager
 import android.media.AudioTrack
 import android.media.SoundPool
+import android.os.Debug
+import android.os.Handler
+import android.os.HandlerThread
+import android.os.Message
 import android.os.Process
 import java.io.File
 import java.util.concurrent.TimeUnit
@@ -189,7 +193,10 @@ internal actual fun soundPlayer(): SoundPlayer = AndroidSoundPlayer()
 
 /**
  * The sounds on Android: a SoundPool, made for the short sounds of games. It reads files, so each sound is written to the
- * app's cache first (java.io.tmpdir there).
+ * app's cache first (java.io.tmpdir there). They start on a thread of their own with the priority of audio, as on iOS:
+ * on some phones SoundPool.play stops whoever calls it for some milliseconds, and a Xiaomi Mi 10 lost two or three frames
+ * at every jump and every landing, where they sound (GameMaster's analysis of a recording). The game only leaves a
+ * message, from the pool of Android's, so starting one makes nothing.
  */
 private class AndroidSoundPlayer : SoundPlayer {
     private val pool =
@@ -202,6 +209,35 @@ private class AndroidSoundPlayer : SoundPlayer {
                     .build(),
             ).build()
     private val ids = HashMap<String, Int>()
+    private val thread = HandlerThread("sounds", Process.THREAD_PRIORITY_AUDIO).apply { start() }
+    private val handler =
+        object : Handler(thread.looper) {
+            override fun handleMessage(message: Message) {
+                val started = System.nanoTime()
+                val volume = Float.fromBits(message.arg2)
+                runCatching { pool.play(message.what, volume, volume, 1, 0, Float.fromBits(message.arg1)) }
+                took((System.nanoTime() - started) / NANOS_IN_MILLI)
+            }
+        }
+
+    /** The longest SoundPool.play took on its thread in the last two windows of [WINDOW_NANOS], for the debugging line. */
+    @Volatile private var slowest = 0.0
+    private var windowStart = 0L
+    private var windowLongest = 0.0
+    private var lastWindowLongest = 0.0
+
+    override val slowestStartMillis: Double get() = slowest
+
+    private fun took(millis: Double) {
+        val now = System.nanoTime()
+        if (now - windowStart > WINDOW_NANOS) {
+            lastWindowLongest = windowLongest
+            windowLongest = 0.0
+            windowStart = now
+        }
+        windowLongest = max(windowLongest, millis)
+        slowest = max(windowLongest, lastWindowLongest)
+    }
 
     override fun load(name: String, wav: ByteArray) {
         val folder = System.getProperty("java.io.tmpdir") ?: return
@@ -211,15 +247,24 @@ private class AndroidSoundPlayer : SoundPlayer {
 
     override fun play(name: String, rate: Float, volume: Float) {
         val id = ids[name] ?: return
-        runCatching { pool.play(id, volume, volume, 1, 0, rate) }
+        handler.sendMessage(handler.obtainMessage(id, rate.toRawBits(), volume.toRawBits()))
     }
 
     override fun release() {
-        pool.release()
         ids.clear()
+        handler.post { pool.release() }
+        thread.quitSafely()
     }
 
     private companion object {
         const val MAX_STREAMS = 6
+        const val NANOS_IN_MILLI = 1_000_000.0
+        const val WINDOW_NANOS = 2_000_000_000L
     }
+}
+
+internal actual fun blockingGc(): LongArray? {
+    val count = Debug.getRuntimeStat("art.gc.blocking-gc-count")?.toLongOrNull() ?: return null
+    val millis = Debug.getRuntimeStat("art.gc.blocking-gc-time")?.toLongOrNull() ?: return null
+    return longArrayOf(count, millis)
 }

@@ -169,8 +169,38 @@ class PauseAndSettingsTest {
         assertEquals(Sheet.Credits, session.sheet)
     }
 
+    @Test
+    fun aJumpLeavesItsDustWhereSheJumpedFrom() {
+        val session = session().running()
+        val x = session.run.caro.x
+        session.tapAt(200f, 100f)
+        session.frames(0.1)
+        assertEquals(1, session.effects.size, "the dust of the jump")
+        assertTrue(session.run.caro.x > x)
+    }
+
+    @Test
+    fun slowFramesTrimTheLeavesFirstAndThenTheRest() {
+        val budget = EffectsBudget()
+        repeat(2 * FPS * 2) { budget.add(1.0 / FPS) }
+        assertEquals(0, budget.level, "on time")
+        // Late frames, 25 a second: two windows of 2 s in a row and the leaves go; two more and the rest of the decoration.
+        var trimmed = false
+        repeat(6 * SLOW_FPS) { trimmed = budget.add(1.0 / SLOW_FPS) || trimmed }
+        assertTrue(trimmed)
+        assertEquals(1, budget.level)
+        assertFalse(budget.leaves)
+        assertTrue(budget.trail)
+        repeat(8 * SLOW_FPS) { budget.add(1.0 / SLOW_FPS) }
+        assertEquals(2, budget.level)
+        assertFalse(budget.trail || budget.haze)
+        repeat(16 * SLOW_FPS) { budget.add(1.0 / SLOW_FPS) }
+        assertEquals(2, budget.level, "never the game")
+    }
+
     private companion object {
         const val FPS = 60
+        const val SLOW_FPS = 25
         const val NANOS = 1_000_000_000L
     }
 }

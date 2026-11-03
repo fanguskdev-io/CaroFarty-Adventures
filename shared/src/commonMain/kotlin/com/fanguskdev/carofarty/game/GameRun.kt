@@ -31,7 +31,13 @@ enum class Reaction {
 
 /** Something the screen may want to show or play, drained once per frame. */
 sealed interface RunEvent {
-    data class Picked(val kind: ItemKind, val points: Int) : RunEvent
+    /** She picked up [kind], worth [points], whose centre was at ([x], [y]) in the world: where its effect plays (VFX-03). */
+    data class Picked(
+        val kind: ItemKind,
+        val points: Int,
+        val x: Double = 0.0,
+        val y: Double = 0.0,
+    ) : RunEvent
 
     data class Ended(val cause: EndCause) : RunEvent
 }
@@ -135,7 +141,7 @@ class GameRun(
             if (!item.kind.adds && blinking > 0f) continue
             item.taken = true
             val value = item.kind.points(config.score)
-            events += RunEvent.Picked(item.kind, value)
+            events += RunEvent.Picked(item.kind, value, item.xAt(course.reach), item.yAt(course.reach))
             reaction = if (item.kind.adds) Reaction.Happy else Reaction.Disgusted
             reactionTime = config.items.reactionSeconds
             if (item.kind.adds) rescued++ else lastTaken = item.kind

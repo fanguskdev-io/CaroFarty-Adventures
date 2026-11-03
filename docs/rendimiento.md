@@ -14,6 +14,26 @@ Los presupuestos de rendimiento (MOB-02) y cómo se miden. La línea de depuraci
 | Memoria | Que no crezca en una partida larga | `adb shell dumpsys meminfo com.fanguskdev.carofarty` en Android; la memoria del proceso en el simulador o en Xcode |
 | Recolector de basura | Sin pausas que se noten: el bucle del juego no crea objetos en cada fotograma (TEC-17) | **PEOR** y **LENTOS**; en Android, `adb logcat` sin pausas del recolector |
 | Batería | Una partida de 10 minutos gasta lo que un juego sencillo | El perfilador de energía de Android Studio y el de Xcode, en sus teléfonos |
+| Sonidos | Que empezar un sonido no pare el fotograma | **SONIDO**, lo más que ha tardado en los últimos segundos en el hilo del juego, y **EN SU HILO**, lo que tarda el teléfono en su propio hilo (Android); **GC … PARADAS … MS**, las veces que el recolector paró la app desde que se abrió y cuánto en total (Android) |
+
+## El Xiaomi Mi 10 (2026-11-03)
+
+Un amigo de Fangusk probó la beta 9 en un Xiaomi Mi 10 (Snapdragon 865, 90 Hz, MIUI con el procesado Dirac). La app de
+medida dio `FPS 60 · PEOR 67 MS · LENTOS 8,3 % · LÓGICA 0,2 MS · DIBUJO 2,4 MS`: el trabajo del juego, mínimo, y aun así
+un 8,3 % de fotogramas lentos. GameMaster analizó una grabación fotograma a fotograma: los que se pierden se juntan en el
+despegue, en la cola del salto largo 100 ms después y en el aterrizaje, justo donde suenan los tres sonidos del salto.
+En Android, `SoundPool.play` se llamaba desde el hilo del juego, y en algunos teléfonos para a quien la llama unos
+milisegundos (lo mismo que pasó en iOS). Desde la beta 11 los sonidos empiezan en un hilo propio con prioridad de audio,
+y la línea de depuración enseña cuánto tardan en uno y en otro y las paradas del recolector, para comprobarlo en su
+teléfono con la app de medida.
+
+## Si el teléfono no llega (VFX-09)
+
+El móvil de Caro es un Android de marca genérica. Mientras se juega, el juego mira los fotogramas en ventanas de 2 s: si
+en dos seguidas más de uno de cada diez pasa de 25 ms, recorta la decoración un paso, nunca el juego. Primero las hojas
+del Bosque (GameMaster); después, la estela, la calima del Desierto y la mitad de los efectos sueltos (de seis a tres).
+No vuelve hasta que se abre otra vez, para que nada vaya y venga. En el emulador, que dibuja por software, se recorta
+enseguida.
 
 ## Lo medido (2026-11-01)
 

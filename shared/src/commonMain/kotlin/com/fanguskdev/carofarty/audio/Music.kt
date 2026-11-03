@@ -44,7 +44,19 @@ interface SoundPlayer {
     fun play(name: String, rate: Float = 1f, volume: Float = 1f)
 
     fun release()
+
+    /**
+     * The longest a sound took to start lately on the platform's own thread, in milliseconds, for the debugging line
+     * (TEC-10); -1 where it is not measured.
+     */
+    val slowestStartMillis: Double get() = -1.0
 }
+
+/**
+ * The collections of the garbage collector that stopped the app since it opened, how many and how long in all in
+ * milliseconds, for the debugging line (TEC-10); null where the platform does not tell.
+ */
+internal expect fun blockingGc(): LongArray?
 
 /** The player of sounds of this platform. */
 internal expect fun soundPlayer(): SoundPlayer

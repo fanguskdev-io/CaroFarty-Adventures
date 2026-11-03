@@ -38,6 +38,7 @@ internal fun DrawScope.paintWorld(
     caroX: Double,
     caroY: Float,
     alpha: Float = 1f,
+    effects: WorldEffects? = null,
 ) {
     // The buffer row of the world's y = 0, which goes down out of the buffer when the camera goes up (PLY-13).
     val base = height + cameraBottom
@@ -53,6 +54,9 @@ internal fun DrawScope.paintWorld(
     }
     // The moving platforms where they are between the last two steps, like Caro, so she stays on them on the screen.
     paintPlatforms(run, scenery, cameraLeft, width, base, palette, run.course.time - (1f - alpha) * JumpLab.STEP, millis)
+    // The dust, the sparkles and the bursts where they happened, behind the collectibles (GameMaster).
+    val effectsArt = art?.effects
+    if (effects != null && effectsArt != null) effects.paint(this, effectsArt, run.scenario, cameraLeft, width, base, millis)
     // The surface of the water of the gaps, as the middle layer draws it, which goes up with the camera at its speed.
     val groundLine = run.config.course.minGroundTop * TILE
     val waterRow = height + floor(cameraBottom * LAYER_SPEEDS[1]).toInt() - (groundLine - WATER_BELOW)
@@ -83,13 +87,15 @@ internal fun DrawScope.paintBackground(
     groundLine: Int,
     millis: Long,
     plan: BackgroundPlan?,
+    leaves: Leaves? = null,
+    haze: Boolean = false,
 ) {
     val scale = viewport.scale
     val left = viewport.offsetX.toFloat()
     val top = viewport.offsetY.toFloat()
     drawRect(palette.sky, Offset(left, top), Size((viewport.width * scale).toFloat(), (viewport.height * scale).toFloat()))
     if (scenery != null) {
-        paintScenery(scenery, camera, restCamera, cameraBottom, viewport, groundLine, millis, plan)
+        paintScenery(scenery, camera, restCamera, cameraBottom, viewport, groundLine, millis, plan, leaves, haze)
         return
     }
     val far = (camera - restCamera) * FAR_SPEED + floor(restCamera * FAR_SPEED)

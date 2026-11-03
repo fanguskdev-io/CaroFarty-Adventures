@@ -181,3 +181,5 @@ private fun audioPlayer(wav: ByteArray): AVAudioPlayer? {
     val data = wav.usePinned { NSData.dataWithBytes(it.addressOf(0), wav.size.toULong()) }
     return runCatching { AVAudioPlayer(data = data, error = null) }.getOrNull()
 }
+
+internal actual fun blockingGc(): LongArray? = null

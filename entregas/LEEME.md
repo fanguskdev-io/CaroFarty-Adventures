@@ -43,7 +43,7 @@ piloto automático, optimizada como la beta, para ver si el sonido y los fotogra
 1. Instálala como la beta (abajo) y ábrela: empieza a jugar sola, con música, y la pantalla no se apaga.
 2. Deja el móvil enchufado 30 minutos, con el volumen bajo pero sin silenciar, y escucha de vez en cuando por si hay
    cortes o chasquidos.
-3. Al acabar, mira abajo a la izquierda la primera de las cuatro líneas rosas: `FPS … · PEOR … MS · LENTOS … %`. El
+3. Al acabar, mira abajo a la izquierda la primera de las líneas rosas: `FPS … · PEOR … MS · LENTOS … %`. El
    dato es **LENTOS**, el porcentaje de fotogramas lentos desde que se abrió; apúntalo junto con **PEOR**.
 4. Luego puedes desinstalarla: es solo para medir.
 

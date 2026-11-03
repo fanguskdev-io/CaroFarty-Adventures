@@ -54,6 +54,7 @@ import com.fanguskdev.carofarty.ui.render.RecordTexts
 import com.fanguskdev.carofarty.ui.render.SafeInsets
 import com.fanguskdev.carofarty.ui.render.SettingsTexts
 import com.fanguskdev.carofarty.ui.render.UiArt
+import com.fanguskdev.carofarty.ui.render.drawFrame
 import com.fanguskdev.carofarty.ui.render.paintBackground
 import com.fanguskdev.carofarty.ui.render.paintButton
 import com.fanguskdev.carofarty.ui.render.paintCaro
@@ -185,7 +186,21 @@ private fun DrawScope.drawGame(session: GameSession, world: PixelBuffer, viewpor
     val millis = session.millis
     val image =
         world.paint(width, viewport.height) {
-            paintWorld(run, cameraLeft, cameraBottom, width, viewport.height, palette, art, millis, session.showDebug, x, y, session.alpha)
+            paintWorld(
+                run,
+                cameraLeft,
+                cameraBottom,
+                width,
+                viewport.height,
+                palette,
+                art,
+                millis,
+                session.showDebug,
+                x,
+                y,
+                session.alpha,
+                session.effects,
+            )
         }
 
     drawRect(Color.Black)
@@ -196,7 +211,19 @@ private fun DrawScope.drawGame(session: GameSession, world: PixelBuffer, viewpor
         val groundLine = run.config.course.minGroundTop * TILE
         val plan = session.backgroundPlan
         plan?.reach(camera)
-        paintBackground(camera, REST_CAMERA, cameraBottom, viewport, palette, art?.scenario(run.scenario), groundLine, millis, plan)
+        paintBackground(
+            camera,
+            REST_CAMERA,
+            cameraBottom,
+            viewport,
+            palette,
+            art?.scenario(run.scenario),
+            groundLine,
+            millis,
+            plan,
+            session.leaves,
+            session.haze,
+        )
         val shift = (fraction * viewport.scale).roundToInt()
         drawImage(
             image = image,
@@ -217,12 +244,24 @@ private fun DrawScope.drawGame(session: GameSession, world: PixelBuffer, viewpor
             val screenX = screenAt - lag.roundToInt()
             // Blinking after an egg or a fish: shown and hidden by turns.
             val shown = run.blinking <= 0f || (run.blinking * BLINKS_PER_SECOND).toInt() % 2 == 0
+            // Her trail, behind her and glued to her feet (VFX-01, GameMaster).
+            val effects = art?.effects
+            val trail = effects?.trail
+            if (shown && trail != null && session.trail) {
+                drawFrame(
+                    effects.sheet(run.scenario),
+                    trail.frameAt(millis, loops = true),
+                    screenX - effects.anchorX,
+                    feet - effects.anchorY,
+                )
+            }
             if (shown && caroArt != null) {
                 paintCaroSprite(caroArt, run.scenario, session.look, run.reaction, screenX, feet)
             } else if (shown) {
                 paintCaro(screenX, feet, caro.state, stride = (caro.meters * STRIDES_PER_METER).toInt() % 2 == 0)
             }
             val ui = art?.ui
+            paintFloating(session.floating, screenX, viewport.height + cameraBottom, ui, head = feet - CARO_HEIGHT, behind = session.hint)
             val pressed = session.pressed
             if (run.phase != RunPhase.Ready) {
                 paintHud(session.pointsText, session.metersText, session.layout, ui, session.soundOn, session.lowPoints, pressed)

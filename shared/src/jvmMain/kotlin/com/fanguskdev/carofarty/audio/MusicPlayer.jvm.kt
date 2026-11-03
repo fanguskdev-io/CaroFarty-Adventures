@@ -155,3 +155,5 @@ private const val MIN_VOLUME = 0.0001f
 /** A Clip open with the WAV in [wav], or null if the computer cannot play it. */
 private fun clip(wav: ByteArray): Clip? =
     runCatching { AudioSystem.getClip().apply { open(AudioSystem.getAudioInputStream(ByteArrayInputStream(wav))) } }.getOrNull()
+
+internal actual fun blockingGc(): LongArray? = null

@@ -263,6 +263,19 @@ class SnapshotsTest {
     }
 
     @Test
+    fun theEffectsOfARunAndTheAirOfEachScenario() {
+        // A jump a second: the dust where she jumps from and where she lands, and what she picks up; the leaves of the
+        // Bosque, and the calima of the Desierto at two moments.
+        for (scenario in Scenario.entries) {
+            val name = scenario.name.lowercase()
+            val jumps = startIn(scenario) + (1..4).associate { 30 + it * 60 to Tap(hold = 10) }
+            for (frames in listOf(96, 104, 160)) {
+                render("efectos-$name-$frames", 2400, 1080, Script(frames = frames, taps = jumps), seen(scenario))
+            }
+        }
+    }
+
+    @Test
     fun theTitleScreenOfTheScenarioPlayedLast() {
         for (scenario in Scenario.entries) {
             val name = "titulo-${scenario.name.lowercase()}"

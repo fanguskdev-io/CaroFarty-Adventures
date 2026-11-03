@@ -230,6 +230,25 @@ no son suyas (`--sin-iconos`); la puerta comprueba que están al día.
   planea con la semilla, con la regla que propuso el agente de GameMaster: una sola a la vez; la primera, de 3 a 8 s
   después de empezar; cuando una sale de la pantalla, una pausa de 8 a 16 s; cerca o lejos al azar, nunca tres veces
   seguidas en la misma capa; y siempre en la vuelta siguiente de la tira, que entra por la derecha. Sale una cada unos 20 s.
+- **Los efectos** (VFX-01, VFX-03; `efectos.json`, de GameMaster para la beta 11, que Fangusk vio y escuchó: «me parece
+  ok»): marcos de 64 × 32 con el ancla en [32, 16], en los colores de cada escenario (las variantes `bosque`, `nieve` y
+  `desierto`). Se quedan en el mundo, delante del suelo y de las plataformas y detrás de lo que se recoge: `polvo-salto`
+  en los pies de Caro al despegar, `polvo-aterriza` al aterrizar, `recogido` en el centro del perrito o del gatito,
+  `olor-revienta` en el del huevo o el pescado y `plumas` en el del pájaro; cada uno una vez. La `estela`, en bucle, va
+  pegada a sus pies, detrás de ella: solo en el suelo, desde los 450 px/s del sprint y sin retroceso. Como mucho seis
+  sueltos a la vez: uno nuevo ocupa el sitio del más viejo. Y los números que suben de lo que coge, «+1» en oro y «-3» en
+  violeta, sobre su cabeza, como en «Cómo se juega».
+- **El ambiente** (ART-16): en el Bosque, de 4 a 6 hojas (`ambiente-hoja-1` a `-3` en `tiles.json`) que caen a 16–26
+  px/s meciéndose ±5–9 px cada 1,6–2,4 s, delante de los fondos y detrás del mundo, y pasan con la cámara como los copos;
+  la que sale vuelve por arriba o, mientras corre, por la derecha. La luz que se filtra entre las copas, con las variantes
+  `luz-1` y `luz-2` del fondo lejano, que se intercalan como la cabaña. En el Desierto, la calima: las filas 10 a 55 del
+  fondo lejano se mueven de lado `round(sin(2π(t/1,2 + g/12)))` px, de dos en dos (`g`, la pareja).
+- **Si el teléfono no llega** (VFX-09): cuando en dos ventanas seguidas de 2 s jugando más de uno de cada diez fotogramas
+  pasa de 25 ms, se quitan las hojas; si sigue, la estela, la calima y la mitad de los efectos sueltos. El juego no se
+  toca, y no vuelve hasta que se abre otra vez, para que nada vaya y venga.
+- **Destellos** (ACC-04): ningún efecto parpadea; el parpadeo de Caro tras un golpe (12 veces por segundo, que pidió
+  Fangusk) ocupa menos del 1 % de la pantalla, y el límite de 3 destellos por segundo es para destellos de un cuarto del
+  campo de visión (GameMaster).
 - **La decoración** (`decoracion-<nombre>` en `tiles.json`, opcional): si el dibujo llega a la fila de abajo de su tile,
   se planta en el suelo, encima de más o menos una de cada seis piezas de superficie que no sean borde (la mata del
   bosque, el matojo del desierto); si no, llena el aire en mosaico a tresbolillo, con la fase cambiada en cada pieza,

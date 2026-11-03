@@ -3,8 +3,9 @@
 
     python3 tools/sonido.py --desde ../backlog-juego-plataformas/diseno/musica/beta
 
-Copia <escenario>-bucle.wav a files/musica/<escenario>.wav y cada sonido o jingle a files/sonidos/<nombre>.wav, con los
-nombres que busca el juego (audio/GameAudio.kt). Comprueba que cada uno es un WAV de PCM de 16 bits, mono o estéreo, que
+Copia <escenario>-bucle.wav a files/musica/<escenario>.wav, ambiente-<escenario>.wav (AUD-17) a
+files/musica/ambiente-<escenario>.wav y cada sonido o jingle a files/sonidos/<nombre>.wav, con los nombres que busca el
+juego (audio/GameAudio.kt). Comprueba que cada uno es un WAV de PCM de 16 bits, mono o estéreo, que
 es lo que leen las tres plataformas, y avisa de los que falten. No convierte nada: la entrega llega ya en mono a 22 050 Hz.
 """
 import argparse
@@ -38,6 +39,8 @@ def main():
     parser.add_argument("--desde", type=Path, required=True)
     args = parser.parse_args()
     pares = [(args.desde / f"{e}-bucle.wav", RECURSOS / "musica" / f"{e}.wav") for e in ESCENARIOS]
+    # Los ambientes de cada escenario, que suenan bajo su música, en el mismo bus (AUD-17).
+    pares += [(args.desde / f"ambiente-{e}.wav", RECURSOS / "musica" / f"ambiente-{e}.wav") for e in ESCENARIOS]
     pares += [(args.desde / f"{s}.wav", RECURSOS / "sonidos" / f"{s}.wav") for s in SONIDOS]
     # Los jingles de cada escenario, con sus instrumentos, si la entrega los trae; si no, suena el genérico.
     jingles = [s for s in SONIDOS if s.startswith("jingle-")]

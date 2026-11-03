@@ -8,6 +8,7 @@ import carofarty.shared.generated.resources.Res
 import com.fanguskdev.carofarty.audio.GameAudio
 import com.fanguskdev.carofarty.audio.RescueStreak
 import com.fanguskdev.carofarty.audio.Sound
+import com.fanguskdev.carofarty.audio.blockingGc
 import com.fanguskdev.carofarty.engine.FixedStep
 import com.fanguskdev.carofarty.engine.PixelViewport
 import com.fanguskdev.carofarty.engine.TouchInput
@@ -38,12 +39,15 @@ import com.fanguskdev.carofarty.ui.render.CaroPose
 import com.fanguskdev.carofarty.ui.render.ColumnMenu
 import com.fanguskdev.carofarty.ui.render.Confetti
 import com.fanguskdev.carofarty.ui.render.CreditsLayout
+import com.fanguskdev.carofarty.ui.render.Effect
 import com.fanguskdev.carofarty.ui.render.Icon
+import com.fanguskdev.carofarty.ui.render.Leaves
 import com.fanguskdev.carofarty.ui.render.MenuLayout
 import com.fanguskdev.carofarty.ui.render.PanelLine
 import com.fanguskdev.carofarty.ui.render.SafeInsets
 import com.fanguskdev.carofarty.ui.render.SettingsView
 import com.fanguskdev.carofarty.ui.render.Tone
+import com.fanguskdev.carofarty.ui.render.WorldEffects
 import com.fanguskdev.carofarty.ui.render.backgroundPlan
 import com.fanguskdev.carofarty.ui.render.licencePages
 import com.fanguskdev.carofarty.ui.render.panelBottom
@@ -211,6 +215,25 @@ internal class GameSession(
     private var resumeIn = 0.0
     val countdown: Int get() = if (resumeIn > 0.0) ceil(resumeIn / RESUME_STEP).toInt() else 0
 
+    /**
+     * The effects of a run (VFX-01, VFX-03, ART-16): what plays where something happened, the numbers that float up from
+     * what she picks up and the leaves of the Bosque; and how much of it the frames allow (VFX-09).
+     */
+    val effects = WorldEffects()
+    val floating = ArrayList<Floating>()
+    val leaves = Leaves()
+    val budget = EffectsBudget()
+
+    /** Whether her trail shows (VFX-01, GameMaster): on the ground, in her sprint and not pushed back. */
+    val trail: Boolean
+        get() {
+            val caro = run.caro
+            return run.phase == RunPhase.Running && caro.state.grounded && caro.speed >= TRAIL_SPEED && !caro.knockedBack && budget.trail
+        }
+
+    /** Whether the calima of the Desierto shows (ART-16). */
+    val haze: Boolean get() = run.scenario == Scenario.Desierto && budget.haze
+
     /** The counter of a new record in the panel of the end (UI-15), what it shows, and the confetti when it arrives. */
     private var recordCounter: PanelLine? = null
     private var counterShown = -1
@@ -317,6 +340,7 @@ internal class GameSession(
         if (startupMillis < 0) startupMillis = openedAt.elapsedNow().inWholeMilliseconds
         val started = TimeSource.Monotonic.markNow()
         if (!paused) {
+            if (screen == Screen.Game && run.phase == RunPhase.Running && budget.add(elapsed)) trimEffects()
             when (screen) {
                 Screen.Game -> alpha = clock.advance(elapsed) { step() }
                 Screen.HowTo -> alpha = clock.advance(elapsed) { for (i in tutorial.indices) tutorial[i].step() }
@@ -874,6 +898,8 @@ internal class GameSession(
         val caro = run.caro
         val jumps = caro.jumps
         val landing = caro.state == CaroState.Landing
+        val fromX = caro.x
+        val fromY = caro.y
         run.step(JumpLab.STEP, pressed, held)
         runSeconds += JumpLab.STEP
         // The music follows the run while it goes on: its layers with the speed, its tense version with few points.
@@ -882,7 +908,16 @@ internal class GameSession(
             audio?.lowPoints(lowPoints)
         }
         jumpSound(jumped = caro.jumps > jumps, held = held)
-        if (!landing && caro.state == CaroState.Landing) audio?.play(Sound.Landing)
+        // The dust where she jumps from and where she lands (VFX-01), which stays there.
+        if (caro.jumps > jumps) effects.add(Effect.DustUp, fromX, fromY.roundToInt(), millis)
+        if (!landing && caro.state == CaroState.Landing) {
+            audio?.play(Sound.Landing)
+            effects.add(Effect.DustDown, caro.x, caro.y.roundToInt(), millis)
+        }
+        for (i in floating.indices.reversed()) {
+            floating[i].age += JumpLab.STEP
+            if (floating[i].age > TutorialScene.FLOAT_SECONDS) floating.removeAt(i)
+        }
         if (!recordHeard && bestBefore > 0 && run.meters > bestBefore) {
             recordHeard = true
             audio?.play(Sound.Record)
@@ -950,6 +985,7 @@ internal class GameSession(
                         audio?.play(soundOf(event.kind))
                         shake()
                     }
+                    picked(event)
                 }
                 is RunEvent.Ended -> {
                     if (event.cause == EndCause.Fall) shake()
@@ -958,6 +994,27 @@ internal class GameSession(
             }
         }
         run.events.clear()
+    }
+
+    /**
+     * What she picked up shows (VFX-03): a sparkle where an animal was, a burst where an egg or a fish was and feathers
+     * where a bird was (GameMaster), and its points floating up over her, as in how to play.
+     */
+    private fun picked(event: RunEvent.Picked) {
+        val effect = when {
+            event.kind.adds -> Effect.Rescued
+            event.kind == ItemKind.Pajaro -> Effect.Feathers
+            else -> Effect.Burst
+        }
+        effects.add(effect, event.x, event.y.roundToInt(), millis)
+        val text = if (event.points > 0) "+${event.points}" else "${event.points}"
+        floating += Floating(text, event.points > 0, run.caro.top)
+    }
+
+    /** The frames do not keep up: the decoration a step less (VFX-09), the leaves first. */
+    private fun trimEffects() {
+        leaves.limit = if (budget.leaves) Leaves.MAX else 0
+        effects.limit = budget.effects
     }
 
     private fun finish(cause: EndCause) {
@@ -1053,6 +1110,8 @@ internal class GameSession(
         hint = false
         streak.broken()
         runSeconds = 0.0
+        effects.clear()
+        floating.clear()
     }
 
     private fun planFor(run: GameRun): BackgroundPlan? {
@@ -1086,7 +1145,22 @@ internal class GameSession(
             val caro = run.caro
             debugLines[2] = "SALTOS ${caro.jumps} · COYOTE ${caro.coyoteJumps} · BUFFER ${caro.bufferedJumps}"
             debugLines[3] = "${caro.speed.toInt()} PX/S · ${Texts.scenario(scenario)} · SEMILLA ${run.seed % SEED_DIGITS}"
+            debugLines[4] = soundAndGcLine()
         }
+    }
+
+    /**
+     * The sounds and the garbage collector, for the stutters of some phones (the Mi 10): the longest a sound took to start
+     * on the game's thread and on the player's own in the last seconds, and the collections that stopped the app since it
+     * opened, where the platform tells them.
+     */
+    private fun soundAndGcLine(): String {
+        val audio = audio ?: return "SIN SONIDO"
+        val own = audio.slowestStartMillis
+        val gc = blockingGc()
+        val start = if (own < 0) "" else " · EN SU HILO ${tenths(own)} MS"
+        val pauses = if (gc == null) "" else " · GC ${gc[0]} PARADAS ${gc[1]} MS"
+        return "SONIDO ${tenths(audio.slowestCallMillis)} MS$start$pauses"
     }
 
     /**
@@ -1138,6 +1212,9 @@ internal class GameSession(
         /** The longest a frame counts for the count and for the confetti. */
         const val LONGEST_FRAME = 0.1
 
+        /** Her trail from the speed of her sprint (GameMaster: «desde 450 px/s»), the third gait. */
+        const val TRAIL_SPEED = 450f
+
         /** The counter of a new record: how long it counts, and its bounce when it arrives (GameMaster). */
         const val RECORD_COUNT = 1.0
         const val BOUNCE_SECONDS = 0.12
@@ -1148,7 +1225,7 @@ internal class GameSession(
         const val DEBUG_TAKE_AWAY = 5
         const val SEED_DIGITS = 100_000
         const val DEBUG_REFRESH_FRAMES = 15
-        const val DEBUG_LINES = 4
+        const val DEBUG_LINES = 5
     }
 }
 
@@ -1156,6 +1233,50 @@ internal class GameSession(
 private fun tenths(value: Double): String {
     val tenths = (value * 10).roundToInt()
     return "${tenths / 10},${tenths % 10}"
+}
+
+/**
+ * The budget of the effects (VFX-09; the phone of Caro is a generic Android): while she runs it watches the frames and,
+ * when more than one in [SLOW_SHARE] of those of [WINDOW] s come late, over [SLOW] s, two windows in a row, it trims the
+ * decoration a step, never the game: first the leaves (GameMaster), then the trail, the calima and half the loose effects.
+ * It does not come back while the game is open, so nothing comes and goes.
+ */
+internal class EffectsBudget {
+    var level = 0
+        private set
+    private var time = 0.0
+    private var frames = 0
+    private var slow = 0
+    private var badWindows = 0
+
+    val leaves: Boolean get() = level < 1
+    val trail: Boolean get() = level < 2
+    val haze: Boolean get() = level < 2
+    val effects: Int get() = if (level < 2) WorldEffects.MAX else WorldEffects.MAX / 2
+
+    /** A frame of [seconds] while she runs; whether the budget went down a step with it. */
+    fun add(seconds: Double): Boolean {
+        time += seconds
+        frames++
+        if (seconds > SLOW) slow++
+        if (time < WINDOW) return false
+        badWindows = if (slow * SLOW_SHARE > frames) badWindows + 1 else 0
+        time = 0.0
+        frames = 0
+        slow = 0
+        if (badWindows < BAD_WINDOWS || level >= LEVELS) return false
+        badWindows = 0
+        level++
+        return true
+    }
+
+    private companion object {
+        const val WINDOW = 2.0
+        const val SLOW = 0.025
+        const val SLOW_SHARE = 10
+        const val BAD_WINDOWS = 2
+        const val LEVELS = 2
+    }
 }
 
 /** A number of milliseconds that follows what it is given smoothly, so the debugging line can be read. */

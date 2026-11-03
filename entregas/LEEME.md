@@ -1,7 +1,24 @@
-# La beta de CaroFarty
+# CaroFarty para Android
 
-Aquí se deja cada APK de Android para instalar en el móvil. El APK no se versiona: se genera con
-`./gradlew :androidApp:assembleRelease` y se copia aquí con la fecha en el nombre.
+Aquí se deja cada APK de Android para instalar en el móvil. El APK no se versiona: la versión definitiva se genera con
+`bash scripts/firmar.sh` ([la firma](../docs/firma.md)) y las betas, con `./gradlew :androidApp:assembleRelease`.
+
+## La versión definitiva, 1.0 (2026-11-03)
+
+`CaroFarty-1.0.apk`, 12 MB, del commit `2a89a4f`, firmada con la clave propia de Fangusk (la huella de su certificado
+empieza por `7D:22:0E:DC` y está entera en [la firma](../docs/firma.md)). SHA-256 del fichero:
+`076410d870d02ad1cfc553eff7c01f05d2b72833635352298cc4ea32f0a59c13`. Es reproducible: compilada otra vez desde ese commit
+con `bash scripts/firmar.sh`, da el mismo fichero, byte a byte.
+
+Es la beta 11 con lo de la beta 12: la pausa que se queda en su sitio al desbloquear el teléfono, una llamada que suena
+que pausa la partida (si la música del juego está encendida) y un número de versión que crece con cada una.
+
+**Antes de instalarla en un teléfono que tenga alguna beta, hay que desinstalar la beta**: van firmadas con otra clave y
+Android no deja instalar una encima de la otra. Los récords de la beta se pierden al desinstalarla. En un teléfono que no
+la haya tenido nunca, como el de Caro, se instala sin más. Las versiones que vengan después, firmadas con la misma clave,
+se instalarán encima de esta sin perder nada.
+
+Probada en el emulador, en un teléfono limpio, y, la parte común, en el simulador de iOS.
 
 ## La beta del 2026-11-03 (la undécima)
 
@@ -133,7 +150,7 @@ automático, optimizada como la beta, para ver si el sonido y los fotogramas agu
 **Con el cable** (y las opciones de desarrollador con la depuración USB activada):
 
 ```bash
-~/Library/Android/sdk/platform-tools/adb install -r entregas/CaroFarty-beta-2026-11-03-9.apk
+~/Library/Android/sdk/platform-tools/adb install -r entregas/CaroFarty-1.0.apk
 ```
 
 La primera vez, el móvil pregunta si permite la depuración USB desde este Mac: hay que aceptar en su pantalla.
@@ -143,8 +160,7 @@ La primera vez, el móvil pregunta si permite la depuración USB desde este Mac:
 1. Pasa el APK al móvil: por Google Drive, por correo, con Quick Share o copiándolo a la carpeta Descargas.
 2. Ábrelo desde la app Archivos (o desde donde lo hayas descargado).
 3. Android pedirá permiso para instalar apps de esa app: «Ajustes» → activa «Permitir de esta fuente» → vuelve atrás.
-4. Pulsa «Instalar». Si avisa de que la app es de un desarrollador desconocido, es normal: está firmada con la clave de
-   depuración de este Mac y no viene de Google Play.
+4. Pulsa «Instalar». Si avisa de que la app es de un desarrollador desconocido, es normal: no viene de Google Play.
 
 Si ya había una versión anterior de CaroFarty firmada con otra clave, Android dirá que no se puede actualizar: desinstala
 la anterior y vuelve a instalar. Los récords se pierden al desinstalar.

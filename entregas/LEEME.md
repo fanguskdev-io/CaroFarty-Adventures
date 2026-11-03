@@ -3,15 +3,20 @@
 Aquí se deja cada APK de Android para instalar en el móvil. El APK no se versiona: se genera con
 `./gradlew :androidApp:assembleRelease` y se copia aquí con la fecha en el nombre.
 
-## La beta del 2026-11-03 (la octava)
+## La beta del 2026-11-03 (la novena)
 
-`CaroFarty-beta-2026-11-03-8.apk`, 9,8 MB, versión de lanzamiento firmada con la clave de depuración de este Mac
-(SHA-256 del fichero: `44688fc8abe438adc00fb64e1d260ecb47b0660fc457d901d6485f19927f768d`), del commit `0498095`.
-Sustituye a la séptima y es **mucho más difícil**, como pidió Fangusk tras jugarla
-([ADR 0011](../docs/adr/0011-mas-dificultad-tras-la-beta-7.md)): se empieza con 5 puntos y el huevo resta 3 y el pescado
-5; hay muchos menos animales y más huevos y pescados, más difíciles de esquivar; plataformas de 1 y 2 tiles; y la
-velocidad y la dificultad siguen subiendo hasta el minuto 30. Quedarse sin puntos ya es un riesgo de verdad. Probada en
-el emulador y, la parte común, en el simulador de iOS; falta probarla en su Nothing Phone (3).
+`CaroFarty-beta-2026-11-03-9.apk`, 9,8 MB, versión de lanzamiento firmada con la clave de depuración de este Mac
+(SHA-256 del fichero: `0bdb7ba6aed1289b0e0fa72bdbbc89fa4665373ef64a44ba51ae9ec3026f2908`), del commit `41aa4cb`.
+Sustituye a la octava, que Fangusk aprobó («es un peligro real»), y trae **los peligros nuevos** que eligió
+([ADR 0011](../docs/adr/0011-mas-dificultad-tras-la-beta-7.md)): huevos y pescados que flotan, **pájaros** que restan 8
+(cuervo, frailecillo y buitre), peces que saltan del agua en el Bosque y la Nieve, plataformas que tiemblan y caen, hielo
+en la Nieve y arenas movedizas en el Desierto. Además, **una tercera carrera** más rápida desde 450 px/s y **el final con
+gracia**: «¡UPS! ¡AL AGUA!» y los animalitos salvados. Probada en el emulador y, la parte común, en el simulador de iOS.
+
+## La beta octava
+
+`CaroFarty-beta-2026-11-03-8.apk` (SHA-256 `44688fc8abe438adc00fb64e1d260ecb47b0660fc457d901d6485f19927f768d`, commit
+`0498095`): la que endureció las reglas y el equilibrio. La novena la sustituye.
 
 ## La app de medida (AUD-29)
 
@@ -57,7 +62,14 @@ piloto automático, optimizada como la beta, para ver si el sonido y los fotogra
   para aterrizar y volver a saltar enseguida.
 - **Hasta el minuto 30**: la velocidad sigue subiendo despacio tras los primeros minutos, hasta 460 px/s a los 10 y unos
   550 a los 30, y con ella la dificultad; a esas velocidades Caro corre más cerca del borde izquierdo para ver más por
-  delante.
+  delante, y desde 450 px/s con **su carrera de sprint**, más inclinada y con la melena al viento.
+- **Los peligros de la beta 9**: desde la mitad de la dificultad, **pájaros** que vienen de frente a tres alturas o van y
+  vienen sobre los barrancos, y restan 8; **huevos y pescados que flotan** arriba y abajo; en el Bosque y la Nieve,
+  **peces que saltan del agua** de los barrancos; **plataformas que tiemblan y caen** al pisarlas; y antes de algunos
+  barrancos, **hielo** en la Nieve, que la hace ir más deprisa y saltar más lejos, y **arenas movedizas** en el Desierto,
+  donde se hunde y salta más bajo.
+- **El final con gracia**: «¡UPS! ¡AL AGUA!» (o «¡AL CAÑÓN!» en el Desierto), «¡PUAJ! DEMASIADO MAL OLOR» sin puntos y «¡AY!
+  ¡QUÉ PICOTAZO!» si fue un pájaro, y debajo los animalitos salvados en la partida.
 - **Récords por fase**: las 5 mejores partidas con medallas, sus metros, sus puntos máximos y la fecha (2 NOV 2026).
 - **Cómo se juega**: dos páginas con dos viñetas que se juegan solas; sale la primera vez que se abre. Ya no se mezclan
   las dos viñetas de una página en el móvil y el salto no se sale del marco.
@@ -81,7 +93,7 @@ piloto automático, optimizada como la beta, para ver si el sonido y los fotogra
 **Con el cable** (y las opciones de desarrollador con la depuración USB activada):
 
 ```bash
-~/Library/Android/sdk/platform-tools/adb install -r entregas/CaroFarty-beta-2026-11-03-8.apk
+~/Library/Android/sdk/platform-tools/adb install -r entregas/CaroFarty-beta-2026-11-03-9.apk
 ```
 
 La primera vez, el móvil pregunta si permite la depuración USB desde este Mac: hay que aceptar en su pantalla.

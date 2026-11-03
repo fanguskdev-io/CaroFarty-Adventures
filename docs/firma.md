@@ -15,13 +15,12 @@ récords de prueba. Ya lo sabe.
 - **La contraseña** sirve para el almacén y para la clave. Solo está en el llavero de este Mac (servicio
   `carofarty-firma`, cuenta `carofarty`) y en la nota de la carpeta. Nunca en el repo, en `local.properties` ni en los
   ficheros de Gradle.
-- **Sin copia fuera del Mac**: Fangusk decidió el 2026-11-03 que no hace falta («no es necesario»). La clave se queda
-  solo en este Mac: el almacén y `LEEME-CLAVE.txt` (el alias, la contraseña, la huella y cómo usarla) en
-  `~/CaroFarty-firma`, y la contraseña también en el llavero. **Esa carpeta no se borra**: es la única nota de cómo se
-  usa la clave. Si el Mac tiene copia de seguridad (Time Machine), la carpeta va en ella.
+- **La copia de seguridad**: Fangusk guardó por su cuenta los dos ficheros de `~/CaroFarty-firma`, el almacén y
+  `LEEME-CLAVE.txt` (el alias, la contraseña, la huella y cómo usarla), el 2026-11-03. En el Mac la carpeta se queda como
+  está y la contraseña sigue en el llavero; no se borra nada si él no lo pide.
 
-**Si se pierden la clave o su contraseña** (el Mac, la carpeta), ninguna versión nueva se podrá instalar encima de la que
-tenga Caro: habría que desinstalarla, y se perderían sus récords.
+**Si se pierden la clave o su contraseña**, ninguna versión nueva se podrá instalar encima de la que tenga Caro: habría
+que desinstalarla, y se perderían sus récords. Por eso la copia.
 
 ## La versión
 
@@ -38,6 +37,9 @@ bash scripts/firmar.sh
 El script toma el almacén de `~/CaroFarty-firma/` (o de donde diga `CAROFARTY_FIRMA`) y la contraseña del llavero,
 compila el APK de lanzamiento y comprueba con `apksigner` que va firmado con la clave propia: tiene que salir la huella
 de arriba. Compila sin la caché de configuración de Gradle, para que la contraseña no se guarde en el disco.
+
+El APK es reproducible: el mismo commit da el mismo APK, byte a byte, compilado las veces que sea. Para eso no lleva el
+bloque cifrado que AGP mete para Google Play, que cambiaba en cada compilación.
 
 Sin esas dos variables, el APK de lanzamiento sigue firmándose con la clave de depuración, para las pruebas y la puerta.
 La app de medida siempre va con la de depuración.

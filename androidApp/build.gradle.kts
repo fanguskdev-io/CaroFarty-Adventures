@@ -75,6 +75,12 @@ android {
             signingConfig = signingConfigs.getByName("debug")
         }
     }
+    // Lo que AGP mete cifrado para Google Play en el bloque de la firma, distinto en cada compilación: sin él, el mismo
+    // commit da el mismo APK, byte a byte (TEC-14). El juego no va a Google Play (ADR 0005).
+    dependenciesInfo {
+        includeInApk = false
+        includeInBundle = false
+    }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11

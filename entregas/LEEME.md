@@ -33,12 +33,20 @@ la tercera carrera desde 450 px/s y el final con gracia. La décima la sustituye
 `CaroFarty-beta-2026-11-03-8.apk` (SHA-256 `44688fc8abe438adc00fb64e1d260ecb47b0660fc457d901d6485f19927f768d`, commit
 `0498095`): la que endureció las reglas y el equilibrio. La novena la sustituye.
 
-## La app de medida (AUD-29)
+## La app de medida
 
-`CaroFarty-medida-2026-11-02.apk`, 9,8 MB (SHA-256 `77281408f6b548b3fe8f61f3a5314c9407840ea174172558b9d9cdac5ed2b9e6`),
-de la beta 7. Ya cumplió su papel: Fangusk midió 30 minutos en su Nothing (60 FPS, sin fotogramas lentos) y se puede
-desinstalar. Es otra app, «CaroFarty medida», que se instala aparte del juego y no toca sus récords. Juega sola con el
-piloto automático, optimizada como la beta, para ver si el sonido y los fotogramas aguantan 30 minutos en su teléfono:
+`CaroFarty-medida-2026-11-03.apk`, 12 MB (SHA-256 `8562b0c1864795226c334dfb2ab0f02c94530c07047361d6dad089155f4e630a`),
+del commit `1e0b4e9`: la de la beta 11, para el Xiaomi Mi 10 del amigo de Fangusk, que perdía fotogramas al saltar y
+al aterrizar por los sonidos ([rendimiento](../docs/rendimiento.md)). Desde esta, los sonidos empiezan en su propio
+hilo, y la quinta línea rosa dice `SONIDO … MS · EN SU HILO … MS · GC … PARADAS … MS`: lo que tardan los sonidos en el
+hilo del juego (tiene que quedarse casi en 0) y en el suyo, y las paradas del recolector. Se instala encima de la
+anterior. La medida que vale para comparar es **con el sonido puesto**, como la primera (`LENTOS 8,3 %`): cerrar la app
+del todo, abrirla, dejarla unos 3 minutos y hacer una captura de las cinco líneas.
+
+La anterior, `CaroFarty-medida-2026-11-02.apk` (SHA-256 `77281408f6b548b3fe8f61f3a5314c9407840ea174172558b9d9cdac5ed2b9e6`),
+de la beta 7, ya cumplió su papel: Fangusk midió 30 minutos en su Nothing (60 FPS, sin fotogramas lentos). Las dos son
+otra app, «CaroFarty medida», que se instala aparte del juego y no toca sus récords. Juega sola con el piloto
+automático, optimizada como la beta, para ver si el sonido y los fotogramas aguantan en un teléfono:
 
 1. Instálala como la beta (abajo) y ábrela: empieza a jugar sola, con música, y la pantalla no se apaga.
 2. Deja el móvil enchufado 30 minutos, con el volumen bajo pero sin silenciar, y escucha de vez en cuando por si hay

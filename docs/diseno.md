@@ -109,7 +109,11 @@ bien» (UI-11, TEC-09, VFX-07); el pulido de la beta 11, «ok»; la celebración
 salto» (PLY-15); de caídas o recogidas injustas: «por el momento no» (CHR-08, ENM-11). El juego ocupa toda la pantalla
 sin que la cámara tape nada importante y se ve fluido a 120 Hz (UI-14, TEC-05, MOB-03); el botón de silencio funciona y
 se recuerda (UI-21); la mezcla de música y efectos está bien con el altavoz y con auriculares, sin cansar (AUD-21); y el
-estilo visual, tal como está, queda como referencia final (ART-01, ART-03, ART-05).
+estilo visual, tal como está, queda como referencia final (ART-01, ART-03, ART-05). Para la beta 12 y la versión
+definitiva: sin sacudida de pantalla, «No» (VFX-04, ACC-01); que una llamada que suena pause la partida, con el juego
+quedándose con el sonido del teléfono mientras suena su música, y que la copia de seguridad de Android guarde los récords,
+«Okey adelante» (QA-07, ADR 0005); la copia de la clave de firma la guardó él (TEC-14). Y sobre la versión definitiva
+1.0, que ya tiene Caro: «la primera versión ha ido bastante bien, Caro está contenta» (QA-14, 2026-11-04).
 
 ## El bucle de juego
 
@@ -205,7 +209,8 @@ de salida en [proceso](proceso.md):
 
 ## Pendiente de Fangusk
 
-- Los teléfonos donde se jugará y la cuenta de Apple, al llegar a la instalación (TEC-13).
+Nada para la primera versión, que está entregada. Para más adelante, solo si él lo pide: la versión con la dedicatoria
+(UI-23), que iría encima de la 1.0 con la misma clave, y lo aparcado para M6.
 
 ## Documentos
 

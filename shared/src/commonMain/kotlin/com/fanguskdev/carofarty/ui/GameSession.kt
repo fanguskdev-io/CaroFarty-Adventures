@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import carofarty.shared.generated.resources.Res
+import com.fanguskdev.carofarty.MeasureLog
 import com.fanguskdev.carofarty.audio.AudioFocus
 import com.fanguskdev.carofarty.audio.GameAudio
 import com.fanguskdev.carofarty.audio.RescueStreak
@@ -114,9 +115,19 @@ internal class GameSession(
     private val openedAt: TimeSource.Monotonic.ValueTimeMark = TimeSource.Monotonic.markNow(),
     private val quit: (() -> Unit)? = null,
     private val focus: AudioFocus? = null,
+    private val measure: MeasureLog? = null,
+    firstSeed: Long? = null,
 ) {
     var scenario = choices.scenario
         private set
+
+    /**
+     * The seeds of the runs: at random, as always; or, given the first (the app that measures, GOD-27), one after another
+     * from it, with the leaves and the confetti also from it, as CaroFarty G's measure does, so that both play the same.
+     */
+    private var nextSeed = firstSeed
+    private val measureSeeds = firstSeed?.let { Random(it) }?.let { longArrayOf(it.nextLong(), it.nextLong()) }
+
     var run: GameRun = createRun()
         private set
 
@@ -236,7 +247,7 @@ internal class GameSession(
      */
     val effects = WorldEffects()
     val floating = ArrayList<Floating>()
-    val leaves = Leaves()
+    val leaves = Leaves(measureSeeds?.let { Random(it[0]) } ?: Random.Default)
     val budget = EffectsBudget()
 
     /** Whether her trail shows (VFX-01, GameMaster): on the ground, in her sprint and not pushed back. */
@@ -252,7 +263,7 @@ internal class GameSession(
     /** The counter of a new record in the panel of the end (UI-15), what it shows, and the confetti when it arrives. */
     private var recordCounter: PanelLine? = null
     private var counterShown = -1
-    val confetti = Confetti()
+    val confetti = Confetti(measureSeeds?.let { Random(it[1]) } ?: Random.Default)
     private var confettiStarted = false
 
     /** The scenario whose records show, and its best runs. */
@@ -371,7 +382,7 @@ internal class GameSession(
                 override fun lost() = interrupted()
 
                 override fun regained() {
-                    if (!paused && !(screen == Screen.Game && run.phase == RunPhase.Over)) audio?.resume()
+                    if (!paused && !(screen == Screen.Game && run.phase == RunPhase.Over)) resumeSound()
                 }
             }
         holdFocus()
@@ -391,10 +402,22 @@ internal class GameSession(
      */
     private fun interrupted() {
         pause()
+        pauseSound()
+    }
+
+    /** The run's sound pauses, or goes on; the app that measures notes when (GOD-27). */
+    private fun pauseSound() {
+        measure?.moment(PAUSED)
         audio?.pause()
     }
 
+    private fun resumeSound() {
+        measure?.moment(RESUMED)
+        audio?.resume()
+    }
+
     fun onFrame(nanos: Long) {
+        measure?.frame(nanos, debugLines, run.pieceWaits)
         val elapsed = if (lastNanos < 0) 0.0 else (nanos - lastNanos) / NANOS
         lastNanos = nanos
         time += elapsed
@@ -499,22 +522,24 @@ internal class GameSession(
         input.clear()
         // Its menu (UI-05, GameMaster's mockup): go on, the same scenario from the start, the settings or the start screen.
         pauseShown = true
-        audio?.pause()
+        pauseSound()
     }
 
     /** The app went to the background: the run pauses, the music stops and the phone's sound is let go. */
     fun background() {
+        measure?.away(true)
         pause()
-        audio?.pause()
+        pauseSound()
         inFront = false
         holdFocus()
     }
 
     /** The app came back: the music goes on, unless the run waits in its pause or has just ended. */
     fun foreground() {
+        measure?.away(false)
         inFront = true
         holdFocus()
-        if (!paused && !(screen == Screen.Game && run.phase == RunPhase.Over)) audio?.resume()
+        if (!paused && !(screen == Screen.Game && run.phase == RunPhase.Over)) resumeSound()
     }
 
     private fun titleTap(x: Float, y: Float) {
@@ -942,7 +967,7 @@ internal class GameSession(
         clock.reset()
         input.clear()
         holdFocus()
-        audio?.resume()
+        resumeSound()
     }
 
     /** Out of the pause, its menu, its sheets and its count. */
@@ -992,6 +1017,7 @@ internal class GameSession(
         // The dust where she jumps from and where she lands (VFX-01), which stays there.
         if (caro.jumps > jumps) effects.add(Effect.DustUp, fromX, fromY.roundToInt(), millis)
         if (!landing && caro.state == CaroState.Landing) {
+            measure?.moment(LANDED)
             audio?.play(Sound.Landing)
             effects.add(Effect.DustDown, caro.x, caro.y.roundToInt(), millis)
         }
@@ -1042,6 +1068,7 @@ internal class GameSession(
      */
     private fun jumpSound(jumped: Boolean, held: Boolean) {
         if (jumped) {
+            measure?.moment(JUMPED)
             audio?.play(Sound.Jump)
             longJumpSteps = (LONG_JUMP_SECONDS / JumpLab.STEP).roundToInt()
             return
@@ -1205,7 +1232,7 @@ internal class GameSession(
     }
 
     private fun createRun(): GameRun {
-        val seed = Random.nextLong()
+        val seed = nextSeed?.also { nextSeed = it + 1 } ?: Random.nextLong()
         return GameRun(config, scenario, seed, BufferedPieces(CourseGenerator(config, seed, GameRun.START_X, scenario), scope))
     }
 
@@ -1293,6 +1320,12 @@ internal class GameSession(
 
         /** The longest a frame counts for the count and for the confetti. */
         const val LONGEST_FRAME = 0.1
+
+        /** What the app that measures notes, as CaroFarty G's measure names it (GOD-27). */
+        const val JUMPED = "salto"
+        const val LANDED = "aterrizaje"
+        const val PAUSED = "pausa"
+        const val RESUMED = "sigue"
 
         /** Her trail from the speed of her sprint (GameMaster: «desde 450 px/s»), the third gait. */
         const val TRAIL_SPEED = 450f

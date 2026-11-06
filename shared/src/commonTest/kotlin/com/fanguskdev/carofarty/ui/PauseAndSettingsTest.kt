@@ -1,5 +1,6 @@
 package com.fanguskdev.carofarty.ui
 
+import com.fanguskdev.carofarty.MeasureLog
 import com.fanguskdev.carofarty.audio.AudioFocus
 import com.fanguskdev.carofarty.engine.PixelViewport
 import com.fanguskdev.carofarty.game.GameConfig
@@ -145,6 +146,37 @@ class PauseAndSettingsTest {
         session.tap(assertNotNull(session.pauseMenu).buttons[2])
         session.tap(session.layout.switchTouch(session.layout.settingsRows[0])[1])
         assertFalse(focus.held, "with its music off, the music of other apps plays along")
+    }
+
+    @Test
+    fun theAppThatMeasuresPlaysTheSeedItIsGivenAndNotesWhatTheBenchmarkTimes() {
+        // GOD-27: the first run with the seed of the launch and the next one with the seed after it, as CaroFarty G's
+        // measure plays them; and in the log, its jumps, its landings, its pauses and the app going away.
+        val written = mutableListOf<String>()
+        val log = MeasureLog({ nanos }, { 60f }) { written += it }
+        val session =
+            GameSession(GameConfig(), null, null, scope, Records(store), choices, debugBuild = true, measure = log, firstSeed = 2026)
+        assertEquals(2026L, session.run.seed)
+        session.running()
+        repeat(2) {
+            session.tapAt(200f, 100f)
+            session.frames(1.0)
+        }
+        val jumps = written.filter { it.startsWith("MEDIDA salto ") }
+        assertTrue(jumps.isNotEmpty() && written.any { it.startsWith("MEDIDA aterrizaje ") }, "$written")
+        assertTrue(jumps.all { it.removePrefix("MEDIDA salto ").toLong() in 1..nanos }, "the moment of their frame: $jumps")
+        session.back()
+        assertTrue(written.last().startsWith("MEDIDA pausa "))
+        session.tap(assertNotNull(session.pauseMenu).buttons[1])
+        session.frames(DIP)
+        assertEquals(2027L, session.run.seed, "the next run, with the next seed")
+        session.background()
+        assertTrue("MEDIDA fuera" in written)
+        // The leaves of the Bosque fall the same in two measures with the same seed.
+        val other = GameSession(GameConfig(), null, null, scope, Records(store), choices, debugBuild = true, firstSeed = 2026)
+        session.leaves.advance(0, 0.0, 400, 180)
+        other.leaves.advance(0, 0.0, 400, 180)
+        assertEquals(List(session.leaves.size) { session.leaves.left(it) }, List(other.leaves.size) { other.leaves.left(it) })
     }
 
     @Test

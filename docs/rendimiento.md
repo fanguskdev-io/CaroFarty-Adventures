@@ -27,6 +27,37 @@ milisegundos (lo mismo que pasó en iOS). Desde la beta 11 los sonidos empiezan 
 y la línea de depuración enseña cuánto tardan en uno y en otro y las paradas del recolector, para comprobarlo en su
 teléfono con la app de medida.
 
+## La medida para el benchmark con CaroFarty G (GOD-27)
+
+Fangusk quiere comparar la 1.0 con CaroFarty G, su migración a Godot, y subir a Play Store la que mejor salga (el método,
+en `../backlog-juego-plataformas/benchmark-1.0-vs-godot.md`; lo mide GameMaster). Para que las dos apps de medida jueguen
+lo mismo y dejen lo mismo en el registro, la de la 1.0 hace desde el 2026-11-06 lo que la de G (su `juego/juego.gd` y su
+`docs/rendimiento.md`):
+
+```bash
+adb -s <serie> shell am start -n com.fanguskdev.carofarty.medida/com.fanguskdev.carofarty.MainActivity --es escenario nieve --es semilla 2026
+adb -s <serie> logcat -s carofarty:I
+```
+
+- **El escenario y la semilla** de la primera partida (`bosque`, `nieve` o `desierto`). Las siguientes, con las semillas
+  que vienen detrás (2027, 2028…), y las hojas y el confeti también salen de ella, como en G. Las versiones de depuración
+  también los aceptan; la de lanzamiento, no.
+- **En el registro**, con la etiqueta `carofarty` (la de G es `godot`):
+  - cada 10 s, `MEDIDA` y las cinco líneas de depuración unidas por « | », y `MEDIDA real FPS … · PEOR … MS · LENTOS … %
+    · RELOJ … MS · ESPERAS … · … HZ`: los fotogramas por el reloj del teléfono (cuántos por segundo y el más largo desde
+    la línea anterior, la parte de lentos desde que se abrió), cuánto se ha separado el reloj del juego del del teléfono,
+    los pasos que la partida ha esperado por sus piezas y la tasa de la pantalla;
+  - `MEDIDA salto <ns>` y `MEDIDA aterrizaje <ns>`, y `MEDIDA pausa <ns>` y `MEDIDA sigue <ns>` cuando el sonido de la
+    partida se para y sigue, con el instante en que empezó su fotograma, en el reloj monótono del teléfono
+    (`System.nanoTime`, el de SurfaceFlinger);
+  - en cuanto pasan, `MEDIDA parón <n> ms` (un fotograma de más de 100 ms), `MEDIDA fuera` y `MEDIDA vuelve` (la app que
+    se va y vuelve) y `MEDIDA tasa <n> Hz` (una tasa nueva).
+- **La pantalla no se apaga**, como antes.
+
+El reloj del juego de la 1.0 es el de los fotogramas de la pantalla (Choreographer), así que RELOJ se queda en unos pocos
+milisegundos: lo que tarda en empezar cada fotograma. Nada de esto cambia el juego: los ganchos solo existen en la app de
+medida (`MeasureLog`), y sin ella el juego es la 1.0 tal cual, con la misma huella de partida (`SAME_RUN`).
+
 ## Si el teléfono no llega (VFX-09)
 
 El móvil de Caro es un Android de marca genérica. Mientras se juega, el juego mira los fotogramas en ventanas de 2 s: si

@@ -14,7 +14,9 @@ import com.fanguskdev.carofarty.ui.GameScreen
  * nobody can tap and to measure long ones on a phone (MOB-02). [sound] plays the music and the sounds: the phones and the
  * desktop do, the tests do not. [quit] closes the game, from the button of the start screen (Fangusk): Android and the
  * desktop can, iOS cannot (Apple does not let an app close itself), so there it is null and the button does not show.
- * [focus] shares the sound with the rest of the phone, where there is a way (Android's audio focus).
+ * [focus] shares the sound with the rest of the phone, where there is a way (Android's audio focus). The app that
+ * measures has its [measure] log, and debug builds and it may give the seed of the first run ([firstSeed]), for the
+ * benchmark against CaroFarty G (GOD-27).
  */
 @Composable
 fun App(
@@ -25,6 +27,8 @@ fun App(
     sound: Boolean = false,
     quit: (() -> Unit)? = null,
     focus: AudioFocus? = null,
+    measure: MeasureLog? = null,
+    firstSeed: Long? = null,
 ) {
-    GameScreen(store, debug, debugAtStart, autopilot, sound, quit, focus)
+    GameScreen(store, debug, debugAtStart, autopilot, sound, quit, focus, measure, firstSeed)
 }

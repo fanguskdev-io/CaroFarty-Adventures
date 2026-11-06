@@ -27,6 +27,23 @@ class GameRunTest {
     }
 
     @Test
+    fun withoutPiecesAheadSheWaitsAndTheWaitsAreCounted() {
+        // For the app that measures (GOD-27): the steps she waits for the pieces made in the background.
+        val start = Piece(listOf(Ground(-512, 800, 32)), emptyList(), 800)
+        val pieces = object : PieceSource {
+            var given = false
+
+            override fun nextOrNull(): Piece? = if (given) null else start.also { given = true }
+        }
+        val run = GameRun(config, Scenario.Bosque, seed = 1, pieces = pieces)
+        run.step(step, pressed = true, held = false)
+        repeat(240) { run.step(step, pressed = false, held = false) }
+        assertTrue(run.pieceWaits > 0, "she waited")
+        assertTrue(run.caro.x <= 800 - GameRun.MIN_AHEAD + 10, "and did not run off the course")
+        assertEquals(0, newRun().pieceWaits)
+    }
+
+    @Test
     fun takingPointsAwayEndsTheRunAtZeroAsTouchingSomethingWould() {
         val run = newRun()
         run.takeAway(4)

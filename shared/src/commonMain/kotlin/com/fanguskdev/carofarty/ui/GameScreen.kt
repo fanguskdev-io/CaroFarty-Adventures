@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.IntSize
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import carofarty.shared.generated.resources.Res
+import com.fanguskdev.carofarty.MeasureLog
 import com.fanguskdev.carofarty.audio.AudioFocus
 import com.fanguskdev.carofarty.audio.GameAudio
 import com.fanguskdev.carofarty.audio.musicPlayer
@@ -104,6 +105,8 @@ internal fun GameScreen(
     sound: Boolean = false,
     quit: (() -> Unit)? = null,
     focus: AudioFocus? = null,
+    measure: MeasureLog? = null,
+    firstSeed: Long? = null,
 ) {
     val openedAt = remember { TimeSource.Monotonic.markNow() }
     val resources by produceState<Loaded?>(null) {
@@ -134,6 +137,8 @@ internal fun GameScreen(
                 openedAt,
                 quit,
                 focus.takeIf { audio != null },
+                measure,
+                firstSeed,
             )
         }
     val world = remember { PixelBuffer() }

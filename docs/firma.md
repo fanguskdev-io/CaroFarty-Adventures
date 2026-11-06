@@ -38,6 +38,9 @@ El script toma el almacén de `~/CaroFarty-firma/` (o de donde diga `CAROFARTY_F
 compila el APK de lanzamiento y comprueba con `apksigner` que va firmado con la clave propia: tiene que salir la huella
 de arriba. Compila sin la caché de configuración de Gradle, para que la contraseña no se guarde en el disco.
 
+Con `bash scripts/firmar.sh --aab` hace también el AAB, el paquete que pide Google Play
+(`androidApp/build/outputs/bundle/release/`), y comprueba su firma con `jarsigner`, que tiene que dar la misma huella.
+
 El APK es reproducible: el mismo commit da el mismo APK, byte a byte, compilado las veces que sea. Para eso no lleva el
 bloque cifrado que AGP mete para Google Play, que cambiaba en cada compilación.
 

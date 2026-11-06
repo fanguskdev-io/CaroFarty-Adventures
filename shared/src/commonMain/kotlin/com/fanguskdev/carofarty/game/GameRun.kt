@@ -71,6 +71,10 @@ class GameRun(
         private set
     private var reactionTime = 0f
 
+    /** The steps she waited for the pieces made in the background, for the app that measures (GOD-27). */
+    var pieceWaits = 0
+        private set
+
     /** How many animals she has rescued in this run, for the end (Fangusk: «salvando el mundo, patita a patita»). */
     var rescued = 0
         private set
@@ -109,7 +113,10 @@ class GameRun(
         }
         fillAhead(MAX_PIECES_PER_STEP)
         // If the pieces made in the background ever fell behind, she waits for them rather than run off the course.
-        if (course.end - caro.x < MIN_AHEAD) return
+        if (course.end - caro.x < MIN_AHEAD) {
+            pieceWaits++
+            return
+        }
         // The moving platforms go on with the run (ADR 0009), before she moves on them.
         course.time += dt
         caro.step(dt, pressed, held, course)

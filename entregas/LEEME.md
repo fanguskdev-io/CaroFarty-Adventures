@@ -20,6 +20,33 @@ se instalarán encima de esta sin perder nada.
 
 Probada en el emulador, en un teléfono limpio, y, la parte común, en el simulador de iOS.
 
+## Para el benchmark con CaroFarty G (GOD-27, 2026-11-06)
+
+Fangusk subirá a Play Store la que mejor salga de las dos (lo mide GameMaster, con el método de
+`../backlog-juego-plataformas/benchmark-1.0-vs-godot.md`).
+
+**La app de medida**: `CaroFarty-medida-2026-11-06.apk`, 12 MB, del commit `3b364af`, número de versión 83. SHA-256 del
+fichero: `e8f1b5fdad85830bf2d352a9b3a376c50a68d16dae6e7e40a6a81cdb616f17f2`. Es la de siempre, «CaroFarty medida»
+(`com.fanguskdev.carofarty.medida`), otra app que no toca los récords del juego, firmada con la clave de depuración. Juega
+la 1.0 tal cual, sola, con el piloto y con sonido, enseña la línea de medidas y no deja que se apague la pantalla. Como la
+de G, se le dan el escenario y la semilla de la primera partida, y deja en el registro las mismas líneas `MEDIDA`, con la
+etiqueta `carofarty` ([rendimiento](../docs/rendimiento.md#la-medida-para-el-benchmark-con-carofarty-g-god-27)):
+
+```bash
+adb -s <serie> shell am start -W -n com.fanguskdev.carofarty.medida/com.fanguskdev.carofarty.MainActivity --es escenario nieve --es semilla 2026
+adb -s <serie> logcat -s carofarty:I
+```
+
+Con `dumpsys SurfaceFlinger --latency`, la capa que dibuja es la de su ventana:
+`VRI-com.fanguskdev.carofarty.medida/com.fanguskdev.carofarty.MainActivity#<n>` (el número, en
+`dumpsys SurfaceFlinger --list`). Sustituye a la medida del 2026-11-03, que se instala encima.
+
+**El AAB de la 1.0**, solo para medir el peso de descarga: `CaroFarty-1.0.aab`, 12 MB, firmado con la clave propia. SHA-256
+del fichero: `49863bb1bc7eff67ec0e4d135718f812f91949ce4a9f42c5ccffb12e55bcb1b2`. Sale del código de la 1.0, el commit
+`2a89a4f` con el número de versión 79, compilado con `bash scripts/firmar.sh --aab` en una copia aparte: el APK de esa misma
+compilación es, byte a byte, `CaroFarty-1.0.apk`, y el código (`classes.dex`) y los 98 ficheros del juego del AAB son los
+mismos que los del APK. No se sube a ningún sitio.
+
 ## La beta del 2026-11-03 (la undécima)
 
 `CaroFarty-beta-2026-11-03-11.apk`, 12 MB, versión de lanzamiento firmada con la clave de depuración de este Mac

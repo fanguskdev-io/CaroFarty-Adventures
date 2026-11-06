@@ -28,7 +28,9 @@ class MeasureLogTest {
 
     @Test
     fun everyTenSecondsItsLinesAsCaroFartyGLeavesThem() {
-        frames(601, millis = 1000.0 / 60)
+        // The game takes a while to open: the 10 s count from its first frame, not from when the log was made.
+        clock += 12_000_000_000L
+        frames(602, millis = 1000.0 / 60)
         assertEquals("MEDIDA tasa 60 Hz", written.first())
         assertEquals("MEDIDA FPS 60 · PEOR 17 MS · LENTOS 0,0 % | SALTOS 3 · COYOTE 0 · BUFFER 0", written[1])
         assertEquals("MEDIDA real FPS 60 · PEOR 17 MS · LENTOS 0,0 % · RELOJ +0 MS · ESPERAS 0 · 60 HZ", written[2])
@@ -37,6 +39,10 @@ class MeasureLogTest {
 
     @Test
     fun aStopAndAJumpWithTheMomentItsFrameBegan() {
+        // Before the first frame, nothing: the 1.0's session hears the app «come back» as it opens, and G does not.
+        log.away(false)
+        log.moment("sigue")
+        assertTrue(written.isEmpty())
         frames(10, millis = 1000.0 / 60)
         frames(1, millis = 150.0)
         assertTrue("MEDIDA parón 150 ms" in written)
@@ -52,7 +58,7 @@ class MeasureLogTest {
         val game = longArrayOf(0L)
         frames(60, millis = 1000.0 / 60, game = game)
         rate = 120f
-        frames(541, millis = 1000.0 / 60, ahead = 1.004, game = game)
+        frames(542, millis = 1000.0 / 60, ahead = 1.004, game = game)
         assertTrue("MEDIDA tasa 120 Hz" in written)
         // 0,4 % ahead for 9 s, as the Nothing's Godot ran: some 36 ms.
         val real = written.last { it.startsWith("MEDIDA real") }

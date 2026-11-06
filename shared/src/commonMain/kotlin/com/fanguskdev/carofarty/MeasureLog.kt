@@ -16,10 +16,13 @@ import kotlin.math.max
  * - Each jump and landing, and each time the run's sound pauses and goes on, with the moment its frame began.
  * - At once: a stop (a frame of more than 100 ms), the app going away and coming back, and a new rate.
  *
- * Nothing of it changes the game: only the app that measures has one.
+ * What happens before the first frame is not noted: there is no frame yet to time it by, and CaroFarty G notes nothing
+ * then either (the 1.0's session hears the app «come back» as it opens). Nothing of it changes the game: only the app
+ * that measures has one.
  */
 class MeasureLog(private val now: () -> Long, private val refreshRate: () -> Float, private val write: (String) -> Unit) {
-    private var measuredAt = now()
+    /** When the last lines were written, the first 10 s after the first frame, when the debugging lines are there. */
+    private var measuredAt = 0L
     private var started = false
 
     /** When this frame began, by the phone's clock; and where the game's clock is. */
@@ -50,6 +53,7 @@ class MeasureLog(private val now: () -> Long, private val refreshRate: () -> Flo
         gameNanos = nanos
         if (!started) {
             started = true
+            measuredAt = at
             realFirst = at
             realLineAt = at
             nanosFirst = nanos
@@ -78,12 +82,12 @@ class MeasureLog(private val now: () -> Long, private val refreshRate: () -> Flo
 
     /** Something the benchmark times happened in this frame: [name] is «salto», «aterrizaje», «pausa» or «sigue». */
     fun moment(name: String) {
-        write("MEDIDA $name $frameClock")
+        if (started) write("MEDIDA $name $frameClock")
     }
 
     /** The app went away, or came back. */
     fun away(away: Boolean) {
-        write(if (away) "MEDIDA fuera" else "MEDIDA vuelve")
+        if (started) write(if (away) "MEDIDA fuera" else "MEDIDA vuelve")
     }
 
     private fun realLine(pieceWaits: Int): String {
